@@ -1,0 +1,782 @@
+/*  place bootstrap overrides here */
+$spacers: (
+	6: (
+		5%,
+	),
+	// 90% -> form inputs became 5% shorter on width from each side
+	7:
+		(
+			10%,
+		)
+		// 80% -> form inputs became 10% shorter on width from each side,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,
+);
+
+@import "../bootstrap/scss/bootstrap";
+
+* {
+	padding: 0;
+	margin: 0;
+	box-sizing: border-box;
+}
+
+html {
+	font-size: 16px;
+}
+
+body {
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+}
+
+#main_wrapper,
+#profile_container {
+	flex-grow: 1;
+}
+
+h1.heading_profile {
+	font-family: "Open Sans", sans-serif;
+	font-weight: 700;
+	font-size: 30px;
+	color: white;
+	margin-top: 2.5rem;
+}
+
+h2.heading2_profile {
+	font-family: "Open Sans", sans-serif;
+	font-weight: 400;
+	font-size: 25px;
+	color: white;
+	margin-top: 2.5rem;
+}
+
+h2.dashboard_heading {
+	font-family: "Open Sans", sans-serif;
+}
+
+.divider {
+	margin-top: 1rem;
+	margin-bottom: 1rem;
+	border: 0;
+	border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.dashboard_grid_cols {
+	padding: 20px;
+}
+
+a#logout {
+	color: black;
+	font-size: 16px;
+}
+
+a#logout:hover {
+	color: black;
+	font-size: 16px;
+}
+
+div#profile {
+	background-color: #eeeeee;
+	color: black;
+	font-family: "Open Sans", sans-serif;
+	font-weight: 300;
+	transition: all 0.5s ease;
+}
+
+div#profile:hover {
+	transition: all 0.5s ease;
+	background-color: #999999;
+	color: white;
+}
+
+div#original_redemption:hover {
+	transition: all 0.5s ease;
+	background-color: #c93852;
+}
+
+div#coming_soon {
+	background-color: #e1e8ed;
+	color: black;
+	font-family: "Open Sans", sans-serif;
+	font-weight: 300;
+	transition: all 0.5s ease;
+	position: relative;
+}
+
+div#coming_soon:hover {
+	transition: all 0.5s ease;
+	background-color: #666666;
+	color: white;
+}
+
+p.info_full {
+	margin-top: 30px;
+}
+
+h2.col-heading {
+	font-family: "Open Sans", sans-serif;
+	font-weight: 300;
+}
+
+p.offer {
+	font-family: "Open Sans", sans-serif;
+	font-size: 14px;
+}
+
+h2.col-heading_profile {
+	font-family: "Open Sans", sans-serif;
+	font-weight: 700;
+	font-size: 36px;
+	color: black;
+}
+
+.pimage {
+	font-size: 14pt;
+}
+
+.pimage img {
+	vertical-align: text-bottom;
+	margin-right: 15px;
+}
+
+.table-nbr {
+	text-align: right;
+}
+
+#venue-form-container {
+	text-align: center;
+	width: 400px;
+	margin: 100px auto;
+}
+
+#venue-form-container select {
+	margin: 10px auto;
+}
+
+.v-summary-container {
+	display: grid;
+	grid-template-columns: 33% 33% 33%;
+	column-gap: 4px;
+	row-gap: 8px;
+}
+
+.v-summary-section {
+	border: 1px solid lightgray;
+}
+
+.product-view-checked-btn {
+	margin: 10px 0;
+}
+
+.table-fixed-wrapper {
+	position: relative;
+	border: 1px solid #000;
+	background: #efefef;
+	overflow: hidden;
+	border-radius: 7px;
+}
+
+.table-fixed {
+	border: none;
+}
+
+.table-fixed tbody {
+	overflow-y: auto;
+}
+
+#product-table-container {
+	max-height: 700px;
+}
+
+#all-payments-table-container {
+	max-height: 560px;
+}
+
+#voucher-table-container {
+	max-height: 640px;
+}
+
+#payment-table-container {
+	max-height: 560px;
+}
+
+.table-fixed-container {
+	overflow-y: scroll;
+	border: none;
+	margin-top: -1px;
+}
+
+.table-fixed-container thead th {
+	background-color: #eee;
+	position: sticky;
+	top: 0;
+	z-index: 2;
+}
+
+.table-fixed-container tfoot th,
+.table-fixed-container tfoot td {
+	background-color: #eee;
+	position: sticky;
+	bottom: 0;
+	z-index: 2;
+}
+
+.table-total-label {
+	text-align: center;
+	font-weight: bold;
+}
+
+.order-redeem-btn,
+.order-unredeem-btn {
+	width: 92px;
+}
+
+#make-payment-div {
+	width: 200px;
+	margin: 0 auto;
+}
+
+/* style for scroll up arrow */
+#topbutton {
+	height: 40px;
+	width: 36px;
+	position: fixed;
+	right: 4px;
+	bottom: 45px;
+	z-index: 1;
+	display: none;
+
+	button {
+		color: #007bff;
+		border-color: blue;
+		border-radius: 4px;
+	}
+
+	i {
+		font-size: 3em;
+
+		span {
+			margin-top: -10px;
+		}
+	}
+}
+
+/* MODAL STYLES FOR AJAX SPINNER/MSG */
+#taste-msg-text {
+	font-size: 22px;
+	font-weight: bold;
+}
+
+.portal-welcome {
+	margin-top: 15px;
+}
+
+.portal-links-container {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-around;
+}
+
+.portal-link {
+	padding: 24px;
+	border-radius: 6px;
+	background-color: #eee;
+	text-align: center;
+	margin: 8px;
+	width: 45%;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-around;
+}
+
+.portal-link p {
+	margin-bottom: 14px;
+	font-size: 1.1em;
+}
+
+.portal-link.coming-soon {
+	background-color: lightgreen;
+}
+
+.venue-profile-form {
+	//width: 80%;
+	margin-top: 5%;
+}
+
+.highlight-row {
+	background-color: orange !important;
+}
+
+#audit-filter-container {
+	width: 90%;
+	margin: 12px auto;
+	box-sizing: border-box;
+}
+
+#load-products {
+	margin-top: 16px;
+}
+
+#audit-filter-container #venue-form-container {
+	margin: 12px auto;
+}
+
+.filter-form-row {
+	display: flex;
+	flex-direction: row;
+	padding: 8px 4px;
+	margin-bottom: 6px;
+	border-bottom: 3px inset lightblue;
+}
+
+#product-date-range-container,
+#order-date-range-container,
+#order-year-select-container,
+#venue-select-container {
+	display: none;
+}
+
+.date-range-container span {
+	padding: 0;
+}
+
+.table-title-action {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	margin-top: 8px;
+}
+
+.custom-columns-toggle-btn {
+	background-color: #f5f5f5;
+	border: 1px solid lightgray;
+	color: black;
+	outline: none;
+}
+
+.custom-columns-list-div {
+	display: none;
+	padding: 8px 4px 4px;
+}
+
+.custom-columns-row {
+	display: block;
+}
+.custom-columns-row label {
+	margin: 4px 10px 2px;
+}
+
+#product-id-entry {
+	margin: 14px 0;
+}
+
+#product-id-entry::-webkit-inner-spin-button,
+#product-id-entry::-webkit-outer-spin-button {
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	appearance: none;
+	margin: 0;
+}
+
+#add-product-id-btn,
+#clear-product-list-btn {
+	margin-left: 10px;
+	padding: 4px 6px;
+}
+
+.bodyScroll {
+	overflow: visible !important;
+}
+
+div#profile_container {
+	padding-left: 0 !important;
+	padding-right: 0 !important;
+	height: 100%;
+}
+
+div#profile-row {
+	height: 100%;
+	margin-right: 0;
+	margin-left: 0;
+}
+
+div#profile_photo {
+	background-color: #666666;
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+	justify-content: center;
+	padding: 25px;
+	transition: all 0.5s ease;
+}
+
+button#update_photo {
+	margin-bottom: 35px;
+	background-color: #666666 !important;
+	border: none;
+	padding: 15px;
+	margin-top: 30px;
+	transition: all 0.5s ease;
+	display: unset;
+}
+
+img.profile-photo__img {
+	width: 70%;
+	transition: all 0.5s ease;
+	border: 1px solid white;
+	padding: 15px;
+}
+
+div#profile_edit_form {
+	background-color: #eeeeee;
+	//display: flex;
+	//align-items: center;
+	//justify-content: center;
+	//flex-direction: column;
+}
+
+.venue-profile-form label {
+	font-family: "Open Sans", sans-serif;
+	font-weight: 700;
+	color: black;
+}
+
+.venue-profile-form input,
+.venue-profile-form input::placeholder {
+	font-family: "Open Sans", sans-serif;
+	font-weight: 300;
+}
+
+#payment-modal-delete {
+	display: none;
+}
+
+@media screen and (min-width: 1200px) {
+	h2.col-heading {
+		font-size: 28px;
+	}
+}
+
+body.campaign-manager {
+	div.headings {
+		margin-top: 2.5rem;
+		margin-bottom: 2.5rem;
+	}
+
+	h1.overview_heading {
+		font-family: "Roboto", sans-serif;
+		font-weight: 400;
+		font-size: 30px;
+	}
+
+	h2.venue_name {
+		font-family: "Roboto", sans-serif;
+		font-weight: 300;
+		font-size: 25px;
+	}
+
+	.cols,
+	.tcard,
+	.tcard-lg {
+		background-color: #f1f1f1;
+		border-radius: 1rem;
+		padding: 1.5rem;
+		transition: all 0.5s ease;
+	}
+
+	.cols:hover,
+	.tcard:hover,
+	.tcard-lg:hover {
+		background-color: #cecece;
+		transition: all 0.5s ease;
+	}
+
+	.cols {
+		margin-left: 1rem;
+	}
+
+	.tcard,
+	.tcard-lg {
+		min-width: 278px;
+		margin: 0.5rem;
+	}
+
+	.tcard-lg {
+		@media (min-width: 992px) {
+			min-width: 430px;
+			margin: 0.5rem;
+		}
+	}
+
+	h3.numbers {
+		font-family: "Roboto", sans-serif;
+		font-weight: 700;
+		font-size: 30px;
+		margin-bottom: 2.5rem;
+	}
+
+	p.titles {
+		position: absolute;
+		bottom: 0;
+		font-family: "Roboto", sans-serif;
+		font-weight: 300;
+		font-size: 15px;
+		color: #656565;
+	}
+
+	.eclipse_icon_bg {
+		position: absolute;
+		right: 1rem;
+		top: 1rem;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		width: 45px;
+		height: 45px;
+		border-radius: 50%;
+	}
+
+	/* icon circle background */
+	.ticket_icon {
+		background-color: #ffd600;
+	}
+	.users_icon {
+		background-color: #00e0ff;
+	}
+	.money_bill_icon {
+		background-color: #52ff00;
+	}
+	.cash_register_icon {
+		background-color: #d8a7ff;
+	}
+	.coins_icon {
+		background-color: #ff7878;
+	}
+	.balance_scale_icon {
+		background-color: #ffaf82;
+	}
+
+	/* icons */
+	.fa-ticket-alt,
+	.fa-users,
+	.fa-balance-scale,
+	.fa-cash-register,
+	.fa-coins,
+	.fa-money-bill-alt {
+		font-size: 22px;
+	}
+
+	.active-prod,
+	.expired-prod,
+	.served,
+	.notserved {
+		font-weight: bold;
+	}
+
+	.fa-check-circle,
+	.fa-times-circle {
+		font-size: 20px;
+	}
+
+	.active-prod,
+	.served,
+	.fa-check-circle {
+		color: #44c4a1;
+	}
+
+	.expired-prod,
+	.notserved,
+	.fa-times-circle {
+		color: #f44336;
+	}
+
+	.camp_summary_table {
+		font-family: "Roboto", sans-serif;
+	}
+
+	.table-fixed {
+		font-family: "Roboto", sans-serif;
+		font-size: 14px;
+		th,
+		td {
+			vertical-align: middle;
+		}
+	}
+
+	.table-fixed thead tr th {
+		text-align: center;
+	}
+
+	button.view_offer .fa-eye {
+		font-size: 20px;
+	}
+
+	button.view_offer {
+		background-color: unset;
+		border: none;
+		color: #4dcfe0;
+		font-weight: bold;
+	}
+
+	button.view_offer:hover {
+		background-color: unset;
+		color: #4dcfe0;
+	}
+
+	button.view_offer:focus {
+		border: none;
+		outline: none;
+		box-shadow: none;
+	}
+
+	.view_offer:not(:disabled):not(.disabled):active {
+		background-color: unset;
+		border-color: unset;
+		color: #4dcfe0;
+		outline: none;
+	}
+
+	.revenue_campaign_info,
+	.please_note {
+		border-radius: 10px;
+		background-color: #f1f1f1;
+		padding: 1.5rem;
+	}
+
+	.revenue_campaign_info h3,
+	.please_note h3 {
+		font-size: 20px;
+		font-weight: 700;
+		font-family: "Roboto", sans-serif;
+		margin-bottom: 2rem;
+	}
+
+	.revenue_campaign_info,
+	.please_note p {
+		font-size: 15px;
+		font-weight: 400;
+		font-family: "Roboto", sans-serif;
+	}
+
+	.collapse-container {
+		position: relative;
+	}
+
+	.circle-span {
+		position: absolute;
+		right: 0;
+		top: 0;
+	}
+
+	.collapse-icon {
+		color: #44c4a1;
+		font-size: 25px;
+		position: absolute;
+		right: 0;
+		top: 0;
+		cursor: pointer;
+	}
+
+	h3.terms {
+		margin-bottom: 0.5rem !important;
+	}
+
+	.first_terms {
+		margin-left: 1rem;
+	}
+
+	ul.term_and_cond li {
+		list-style: square;
+		font-size: 13px;
+	}
+
+	#all-payments-table {
+		text-align: center;
+	}
+	.fa-long-arrow-alt-down {
+		font-size: 20px;
+		cursor: pointer;
+	}
+
+	.fa-trash-alt,
+	.fa-pencil-alt,
+	.fa-file-pdf {
+		font-size: 24px;
+		cursor: pointer;
+	}
+
+	.add_comment_payment {
+		background-color: unset;
+		color: #44c4a1;
+		font-weight: 700;
+		border: none;
+	}
+
+	.add_comment_payment:hover {
+		background-color: unset;
+		color: teal;
+	}
+
+	.add_comment_payment:not(:disabled):not(.disabled):active {
+		background-color: unset;
+		border-color: unset;
+		color: teal;
+		outline: none;
+	}
+
+	.table-fixed {
+		margin-bottom: 0;
+	}
+
+	.table > thead > tr > th,
+	.table > tbody > tr > th,
+	.table > tfoot > tr > th,
+	.table > thead > tr > td,
+	.table > tbody > tr > td,
+	.table > tfoot > tr > td {
+		padding: 10px;
+		line-height: 1.42857143;
+	}
+
+	.table > tbody > tr > td.table-nbr {
+		text-align: right;
+		padding-right: 18px;
+	}
+}
+
+body.audit-by-products {
+	#taste-msg-box {
+		width: 30%;
+		margin: auto;
+		position: fixed;
+		top: 25%;
+		left: 35%;
+		height: 200px;
+		color: #212529;
+		line-height: 1.625;
+		border: 2px solid black;
+		padding: 15px;
+		text-align: center;
+		display: none;
+	}
+	#taste-msg-box p {
+		color: #212529;
+		font-weight: bold;
+		font-size: 120%;
+	}
+
+	#taste-msg-text {
+		margin-bottom: 50px;
+	}
+
+	#taste-modal-layer {
+		position: fixed;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-color: rgba(0, 0, 0, 0.4);
+		display: none;
+		z-index: 9999;
+	}
+}
