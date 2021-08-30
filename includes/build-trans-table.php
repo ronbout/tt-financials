@@ -42,14 +42,17 @@ function process_new_orders($start_date) {
 			JOIN {$wpdb->prefix}posts op ON op.ID = wclook.order_id 
 			JOIN {$wpdb->prefix}woocommerce_order_items oi ON oi.order_item_id = wclook.order_item_id
 			JOIN {$wpdb->prefix}woocommerce_order_itemmeta oim ON oim.order_item_id = wclook.order_item_id
-		LEFT JOIN {$wpdb->prefix}taste_order_transactions ot ON ot.order_item_id = wclook.order_item_id
 		LEFT JOIN {$wpdb->prefix}wc_order_coupon_lookup cpn_look ON cpn_look.order_id = wclook.order_id
 		LEFT JOIN {$wpdb->prefix}posts cpn_post ON cpn_post.ID = cpn_look.coupon_id
 		WHERE op.post_status in ('wc-completed', 'wc-refunded', 'wc-on-hold')
 			AND oim.meta_key = '_qty'
 			AND op.post_type = 'shop_order'
-			AND ot.trans_type IS NULL 
-			AND wclook.date_created > %s
+			AND wclook.date_created > %s	
+			AND NOT EXISTS (
+				SELECT * FROM {$wpdb->prefix}taste_order_transactions ot
+				WHERE ot.order_item_id = wclook.order_item_id
+					AND ot.trans_type = 'Order'
+			)
 		GROUP BY wclook.order_item_id
 		ORDER BY op.post_date DESC";
 
