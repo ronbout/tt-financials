@@ -10,29 +10,39 @@ defined('ABSPATH') or die('Direct script access disallowed.');
 
 function tfinancial_add_transaction_table() {
 	global $wpdb;
-	$venue_table = $wpdb->prefix.'taste_order_transaction';
+	$trans_table = $wpdb->prefix.'taste_order_transactions';
 
-	// $sql = "CREATE TABLE IF NOT EXISTS $venue_table (
-	// 		venue_id BIGINT(20) UNSIGNED NOT NULL,
-	// 		name VARCHAR(80) NOT NULL,
-	// 		description VARCHAR(255),
-	// 		address1 VARCHAR(120),
-	// 		address2 VARCHAR(120),
-	// 		city VARCHAR(100),
-	// 		postcode VARCHAR(20),
-	// 		country VARCHAR(100),
-	// 		state VARCHAR(100),
-	// 		phone VARCHAR(40),
-	// 		venue_type ENUM ('Restaurant', 'Bar', 'Hotel', 'Product'),
-	// 		voucher_pct FLOAT,
-	// 		paid_member TINYINT(1) ZEROFILL NOT NULL DEFAULT 0, 
-	// 		member_renewal_date DATE,
-	// 		membership_cost DECIMAL(10,2),
-	// 		PRIMARY KEY (venue_id),
-	// 		UNIQUE KEY (name),
-	// 		KEY (venue_type)
-	// 	)";
-
+	$sql = "
+	CREATE TABLE IF NOT EXISTS $trans_table (
+		`id` BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+		`order_id` BIGINT(20) UNSIGNED NOT NULL,
+		`order_item_id` BIGINT(20) UNSIGNED NOT NULL,
+		`trans_type` ENUM('Order','Redemption','Creditor Payment','Refund','Taste Credit','Order - From Credit','Redemption - From Credit','Bank Receipt') NOT NULL COLLATE 'latin1_swedish_ci',
+		`trans_amount` DECIMAL(19,4) UNSIGNED NULL DEFAULT NULL,
+		`order_date` DATETIME NOT NULL,
+		`product_id` BIGINT(20) NOT NULL,
+		`product_price` DECIMAL(19,4) UNSIGNED NOT NULL,
+		`quantity` DECIMAL(19,4) UNSIGNED NULL DEFAULT NULL,
+		`gross_revenue` DECIMAL(19,4) UNSIGNED NOT NULL,
+		`venue_id` BIGINT(20) UNSIGNED NULL DEFAULT NULL,
+		`venue_name` VARCHAR(80) NULL DEFAULT NULL COLLATE 'latin1_swedish_ci',
+		`creditor_id` BIGINT(20) NOT NULL,
+		`venue_creditor` VARCHAR(80) NOT NULL COLLATE 'latin1_swedish_ci',
+		`refund_id` BIGINT(20) UNSIGNED NULL DEFAULT NULL,
+		`coupon_id` MEDIUMTEXT NULL DEFAULT NULL COLLATE 'latin1_swedish_ci',
+		`coupon_code` MEDIUMTEXT NULL DEFAULT NULL COLLATE 'latin1_swedish_ci',
+		`coupon_value` DECIMAL(19,4) UNSIGNED NULL DEFAULT NULL,
+		`net_cost` DECIMAL(19,4) UNSIGNED NOT NULL,
+		`commission` DECIMAL(19,4) UNSIGNED NOT NULL,
+		`vat` DECIMAL(19,4) UNSIGNED NOT NULL,
+		`gross_income` DECIMAL(19,4) UNSIGNED NOT NULL,
+		`venue_due` DECIMAL(19,4) UNSIGNED NOT NULL,
+		PRIMARY KEY (`id`) USING BTREE,
+		INDEX `order_id` (`order_id`) USING BTREE,
+		INDEX `order_item_id` (`order_item_id`) USING BTREE,
+		INDEX `trans_type` (`trans_type`) USING BTREE
+	)";
+	
 	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
 	dbDelta($sql);
 }

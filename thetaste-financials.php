@@ -34,42 +34,28 @@ if (is_admin()) {
 
 // enqueues 
 //require_once TFINANCIAL_PLUGIN_INCLUDES.'/enqueues.php';
-/*
 require_once TFINANCIAL_PLUGIN_INCLUDES.'/ajax/ajax-functions.php';
 require_once TFINANCIAL_PLUGIN_INCLUDES.'/functions.php';
 
-require_once TFINANCIAL_PLUGIN_INCLUDES.'/ajax/outstanding/ajax-functions.php';
-*/
+//require_once TFINANCIAL_PLUGIN_INCLUDES.'/build-trans-table.php';
 
 /**
- * Campaign manager set up code
+ * Page Templates setup code
  */
 // set up page templates
-// function tfinancial_add_venue_manager_template ($templates) {
-// 	$templates['campaign-manager.php'] = 'Campaign Manager';
-// 	$templates['venue-portal.php'] = 'Venue Portal';
-// 	$templates['venue-profile-page.php'] = 'Venue Profile Page';
-// 	$templates['audit-by-products.php'] = 'Audit By Products';
-// 	return $templates;
-// 	}
-// add_filter ('theme_page_templates', 'tfinancial_add_venue_manager_template');
+function tfinancial_add_template ($templates) {
+	$templates['test-build-trans.php'] = 'Build Transaction Table';
+	return $templates;
+	}
+add_filter ('theme_page_templates', 'tfinancial_add_template');
 
-// function tfinancial_redirect_page_template ($template) {
-// 	if (is_page_template('campaign-manager.php')) {
-// 		$template = plugin_dir_path( __FILE__ ).'page-templates/campaign-manager.php';
-// 	}
-// 	if (is_page_template('venue-portal.php')) {
-// 		$template = plugin_dir_path( __FILE__ ).'page-templates/venue-portal.php';
-// 	}
-// 	if (is_page_template('venue-profile-page.php')) {
-// 		$template = plugin_dir_path( __FILE__ ).'page-templates/venue-profile-page.php';
-// 	}
-// 	if (is_page_template('audit-by-products.php')) {
-// 		$template = plugin_dir_path( __FILE__ ).'page-templates/audit-by-products.php';
-// 	}
-// 	return $template;
-// }
-// add_filter ('page_template', 'tfinancial_redirect_page_template');
+function tfinancial_redirect_page_template ($template) {
+	if (is_page_template('test-build-trans.php')) {
+		$template = plugin_dir_path( __FILE__ ).'page-templates/test-build-trans.php';
+	}
+	return $template;
+}
+add_filter ('page_template', 'tfinancial_redirect_page_template');
 
 // // make sure the campaign manager login does not redirect to wp-admin
 // add_action( 'wp_login_failed', 'tfinancial_login_fail' );  // hook failed login
