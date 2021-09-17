@@ -9,6 +9,7 @@ Template Name: Build Transaction Table
  */
 defined('ABSPATH') or die('Direct script access disallowed.');
 
+
 ?>
 <!DOCTYPE HTML>
 
