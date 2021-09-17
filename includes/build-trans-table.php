@@ -53,7 +53,7 @@ function process_new_orders($start_date) {
 			AND NOT EXISTS (
 				SELECT * FROM {$wpdb->prefix}taste_order_transactions ot
 				WHERE ot.order_item_id = wclook.order_item_id
-					AND ot.trans_type = 'Order'
+					AND ot.trans_type IN ('Order', 'Order - From Credit')
 			)
 		GROUP BY wclook.order_item_id
 		ORDER BY op.post_date DESC";
@@ -268,13 +268,22 @@ function insert_order_trans_rows($new_order_rows, $prod_data) {
 		$creditor_id = $venue_id;
 		$venue_creditor = $venue_name;
 
+		// need to check for any coupon code's that match a previous order.  
+		// Those are store credit coupons and orders created with them, get
+		// a different transaction code:  "Order - From Credit"
+		if (check_for_store_credit_coupon($order_info['coupon_codes']) ) {
+			$trans_code = "Order - From Credit";
+		} else {
+			$trans_code = "Order";
+		}
+
 		/**  Not sure what the trans amount should be  */
 		$trans_amount = $gross_revenue;
 
 		$sql .= "(%d, %d, %s, %f, %s, %d, %f, %d, %f, %d, %s, %d,
 			 %s, %s, %s, %f, %f, %f, %f, %f, %f),";
 
-		array_push( $prepare_values, $order_info['order_id'], $order_info['order_item_id'], 'Order', $trans_amount, 
+		array_push( $prepare_values, $order_info['order_id'], $order_info['order_item_id'], $trans_code, $trans_amount, 
 			$order_info['order_date'], $product_id, $product_price, $quantity, $gross_revenue, $venue_id, $venue_name,
 			$creditor_id, $venue_creditor, $order_info['coupon_ids'], $order_info['coupon_codes'], $coupon_value, 
 			$net_cost, $commission, $vat, $gross_income, $venue_due);
@@ -288,6 +297,38 @@ function insert_order_trans_rows($new_order_rows, $prod_data) {
 
 	return $rows_affected;
 
+}
+
+function check_for_store_credit_coupon($coupon_codes) {
+	global $wpdb;
+
+	$store_credit_flag = false;
+
+	if (! $coupon_codes) {
+		return $store_credit_flag;
+	}
+
+	// coupon codes are comma delimited listing
+	$coupon_codes_array = explode(',', $coupon_codes);
+	foreach($coupon_codes_array as $coupon_code) {
+		if (is_numeric($coupon_code)) {
+			$sql = "
+				SELECT count(p.ID) as order_found 
+					FROM wp_posts p
+					WHERE p.ID = %d AND p.post_type = 'shop_order'
+			";
+
+			$order_check = $wpdb->get_results( 
+											$wpdb->prepare($sql, $coupon_code), ARRAY_A);
+			if ($order_check[0]['order_found']) {
+				$store_credit_flag = true;
+				break;
+			}
+		
+		}
+	}
+
+	return $store_credit_flag;
 }
 
 function insert_redeemed_trans_rows($redeemed_order_rows, $prod_data) {
