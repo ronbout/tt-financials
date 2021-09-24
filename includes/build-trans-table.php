@@ -22,7 +22,9 @@ function build_trans_table($start_date = "2020-08-01") {
 
 	process_refunded_orders($start_date);
 
-	process_redeemed_orders($start_date); 
+	/* process_taste_credit_orders($start_date);*/
+
+//process_redeemed_orders($start_date); 
 
 	// process_payments($start_date);
 
@@ -68,7 +70,7 @@ function process_new_orders($start_date) {
 	$prod_data = build_product_data($prod_ids);
 
 	// build insert data 
-	$rows_affected = insert_order_trans_rows($new_order_rows, $prod_data);
+	$rows_affected = insert_new_order_trans_rows($new_order_rows, $prod_data);
 
 	if ($rows_affected) {
 		echo $rows_affected, " new order transaction rows inserted";
@@ -202,6 +204,62 @@ function process_refunded_orders($start_date) {
 
 }
 
+/*
+function process_taste_credit_orders($start_date) {
+	global $wpdb;
+
+	// select orders with data and NOT in trans table 
+	$sql = "
+		SELECT wclook.order_id, wclook.order_item_id, oim.meta_value AS item_qty, 
+			wclook.product_id, oi.downloaded, op.post_status AS order_status,
+			GROUP_CONCAT( cpn_look.coupon_id ) AS coupon_ids,
+			GROUP_CONCAT( cpn_post.post_title ) AS coupon_codes,
+			wclook.coupon_amount, op.post_date AS order_date
+		FROM {$wpdb->prefix}wc_order_product_lookup wclook
+			JOIN {$wpdb->prefix}posts op ON op.ID = wclook.order_id 
+			JOIN {$wpdb->prefix}woocommerce_order_items oi ON oi.order_item_id = wclook.order_item_id
+			JOIN {$wpdb->prefix}woocommerce_order_itemmeta oim ON oim.order_item_id = wclook.order_item_id
+			JOIN {$wpdb->prefix}posts coupon_p ON coupon_p.post_title = wclook.order_id AND coupon_p.post_type = 'shop_coupon'
+				AND coupon_p.post_status = "publish"
+			LEFT JOIN {$wpdb->prefix}wc_order_coupon_lookup cpn_look ON cpn_look.order_id = wclook.order_id
+			LEFT JOIN {$wpdb->prefix}posts cpn_post ON cpn_post.ID = cpn_look.coupon_id
+		WHERE op.post_status in ('wc-completed', 'wc-refunded', 'wc-on-hold')
+			AND oim.meta_key = '_qty'
+			AND op.post_type = 'shop_order'
+			AND wclook.date_created > %s	
+			AND NOT EXISTS (
+				SELECT * FROM {$wpdb->prefix}taste_order_transactions ot
+				WHERE ot.order_item_id = wclook.order_item_id
+					AND ot.trans_type  = 'Taste Credit'
+			)
+		GROUP BY wclook.order_item_id
+		ORDER BY op.post_date DESC";
+
+	$taste_credit_rows = $wpdb->get_results($wpdb->prepare($sql, $start_date), ARRAY_A);
+
+	if (!count($taste_credit_rows)) {
+		echo 'No Taste Credit orders found';
+		return;
+	}
+	$prod_ids = array_unique(array_column($taste_credit_rows, 'product_id'));
+	$prod_data = build_product_data($prod_ids);
+
+	// build insert data 
+	$rows_affected = insert_taste_credit_trans_rows($taste_credit_rows, $prod_data);
+
+	if ($rows_affected) {
+		echo $rows_affected, " Taste Credit transaction rows inserted";
+	} else {
+		echo "Failure: ", $wpdb->last_error;
+	}
+
+	// insert and return  
+ // TODO:  Error Checking - need log file for errors 
+
+}
+*/
+
+
 function build_product_data($prod_ids) {
 	global $wpdb;
 
@@ -229,11 +287,10 @@ function build_product_data($prod_ids) {
 
 }
 
-function insert_order_trans_rows($new_order_rows, $prod_data) {
+function insert_new_order_trans_rows($new_order_rows, $prod_data) {
 	global $wpdb;
 
 	$trans_table = "{$wpdb->prefix}taste_order_transactions";
-	$trans_type = 'Order';
 
 	$sql = "
 		INSERT INTO $trans_table
@@ -246,7 +303,12 @@ function insert_order_trans_rows($new_order_rows, $prod_data) {
 
 	$prepare_values = array();
 
-	foreach($new_order_rows as $order_info) {
+	$prev_order_id = -999;
+	$order_cnt = count($new_order_rows);
+
+	for($key = 0; $key < $order_cnt; $key++) {
+		$order_info = $new_order_rows[$key];
+		$order_id = $order_info['order_id'];
 		$product_id = $order_info['product_id'];
 		$product_price = $prod_data[$product_id]['price'];
 		$product_comm = $prod_data[$product_id]['commission'];
@@ -268,17 +330,52 @@ function insert_order_trans_rows($new_order_rows, $prod_data) {
 		$creditor_id = $venue_id;
 		$venue_creditor = $venue_name;
 
+
+		/****
+		 * 
+		 *  add code very similar to the refund, where I check for a new order id
+		 * 	then , check if there are any store credit coupon codes.  
+		 * 	if there are, sum up the item revenues for total revenue 
+		 * 	NOTE:  DO NOT USE THE ORDER TOTAL --- FOR SOME REASON IT CAN BE OFF!
+		 * 	Calc the % of each item revenue vs the total revenue (not including coupons)
+		 * 	Finally, sum the total coupon amount for store credit coupons only
+		 * 	Then distribute among each item, looing ahead in the loop if necessary.
+		 * 
+		 * 	This should be done just like the refund approach for inserting values in
+		 * 	future rows of the loop.  HINT: DO NOT USE FOREACH!
+		 * 
+		 * 
+		 * 
+		 * 
+		 */
+
 		// need to check for any coupon code's that match a previous order.  
 		// Those are store credit coupons and orders created with them, get
 		// a different transaction code:  "Order - From Credit"
-		if (check_for_store_credit_coupon($order_info['coupon_codes']) ) {
-			$trans_code = "Order - From Credit";
-		} else {
-			$trans_code = "Order";
+
+		if ($prev_order_id !== $order_id) {
+			if ($order_info['coupon_ids']) {
+				$order_rows_with_credit_amts = check_for_store_credit_coupon($new_order_rows, $order_info, $order_id, $prod_data);
+
+				// put order items w/ updated store credit amount info back into the array
+				// and update the current order info
+				$order_info['store_credit_amount'] = $order_rows_with_credit_amts[$key]['store_credit_amount'];
+				foreach($order_rows_with_credit_amts as $upd_key => $upd_row) {
+					$new_order_rows[$upd_key]['store_credit_amount'] = $upd_row['store_credit_amount'];
+				}
+			}
+			
+			$prev_order_id = $order_id;
 		}
 
-		/**  Not sure what the trans amount should be  */
-		$trans_amount = $gross_revenue;
+		if (isset($order_info['store_credit_amount']) && $order_info['store_credit_amount'] ) {
+			$trans_code = "Order - From Credit";
+			$trans_amount = $order_info['store_credit_amount'];
+		} else {
+			$trans_code = "Order";
+			$trans_amount = $gross_revenue;
+		}
+
 
 		$sql .= "(%d, %d, %s, %f, %s, %d, %f, %d, %f, %d, %s, %d,
 			 %s, %s, %s, %f, %f, %f, %f, %f, %f),";
@@ -299,43 +396,90 @@ function insert_order_trans_rows($new_order_rows, $prod_data) {
 
 }
 
-function check_for_store_credit_coupon($coupon_codes) {
+function check_for_store_credit_coupon($new_order_rows, $order_info, $order_id, $prod_data) {
 	global $wpdb;
 
-	$store_credit_flag = false;
+	$store_credit_count = 0;
+	$total_credit_amount = 0;
 
-	if (! $coupon_codes) {
-		return $store_credit_flag;
+	$coupon_ids = $order_info['coupon_ids'];
+	$coupon_codes = $order_info['coupon_codes'];
+
+	$order_array = array_filter($new_order_rows, function ($order_item_row) use ($order_id) {
+		return $order_item_row['order_id'] === $order_id;
+	} );
+	
+	if (! $coupon_ids) {
+		foreach($order_array as &$order_item) {
+			$order_item['store_credit_amount'] = 0;
+		}
+		return $order_array;
 	}
 
 	// coupon codes are comma delimited listing
+	$coupon_ids_array = explode(',', $coupon_ids);
 	$coupon_codes_array = explode(',', $coupon_codes);
-	foreach($coupon_codes_array as $coupon_code) {
+	foreach($coupon_ids_array as $ckey => $coupon_id) {
+		$coupon_code = $coupon_codes_array[$ckey];
 		if (is_numeric($coupon_code)) {
 			$sql = "
-				SELECT count(p.ID) as order_found 
-					FROM wp_posts p
-					WHERE p.ID = %d AND p.post_type = 'shop_order'
+			SELECT count(order_p.ID) as order_found, oc_look.discount_amount
+			FROM {$wpdb->prefix}posts coup_p 
+			JOIN {$wpdb->prefix}posts order_p ON order_p.ID = coup_p.post_title
+			JOIN {$wpdb->prefix}wc_order_coupon_lookup oc_look ON oc_look.order_id = %d 
+					AND oc_look.coupon_id = coup_p.ID
+			WHERE coup_p.ID = %d
 			";
 
 			$order_check = $wpdb->get_results( 
-											$wpdb->prepare($sql, $coupon_code), ARRAY_A);
+											$wpdb->prepare($sql, $order_id, $coupon_id), ARRAY_A);
 			if ($order_check[0]['order_found']) {
-				$store_credit_flag = true;
-				break;
+				$store_credit_count += 1;
+				$total_credit_amount += $order_check[0]['discount_amount'];
 			}
-		
 		}
 	}
 
-	return $store_credit_flag;
+	if (!$store_credit_count) {
+		foreach($order_array as &$order_item) {
+			$order_item['store_credit_amount'] = 0;
+		}
+	} else {
+		$coupon_count = count($coupon_ids_array);
+		if ($coupon_count === 1 || $store_credit_count === $coupon_count) {
+			foreach($order_array as &$order_item) {
+				$order_item['store_credit_amount'] = $order_item['coupon_amount'];
+			}
+		} else {
+			// loop through order items once to get total gross revenue
+			// Note: the order total gross revenue has proven unreliable
+			$total_gross_revenue = 0;
+			foreach($order_array as &$order_item) {
+				$product_id = $order_item['product_id'];
+				$product_price = $prod_data[$product_id]['price'];
+				$product_comm = $prod_data[$product_id]['commission'];
+				$product_vat = $prod_data[$product_id]['vat'];
+				$quantity = $order_item['item_qty'];
+				$gross_revenue = $quantity * $product_price;
+				$commission = ($gross_revenue / 100 ) * $product_comm;
+				$vat = ($commission / 100) * $product_vat;
+				$order_item['gross_revenue'] = $gross_revenue;
+				$total_gross_revenue += $gross_revenue;
+			}
+			// now loop through each item, assigning the appropriate
+			// % of total store credit to each item
+			foreach($order_array as &$order_item) {
+				$order_item['store_credit_amount'] = ($order_item['gross_revenue'] / $total_gross_revenue) * $total_credit_amount;
+			}
+		}
+	}
+	return $order_array;
 }
 
 function insert_redeemed_trans_rows($redeemed_order_rows, $prod_data) {
 	global $wpdb;
 
 	$trans_table = "{$wpdb->prefix}taste_order_transactions";
-	$trans_type = 'Order';
 
 	$sql = "
 		INSERT INTO $trans_table
@@ -369,6 +513,15 @@ function insert_redeemed_trans_rows($redeemed_order_rows, $prod_data) {
 		$net_cost = $gross_revenue - $coupon_value;
 		$creditor_id = $venue_id;
 		$venue_creditor = $venue_name;
+		
+		// need to check for any coupon code's that match a previous order.  
+		// Those are store credit coupons and orders created with them, get
+		// a different transaction code:  "Redemption - From Credit"
+		if (check_for_store_credit_coupon($order_info['coupon_codes']) ) {
+			$trans_code = "Redemption - From Credit";
+		} else {
+			$trans_code = "Redemption";
+		}
 
 		/**  Not sure what the trans amount should be  */
 		$trans_amount = $gross_revenue;
@@ -396,7 +549,6 @@ function insert_refunded_trans_rows($refunded_order_rows, $prod_data) {
 	global $wpdb;
 
 	$trans_table = "{$wpdb->prefix}taste_order_transactions";
-	$trans_type = 'Refund';
 
 	$sql = "
 		INSERT INTO $trans_table
@@ -570,3 +722,66 @@ function calc_order_refund($refunded_order_rows, $order_info, $order_id, $prod_d
 
 	return $order_array;
 }
+
+/*
+function insert_taste_credit_trans_rows($taste_credit_rows, $prod_data) {
+	global $wpdb;
+
+	$trans_table = "{$wpdb->prefix}taste_order_transactions";
+
+	$sql = "
+		INSERT INTO $trans_table
+		(	order_id, order_item_id, trans_type, trans_amount, order_date, product_id,
+			product_price, quantity, gross_revenue, venue_id, venue_name, creditor_id, 
+			venue_creditor, coupon_id, coupon_code, coupon_value, net_cost, commission,
+			vat, gross_income, venue_due )
+		VALUES 
+	";
+
+	$prepare_values = array();
+
+	foreach($taste_credit_rows as $order_info) {
+		$product_id = $order_info['product_id'];
+		$product_price = $prod_data[$product_id]['price'];
+		$product_comm = $prod_data[$product_id]['commission'];
+		$product_vat = $prod_data[$product_id]['vat'];
+		$venue_id = $prod_data[$product_id]['venue_id'];
+		$venue_name = $prod_data[$product_id]['venue_name'];
+		$quantity = $order_info['item_qty'];
+		$gross_revenue = $quantity * $product_price;
+		$commission = ($gross_revenue / 100 ) * $product_comm;
+		$vat = ($commission / 100) * $product_vat;
+		// round the amounts after calculating ...I think ***
+		$gross_revenue = round($gross_revenue, 2);
+		$commission = round($commission, 2);
+		$vat = round($vat, 2);
+		$gross_income = $vat + $commission;
+		$venue_due = $gross_revenue - $gross_income;
+		$coupon_value = $order_info['coupon_amount'];
+		$net_cost = $gross_revenue - $coupon_value;
+		$creditor_id = $venue_id;
+		$venue_creditor = $venue_name;
+
+		// Since the amount of the coupon will be based on the Net Cost, 
+		 // that is what will go into the trans amount field		  
+		$trans_amount = $net_cost;
+
+		$sql .= "(%d, %d, %s, %f, %s, %d, %f, %d, %f, %d, %s, %d,
+			 %s, %s, %s, %f, %f, %f, %f, %f, %f),";
+
+		array_push( $prepare_values, $order_info['order_id'], $order_info['order_item_id'], 'Taste Credit', $trans_amount, 
+			$order_info['order_date'], $product_id, $product_price, $quantity, $gross_revenue, $venue_id, $venue_name,
+			$creditor_id, $venue_creditor, $order_info['coupon_ids'], $order_info['coupon_codes'], $coupon_value, 
+			$net_cost, $commission, $vat, $gross_income, $venue_due);
+
+	}
+
+	$sql = trim($sql, ',');
+	
+	$prepared_sql = $wpdb->prepare($sql, $prepare_values);
+	$rows_affected = $wpdb->query($prepared_sql);
+
+	return $rows_affected;
+
+}
+*/
