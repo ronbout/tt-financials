@@ -24,7 +24,7 @@ function build_trans_table($start_date = "2020-08-01") {
 
 	/* process_taste_credit_orders($start_date);*/
 
-//process_redeemed_orders($start_date); 
+	process_redeemed_orders($start_date); 
 
 	// process_payments($start_date);
 
@@ -330,28 +330,10 @@ function insert_new_order_trans_rows($new_order_rows, $prod_data) {
 		$creditor_id = $venue_id;
 		$venue_creditor = $venue_name;
 
-
-		/****
-		 * 
-		 *  add code very similar to the refund, where I check for a new order id
-		 * 	then , check if there are any store credit coupon codes.  
-		 * 	if there are, sum up the item revenues for total revenue 
-		 * 	NOTE:  DO NOT USE THE ORDER TOTAL --- FOR SOME REASON IT CAN BE OFF!
-		 * 	Calc the % of each item revenue vs the total revenue (not including coupons)
-		 * 	Finally, sum the total coupon amount for store credit coupons only
-		 * 	Then distribute among each item, looing ahead in the loop if necessary.
-		 * 
-		 * 	This should be done just like the refund approach for inserting values in
-		 * 	future rows of the loop.  HINT: DO NOT USE FOREACH!
-		 * 
-		 * 
-		 * 
-		 * 
-		 */
-
 		// need to check for any coupon code's that match a previous order.  
 		// Those are store credit coupons and orders created with them, get
 		// a different transaction code:  "Order - From Credit"
+		// and the store credit amount goes in the trans_amount field
 
 		if ($prev_order_id !== $order_id) {
 			if ($order_info['coupon_ids']) {
@@ -476,6 +458,103 @@ function check_for_store_credit_coupon($new_order_rows, $order_info, $order_id, 
 	return $order_array;
 }
 
+function check_redeemed_for_store_credit_coupon($order_rows, $order_info, $order_id, $prod_data) {
+	// a near duplicate for check_for_store_credit_coupon(), but need to deal with
+	// the fact that not all order items will have been read for the order, so if
+	// need to calc against total cost, will have to read in info from tables
+	
+	// TODO:  *** consolidate the to check_*_for_store_credit functions ****
+
+	global $wpdb;
+
+	$store_credit_count = 0;
+	$total_credit_amount = 0;
+
+	$coupon_ids = $order_info['coupon_ids'];
+	$coupon_codes = $order_info['coupon_codes'];
+
+	$order_array = array_filter($order_rows, function ($order_item_row) use ($order_id) {
+		return $order_item_row['order_id'] === $order_id;
+	} );
+	
+	if (! $coupon_ids) {
+		foreach($order_array as &$order_item) {
+			$order_item['store_credit_amount'] = 0;
+		}
+		return $order_array;
+	}
+
+	// coupon codes are comma delimited listing
+	$coupon_ids_array = explode(',', $coupon_ids);
+	$coupon_codes_array = explode(',', $coupon_codes);
+	foreach($coupon_ids_array as $ckey => $coupon_id) {
+		$coupon_code = $coupon_codes_array[$ckey];
+		if (is_numeric($coupon_code)) {
+			$sql = "
+			SELECT count(order_p.ID) as order_found, oc_look.discount_amount
+			FROM {$wpdb->prefix}posts coup_p 
+			JOIN {$wpdb->prefix}posts order_p ON order_p.ID = coup_p.post_title
+			JOIN {$wpdb->prefix}wc_order_coupon_lookup oc_look ON oc_look.order_id = %d 
+					AND oc_look.coupon_id = coup_p.ID
+			WHERE coup_p.ID = %d
+			";
+
+			$order_check = $wpdb->get_results( 
+											$wpdb->prepare($sql, $order_id, $coupon_id), ARRAY_A);
+			if ($order_check[0]['order_found']) {
+				$store_credit_count += 1;
+				$total_credit_amount += $order_check[0]['discount_amount'];
+			}
+		}
+	}
+
+	if (!$store_credit_count) {
+		foreach($order_array as &$order_item) {
+			$order_item['store_credit_amount'] = 0;
+		}
+	} else {
+		$coupon_count = count($coupon_ids_array);
+		if ($coupon_count === 1 || $store_credit_count === $coupon_count) {
+			foreach($order_array as &$order_item) {
+				$order_item['store_credit_amount'] = $order_item['coupon_amount'];
+			}
+		} else {
+			// get the totals for all order items from the tables
+			// unlike new orders, not all order items have been retrieved
+			// in the initial SQL
+			$total_gross_revenue = 0;
+
+			$sql = "
+				SELECT ROUND(SUM(opl.product_gross_revenue + opl.coupon_amount),2) AS total_cost
+					FROM {$wpdb->prefix}wc_order_product_lookup opl
+					WHERE opl.order_id = %d
+			";
+
+			$total_gross_revenue_row = $wpdb->get_results( 
+											$wpdb->prepare($sql, $order_id), ARRAY_A);
+
+			$total_gross_revenue = $total_gross_revenue_row[0]['total_cost'];
+
+			// now loop through each item, assigning the appropriate
+			// % of total store credit to each item
+			foreach($order_array as &$order_item) {
+				$product_id = $order_item['product_id'];
+				$product_price = $prod_data[$product_id]['price'];
+				$product_comm = $prod_data[$product_id]['commission'];
+				$product_vat = $prod_data[$product_id]['vat'];
+				$quantity = $order_item['item_qty'];
+				$gross_revenue = $quantity * $product_price;
+				$commission = ($gross_revenue / 100 ) * $product_comm;
+				$vat = ($commission / 100) * $product_vat;
+				$order_item['gross_revenue'] = $gross_revenue;
+				$order_item['store_credit_amount'] = ($order_item['gross_revenue'] / $total_gross_revenue) * $total_credit_amount;
+			}
+		}
+	}
+	return $order_array;
+}
+
+
 function insert_redeemed_trans_rows($redeemed_order_rows, $prod_data) {
 	global $wpdb;
 
@@ -491,8 +570,13 @@ function insert_redeemed_trans_rows($redeemed_order_rows, $prod_data) {
 	";
 
 	$prepare_values = array();
+	
+	$prev_order_id = -999;
+	$order_cnt = count($redeemed_order_rows);
 
-	foreach($redeemed_order_rows as $order_info) {
+	for($key = 0; $key < $order_cnt; $key++) {
+		$order_info = $redeemed_order_rows[$key];
+		$order_id = $order_info['order_id'];
 		$product_id = $order_info['product_id'];
 		$product_price = $prod_data[$product_id]['price'];
 		$product_comm = $prod_data[$product_id]['commission'];
@@ -517,19 +601,35 @@ function insert_redeemed_trans_rows($redeemed_order_rows, $prod_data) {
 		// need to check for any coupon code's that match a previous order.  
 		// Those are store credit coupons and orders created with them, get
 		// a different transaction code:  "Redemption - From Credit"
-		if (check_for_store_credit_coupon($order_info['coupon_codes']) ) {
-			$trans_code = "Redemption - From Credit";
-		} else {
-			$trans_code = "Redemption";
+		// and the store credit amount goes in the trans_amount field
+
+		if ($prev_order_id !== $order_id) {
+			if ($order_info['coupon_ids']) {
+				$order_rows_with_credit_amts = check_redeemed_for_store_credit_coupon($redeemed_order_rows, $order_info, $order_id, $prod_data);
+
+				// put order items w/ updated store credit amount info back into the array
+				// and update the current order info
+				$order_info['store_credit_amount'] = $order_rows_with_credit_amts[$key]['store_credit_amount'];
+				foreach($order_rows_with_credit_amts as $upd_key => $upd_row) {
+					$redeemed_order_rows[$upd_key]['store_credit_amount'] = $upd_row['store_credit_amount'];
+				}
+			}
+			
+			$prev_order_id = $order_id;
 		}
 
-		/**  Not sure what the trans amount should be  */
-		$trans_amount = $gross_revenue;
+		if (isset($order_info['store_credit_amount']) && $order_info['store_credit_amount'] ) {
+			$trans_code = "Redemption - From Credit";
+			$trans_amount = $order_info['store_credit_amount'];
+		} else {
+			$trans_code = "Redemption";
+			$trans_amount = $gross_revenue;
+		}
 
 		$sql .= "(%d, %d, %s, %f, %s, %d, %f, %d, %f, %d, %s, %d,
 			 %s, %s, %s, %f, %f, %f, %f, %f, %f),";
 
-		array_push( $prepare_values, $order_info['order_id'], $order_info['order_item_id'], 'Redemption', $trans_amount, 
+		array_push( $prepare_values, $order_info['order_id'], $order_info['order_item_id'], $trans_code, $trans_amount, 
 			$order_info['order_date'], $product_id, $product_price, $quantity, $gross_revenue, $venue_id, $venue_name,
 			$creditor_id, $venue_creditor, $order_info['coupon_ids'], $order_info['coupon_codes'], $coupon_value, 
 			$net_cost, $commission, $vat, $gross_income, $venue_due);
