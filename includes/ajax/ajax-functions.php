@@ -6,7 +6,7 @@ defined('ABSPATH') or die('Direct script access disallowed.');
 
 function tf_ajax_build_trans() {
 
-	if (!check_ajax_referer('taste-finanical-nonce','security', false)) {
+	if (!check_ajax_referer('taste-financial-nonce','security', false)) {
 		echo '<h2>Security error loading data.  <br>Please Refresh the page and try again.</h2>';
 		wp_die();
 	}

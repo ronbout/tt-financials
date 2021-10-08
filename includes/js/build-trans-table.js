@@ -20,7 +20,7 @@ const tfRunTransBuild = (startDate) => {
 		error: function (xhr, status, errorThrown) {
 			console.log(errorThrown);
 			alert(
-				"Error build trans table. Your login may have timed out. Please refresh the page and try again."
+				"Error building trans table. Your login may have timed out. Please refresh the page and try again."
 			);
 		},
 	});

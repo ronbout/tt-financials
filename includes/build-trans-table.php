@@ -18,13 +18,13 @@ defined('ABSPATH') or die('Direct script access disallowed.');
 
 function build_trans_table($start_date = "2020-08-01") {
 
-	process_new_orders($start_date);
+	 process_new_orders($start_date);
 
-	process_refunded_orders($start_date);
+	 process_refunded_orders($start_date);
 
-	/* process_taste_credit_orders($start_date);*/
+	 process_taste_credit_orders($start_date);
 
-	process_redeemed_orders($start_date); 
+	 process_redeemed_orders($start_date); 
 
 	// process_payments($start_date);
 
@@ -143,7 +143,7 @@ function process_redeemed_orders($start_date) {
 function process_refunded_orders($start_date) {
 	global $wpdb;
 
-	// select orders with redeemed data and NOT in trans table 
+	// select orders with refunded amounts and NOT in trans table 
 	$sql = "
 		SELECT wclook.order_id, wclook.order_item_id, oim.meta_value AS item_qty, 
 			wclook.product_id, oi.downloaded, op.post_status AS order_status,
@@ -174,7 +174,7 @@ function process_refunded_orders($start_date) {
 			AND wclook.date_created > %s	
 			AND NOT EXISTS (
 				SELECT * FROM {$wpdb->prefix}taste_order_transactions ot
-				WHERE ot.order_item_id = wclook.order_item_id
+				WHERE ot.order_id = wclook.order_id
 					AND ot.trans_type = 'Refund'
 			)
 		GROUP BY wclook.order_item_id
@@ -204,11 +204,11 @@ function process_refunded_orders($start_date) {
 
 }
 
-/*
+
 function process_taste_credit_orders($start_date) {
 	global $wpdb;
 
-	// select orders with data and NOT in trans table 
+	// select orders with store credit coupons pointing to them and NOT in trans table 
 	$sql = "
 		SELECT wclook.order_id, wclook.order_item_id, oim.meta_value AS item_qty, 
 			wclook.product_id, oi.downloaded, op.post_status AS order_status,
@@ -220,16 +220,16 @@ function process_taste_credit_orders($start_date) {
 			JOIN {$wpdb->prefix}woocommerce_order_items oi ON oi.order_item_id = wclook.order_item_id
 			JOIN {$wpdb->prefix}woocommerce_order_itemmeta oim ON oim.order_item_id = wclook.order_item_id
 			JOIN {$wpdb->prefix}posts coupon_p ON coupon_p.post_title = wclook.order_id AND coupon_p.post_type = 'shop_coupon'
-				AND coupon_p.post_status = "publish"
+				AND coupon_p.post_status = 'publish'
 			LEFT JOIN {$wpdb->prefix}wc_order_coupon_lookup cpn_look ON cpn_look.order_id = wclook.order_id
 			LEFT JOIN {$wpdb->prefix}posts cpn_post ON cpn_post.ID = cpn_look.coupon_id
 		WHERE op.post_status in ('wc-completed', 'wc-refunded', 'wc-on-hold')
 			AND oim.meta_key = '_qty'
 			AND op.post_type = 'shop_order'
-			AND wclook.date_created > %s	
+			AND wclook.date_created > %s
 			AND NOT EXISTS (
 				SELECT * FROM {$wpdb->prefix}taste_order_transactions ot
-				WHERE ot.order_item_id = wclook.order_item_id
+				WHERE ot.order_id = wclook.order_id
 					AND ot.trans_type  = 'Taste Credit'
 			)
 		GROUP BY wclook.order_item_id
@@ -257,7 +257,7 @@ function process_taste_credit_orders($start_date) {
  // TODO:  Error Checking - need log file for errors 
 
 }
-*/
+
 
 
 function build_product_data($prod_ids) {
@@ -823,7 +823,7 @@ function calc_order_refund($refunded_order_rows, $order_info, $order_id, $prod_d
 	return $order_array;
 }
 
-/*
+
 function insert_taste_credit_trans_rows($taste_credit_rows, $prod_data) {
 	global $wpdb;
 
@@ -840,7 +840,15 @@ function insert_taste_credit_trans_rows($taste_credit_rows, $prod_data) {
 
 	$prepare_values = array();
 
-	foreach($taste_credit_rows as $order_info) {
+	$prev_order_id = -999;
+	$order_cnt = count($taste_credit_rows);
+		
+	for($key = 0; $key < $order_cnt; $key++) {
+		$order_info = $taste_credit_rows[$key];
+		// the basic order values are the same as any order
+		// but determining the store credit value will require more 
+		// processing
+		$order_id = $order_info['order_id'];
 		$product_id = $order_info['product_id'];
 		$product_price = $prod_data[$product_id]['price'];
 		$product_comm = $prod_data[$product_id]['commission'];
@@ -862,9 +870,33 @@ function insert_taste_credit_trans_rows($taste_credit_rows, $prod_data) {
 		$creditor_id = $venue_id;
 		$venue_creditor = $venue_name;
 
-		// Since the amount of the coupon will be based on the Net Cost, 
-		 // that is what will go into the trans amount field		  
-		$trans_amount = $net_cost;
+		// to determine the store credi amount (trans_amount) 
+		// we need to retrieve the coupon and test different 
+		// scenarios as they relate to which item(s) were credited	
+		$credit_coupon_info = get_credit_coupon_info($order_id);
+
+		$credit_amount = $credit_coupon_info[0]['coupon_amount'];
+
+		if ($prev_order_id !== $order_id) {
+			// grab all rows for that order and then make decisions
+			// and enter the credit distribution, if necessary, into 
+			// the item_credit_amount for each item in the order
+			$order_rows_with_credit_amts = calc_order_credit($taste_credit_rows, $order_info, $order_id, $prod_data, $key, $credit_amount);
+
+			$trans_amount = $order_rows_with_credit_amts[$key]['item_credit_amount'];
+			// put any remaining order items w/ updated credit amount info back into the array
+			foreach($order_rows_with_credit_amts as $upd_key => $upd_row) {
+				$taste_credit_rows[$upd_key]['item_credit_amount'] = $upd_row['item_credit_amount'];
+			}
+			
+			$prev_order_id = $order_id;
+		} else {
+			$trans_amount = $order_info['item_credit_amount'];
+		}
+
+		if (!$trans_amount) {
+			continue;
+		}
 
 		$sql .= "(%d, %d, %s, %f, %s, %d, %f, %d, %f, %d, %s, %d,
 			 %s, %s, %s, %f, %f, %f, %f, %f, %f),";
@@ -884,4 +916,95 @@ function insert_taste_credit_trans_rows($taste_credit_rows, $prod_data) {
 	return $rows_affected;
 
 }
-*/
+
+function get_credit_coupon_info($order_id) {
+	global $wpdb;
+
+	$sql = "
+		SELECT coup_p.*, coup_pm.meta_value AS coupon_amount
+		FROM wp_posts coup_p
+		JOIN wp_postmeta coup_pm ON coup_pm.post_id = coup_p.ID
+			AND coup_pm.meta_key = 'coupon_amount'
+		WHERE coup_p.post_title = %s
+			AND coup_p.post_type = 'shop_coupon'
+			AND coup_p.post_status = 'publish'
+		LIMIT 1
+	";
+
+	
+	$coupon_info = $wpdb->get_results( 
+		$wpdb->prepare($sql, $order_id), ARRAY_A);
+
+	return $coupon_info;
+}
+
+
+function calc_order_credit($order_rows, $order_info, $order_id, $prod_data, $key, $credit_amount) {
+	
+	$order_array = array_filter($order_rows, function ($order_item_row) use ($order_id) {
+		return $order_item_row['order_id'] === $order_id;
+	} );
+
+	// if only 1 order item, then use credit amount
+	$item_cnt = count($order_array);
+
+	if ($item_cnt === 1) {
+		$order_array[$key]['item_credit_amount'] = $credit_amount;
+		return $order_array;
+	}
+
+	// need to calculate net cost on each item - then distribute the 
+	// store credit amount as best as possible
+	$total_item_assigned_credit = 0;
+
+	// first loop through to calc remaining refund possible for each item
+	// as well as add to the appropriate totals
+	foreach($order_array as &$order_item) {
+		$product_id = $order_item['product_id'];
+		$product_price = $prod_data[$product_id]['price'];
+		$product_comm = $prod_data[$product_id]['commission'];
+		$product_vat = $prod_data[$product_id]['vat'];
+		$quantity = $order_item['item_qty'];
+		$gross_revenue = $quantity * $product_price;
+		$commission = ($gross_revenue / 100 ) * $product_comm;
+		$vat = ($commission / 100) * $product_vat;
+		/* round the amounts after calculating ...I think */
+		$gross_revenue = round($gross_revenue, 2);
+		$commission = round($commission, 2);
+		$vat = round($vat, 2);
+		$coupon_value = $order_item['coupon_amount'];
+		$net_cost = $gross_revenue - $coupon_value;
+		$order_item['net_cost'] = $net_cost;	
+		$order_item['item_credit_amount'] = 0;
+	}
+	
+	$remaining_credit_to_assign = $credit_amount;
+
+	// check to see if any item matches the credit amount exactly.  
+	// If so, just match it up
+	foreach($order_array as &$order_item) {
+		if ( $order_item['net_cost'] == $remaining_credit_to_assign) {
+			$order_item['item_credit_amount'] = $remaining_credit_to_assign;
+			$remaining_credit_to_assign = 0;
+			break;
+		}
+	}
+
+	if (! $remaining_credit_to_assign) {
+		return $order_array;
+	}
+
+	// now loop through again and assign the remaining credit to each item
+	foreach($order_array as &$order_item) {
+		if ($order_item['net_cost']) {
+			$dist_amount = min($order_item['net_cost'], $remaining_credit_to_assign);
+			$order_item['item_credit_amount'] += $dist_amount;
+			$remaining_credit_to_assign -= $dist_amount;
+			if (! $remaining_credit_to_assign) {
+				break;
+			}
+		}
+	}
+
+	return $order_array;
+}

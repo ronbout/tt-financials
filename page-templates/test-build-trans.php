@@ -49,7 +49,7 @@ defined('ABSPATH') or die('Direct script access disallowed.');
 					<script>
 						let tasteFinancial = {}
 						tasteFinancial.ajaxurl = '". admin_url( 'admin-ajax.php' ) . "'
-						tasteFinancial.security = '" . wp_create_nonce('taste-finanical-nonce') . "'
+						tasteFinancial.security = '" . wp_create_nonce('taste-financial-nonce') . "'
 					</script>
 				";
 		?>
