@@ -1,15 +1,15 @@
 <?php
 
 /*
-    Plugin Name: Thetfinancial Financials Plugin
+    Plugin Name: TheTaste Financials Plugin
     Plugin URI: http://thetaste.ie
-    Description: Various functionalities for thetfinancial.ie financial
+    Description: Various functionalities for theTaste.ie financial
 							   reporting and bank extract code, including building 
 								 an order transaction table
 		Version: 1.0.0
 		Date: 6/18/2021
     Author: Ron Boutilier
-    Text Domain: tfinancial-plugin
+    Text Domain: taste-plugin
  */
 
 defined('ABSPATH') or die('Direct script access disallowed.');
