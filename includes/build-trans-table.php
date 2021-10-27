@@ -997,7 +997,7 @@ function calc_order_credit($order_rows, $order_info, $order_id, $prod_data, $key
 	// now loop through again and assign the remaining credit to each item
 	foreach($order_array as &$order_item) {
 		if ($order_item['net_cost']) {
-			$dist_amount = min($order_item['net_cost'], $remaining_credit_to_assign);
+			$dist_amount = min(1.2 * $order_item['net_cost'], $remaining_credit_to_assign);
 			$order_item['item_credit_amount'] += $dist_amount;
 			$remaining_credit_to_assign -= $dist_amount;
 			if (! $remaining_credit_to_assign) {
