@@ -18,15 +18,15 @@ defined('ABSPATH') or die('Direct script access disallowed.');
 
 function build_trans_table($start_date = "2020-08-01") {
 
-	 process_new_orders($start_date);
+	//  process_new_orders($start_date);
 
-	 process_refunded_orders($start_date);
+	//  process_refunded_orders($start_date);
 
-	 process_taste_credit_orders($start_date);
+	//  process_taste_credit_orders($start_date);
 
-	 process_redeemed_orders($start_date); 
+	//  process_redeemed_orders($start_date); 
 
-	// process_payments($start_date);
+	process_paid_orders($start_date);
 
 	die();
 	
@@ -255,6 +255,64 @@ function process_taste_credit_orders($start_date) {
 
 	// insert and return  
  // TODO:  Error Checking - need log file for errors 
+
+}
+
+function process_paid_orders($start_date) {
+	global $wpdb;
+
+	// select orders with paid order items data and NOT in trans table 
+	$sql = "
+		SELECT wclook.order_id, wclook.order_item_id, oim.meta_value AS item_qty, 
+			wclook.product_id, oi.downloaded, op.post_status AS order_status,
+			GROUP_CONCAT( cpn_look.coupon_id ) AS coupon_ids,
+			GROUP_CONCAT( cpn_post.post_title ) AS coupon_codes,
+			wclook.coupon_amount, op.post_date AS order_date,
+			pay.id AS payment_id, pay.payment_date
+		FROM {$wpdb->prefix}wc_order_product_lookup wclook
+			JOIN {$wpdb->prefix}posts op ON op.ID = wclook.order_id 
+			JOIN {$wpdb->prefix}woocommerce_order_items oi ON oi.order_item_id = wclook.order_item_id
+			JOIN {$wpdb->prefix}woocommerce_order_itemmeta oim ON oim.order_item_id = wclook.order_item_id
+			LEFT JOIN {$wpdb->prefix}wc_order_coupon_lookup cpn_look ON cpn_look.order_id = wclook.order_id
+			LEFT JOIN {$wpdb->prefix}posts cpn_post ON cpn_post.ID = cpn_look.coupon_id
+			JOIN {$wpdb->prefix}taste_venue_payment_order_item_xref poix ON poix.order_item_id = wclook.order_item_id
+			JOIN {$wpdb->prefix}taste_venue_payment pay ON pay.id = poix.payment_id AND pay.`status` = 1
+		WHERE op.post_status in ('wc-completed', 'wc-refunded', 'wc-on-hold')
+			AND oim.meta_key = '_qty'
+			AND op.post_type = 'shop_order'
+			AND wclook.date_created > %s	
+			AND NOT EXISTS (
+				SELECT * FROM {$wpdb->prefix}taste_order_transactions ot
+				WHERE ot.order_item_id = wclook.order_item_id
+					AND ot.trans_type = 'Creditor Payment'
+			)
+		GROUP BY wclook.order_item_id
+		ORDER BY op.post_date DESC";
+
+	$paid_order_rows = $wpdb->get_results($wpdb->prepare($sql, $start_date), ARRAY_A);
+
+	if (!count($paid_order_rows)) {
+		echo 'No Paid orders found';
+		return;
+	}
+
+	$prod_ids = array_unique(array_column($paid_order_rows, 'product_id'));
+
+	$prod_data = build_product_data($prod_ids);
+
+	// var_dump($prod_data);
+
+	// build insert data 
+	$rows_affected = insert_paid_trans_rows($paid_order_rows, $prod_data);
+
+	if ($rows_affected) {
+		echo $rows_affected, " paid transaction rows inserted";
+	} else {
+		echo "Failure: ", $wpdb->last_error;
+	}
+
+	// insert and return  
+	/*****  TODO:  Error Checking - need log file for errors */
 
 }
 
@@ -735,6 +793,71 @@ function insert_refunded_trans_rows($refunded_order_rows, $prod_data) {
 	
 	$prepared_sql = $wpdb->prepare($sql, $prepare_values);
 // $rows_affected = 0;
+	$rows_affected = $wpdb->query($prepared_sql);
+
+	return $rows_affected;
+
+}
+
+function insert_paid_trans_rows($paid_order_rows, $prod_data) {
+	global $wpdb;
+
+	$trans_table = "{$wpdb->prefix}taste_order_transactions";
+
+	$sql = "
+		INSERT INTO $trans_table
+		(	order_id, order_item_id, trans_type, trans_amount, order_date, product_id,
+			product_price, quantity, gross_revenue, venue_id, venue_name, creditor_id, 
+			venue_creditor, coupon_id, coupon_code, coupon_value, net_cost, commission,
+			vat, gross_income, venue_due, payment_id, payment_date )
+		VALUES 
+	";
+
+	$prepare_values = array();
+	$order_cnt = count($paid_order_rows);
+
+	for($key = 0; $key < $order_cnt; $key++) {
+		$order_info = $paid_order_rows[$key];
+		$order_id = $order_info['order_id'];
+		$product_id = $order_info['product_id'];
+		$payment_id = $order_info['payment_id'];
+		$payment_date = $order_info['payment_date'];
+		$product_price = $prod_data[$product_id]['price'];
+		$product_comm = $prod_data[$product_id]['commission'];
+		$product_vat = $prod_data[$product_id]['vat'];
+		$venue_id = $prod_data[$product_id]['venue_id'];
+		$venue_name = $prod_data[$product_id]['venue_name'];
+		$quantity = $order_info['item_qty'];
+		$gross_revenue = $quantity * $product_price;
+		$commission = ($gross_revenue / 100 ) * $product_comm;
+		$vat = ($commission / 100) * $product_vat;
+		/* round the amounts after calculating ...I think */
+		$gross_revenue = round($gross_revenue, 2);
+		$commission = round($commission, 2);
+		$vat = round($vat, 2);
+		$gross_income = $vat + $commission;
+		$venue_due = $gross_revenue - $gross_income;
+		$coupon_value = $order_info['coupon_amount'];
+		$net_cost = $gross_revenue - $coupon_value;
+		$creditor_id = $venue_id;
+		$venue_creditor = $venue_name;
+
+		$trans_code = "Creditor Payment";
+		$trans_amount = $venue_due;
+
+		$sql .= "(%d, %d, %s, %f, %s, %d, %f, %d, %f, %d, %s, %d,
+			 %s, %s, %s, %f, %f, %f, %f, %f, %f, %d, %s),";
+
+		array_push( $prepare_values, $order_info['order_id'], $order_info['order_item_id'], $trans_code, $trans_amount, 
+			$order_info['order_date'], $product_id, $product_price, $quantity, $gross_revenue, $venue_id, $venue_name,
+			$creditor_id, $venue_creditor, $order_info['coupon_ids'], $order_info['coupon_codes'], $coupon_value, 
+			$net_cost, $commission, $vat, $gross_income, $venue_due, $payment_id, $payment_date);
+
+	}
+
+	$sql = trim($sql, ',');
+	
+	$prepared_sql = $wpdb->prepare($sql, $prepare_values);
 	$rows_affected = $wpdb->query($prepared_sql);
 
 	return $rows_affected;
