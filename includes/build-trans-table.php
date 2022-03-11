@@ -18,13 +18,13 @@ defined('ABSPATH') or die('Direct script access disallowed.');
 
 function build_trans_table($start_date = "2020-08-01") {
 
-	//  process_new_orders($start_date);
+	 process_new_orders($start_date);
 
-	//  process_refunded_orders($start_date);
+	 process_refunded_orders($start_date);
 
 	//  process_taste_credit_orders($start_date);
 
-	//  process_redeemed_orders($start_date); 
+	 process_redeemed_orders($start_date); 
 
 	process_paid_orders($start_date);
 
