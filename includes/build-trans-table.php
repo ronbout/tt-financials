@@ -110,7 +110,7 @@ function process_redeemed_orders($start_date) {
 			AND NOT EXISTS (
 				SELECT * FROM {$wpdb->prefix}taste_order_transactions ot
 				WHERE ot.order_item_id = wclook.order_item_id
-					AND ot.trans_type = 'Redemption'
+					AND ot.trans_type IN ('Redemption', 'Redemption - From Credit')
 			)
 			AND (redaud.id = (
 				SELECT MAX(redaud2.id)
@@ -234,7 +234,7 @@ function process_taste_credit_orders($start_date) {
 		WHERE op.post_status in ('wc-completed', 'wc-refunded', 'wc-on-hold')
 			AND oim.meta_key = '_qty'
 			AND op.post_type = 'shop_order'
-			AND wclook.date_created > %s
+			AND wclook.date_created > %s	
 			AND NOT EXISTS (
 				SELECT * FROM {$wpdb->prefix}taste_order_transactions ot
 				WHERE ot.order_id = wclook.order_id
@@ -242,6 +242,9 @@ function process_taste_credit_orders($start_date) {
 			)
 		GROUP BY wclook.order_item_id
 		ORDER BY op.post_date DESC";
+
+
+//		and wclook.order_id = 353930				
 
 	$taste_credit_rows = $wpdb->get_results($wpdb->prepare($sql, $start_date), ARRAY_A);
 
