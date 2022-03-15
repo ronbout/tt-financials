@@ -92,13 +92,16 @@ function process_redeemed_orders($start_date) {
 			wclook.product_id, oi.downloaded, op.post_status AS order_status,
 			GROUP_CONCAT( cpn_look.coupon_id ) AS coupon_ids,
 			GROUP_CONCAT( cpn_post.post_title ) AS coupon_codes,
-			wclook.coupon_amount, op.post_date AS order_date
+			wclook.coupon_amount, op.post_date AS order_date,
+			redaud.timestamp as redeem_date
 		FROM {$wpdb->prefix}wc_order_product_lookup wclook
 			JOIN {$wpdb->prefix}posts op ON op.ID = wclook.order_id 
 			JOIN {$wpdb->prefix}woocommerce_order_items oi ON oi.order_item_id = wclook.order_item_id
 			JOIN {$wpdb->prefix}woocommerce_order_itemmeta oim ON oim.order_item_id = wclook.order_item_id
-		LEFT JOIN {$wpdb->prefix}wc_order_coupon_lookup cpn_look ON cpn_look.order_id = wclook.order_id
-		LEFT JOIN {$wpdb->prefix}posts cpn_post ON cpn_post.ID = cpn_look.coupon_id
+			LEFT JOIN {$wpdb->prefix}wc_order_coupon_lookup cpn_look ON cpn_look.order_id = wclook.order_id
+			LEFT JOIN {$wpdb->prefix}posts cpn_post ON cpn_post.ID = cpn_look.coupon_id
+			LEFT JOIN {$wpdb->prefix}taste_venue_order_redemption_audit redaud ON 
+				redaud.order_item_id = wclook.order_item_id
 		WHERE op.post_status in ('wc-completed', 'wc-refunded', 'wc-on-hold')
 			AND oim.meta_key = '_qty'
 			AND op.post_type = 'shop_order'
@@ -109,6 +112,11 @@ function process_redeemed_orders($start_date) {
 				WHERE ot.order_item_id = wclook.order_item_id
 					AND ot.trans_type = 'Redemption'
 			)
+			AND (redaud.id = (
+				SELECT MAX(redaud2.id)
+				FROM wp_taste_venue_order_redemption_audit redaud2
+				WHERE redaud2.order_item_id = wclook.order_item_id
+			) OR redaud.id IS NULL)		
 		GROUP BY wclook.order_item_id
 		ORDER BY op.post_date DESC";
 
@@ -430,6 +438,7 @@ function insert_new_order_trans_rows($new_order_rows, $prod_data) {
 	$sql = trim($sql, ',');
 	
 	$prepared_sql = $wpdb->prepare($sql, $prepare_values);
+	$prepared_sql = str_replace("''",'NULL', $prepared_sql);
 	$rows_affected = $wpdb->query($prepared_sql);
 
 	return $rows_affected;
@@ -623,7 +632,7 @@ function insert_redeemed_trans_rows($redeemed_order_rows, $prod_data) {
 		(	order_id, order_item_id, trans_type, trans_amount, order_date, product_id,
 			product_price, quantity, gross_revenue, venue_id, venue_name, creditor_id, 
 			venue_creditor, coupon_id, coupon_code, coupon_value, net_cost, commission,
-			vat, gross_income, venue_due )
+			vat, gross_income, venue_due, redemption_date )
 		VALUES 
 	";
 
@@ -655,6 +664,7 @@ function insert_redeemed_trans_rows($redeemed_order_rows, $prod_data) {
 		$net_cost = $gross_revenue - $coupon_value;
 		$creditor_id = $venue_id;
 		$venue_creditor = $venue_name;
+		$redeem_date = $order_info['redeem_date'];
 		
 		// need to check for any coupon code's that match a previous order.  
 		// Those are store credit coupons and orders created with them, get
@@ -685,18 +695,19 @@ function insert_redeemed_trans_rows($redeemed_order_rows, $prod_data) {
 		}
 
 		$sql .= "(%d, %d, %s, %f, %s, %d, %f, %d, %f, %d, %s, %d,
-			 %s, %s, %s, %f, %f, %f, %f, %f, %f),";
+			 %s, %s, %s, %f, %f, %f, %f, %f, %f, %s),";
 
 		array_push( $prepare_values, $order_info['order_id'], $order_info['order_item_id'], $trans_code, $trans_amount, 
 			$order_info['order_date'], $product_id, $product_price, $quantity, $gross_revenue, $venue_id, $venue_name,
 			$creditor_id, $venue_creditor, $order_info['coupon_ids'], $order_info['coupon_codes'], $coupon_value, 
-			$net_cost, $commission, $vat, $gross_income, $venue_due);
+			$net_cost, $commission, $vat, $gross_income, $venue_due, $redeem_date);
 
 	}
 
 	$sql = trim($sql, ',');
 	
 	$prepared_sql = $wpdb->prepare($sql, $prepare_values);
+	$prepared_sql = str_replace("''",'NULL', $prepared_sql);
 	$rows_affected = $wpdb->query($prepared_sql);
 
 	return $rows_affected;
@@ -792,7 +803,7 @@ function insert_refunded_trans_rows($refunded_order_rows, $prod_data) {
 	$sql = trim($sql, ',');
 	
 	$prepared_sql = $wpdb->prepare($sql, $prepare_values);
-// $rows_affected = 0;
+	$prepared_sql = str_replace("''",'NULL', $prepared_sql);
 	$rows_affected = $wpdb->query($prepared_sql);
 
 	return $rows_affected;
@@ -858,6 +869,7 @@ function insert_paid_trans_rows($paid_order_rows, $prod_data) {
 	$sql = trim($sql, ',');
 	
 	$prepared_sql = $wpdb->prepare($sql, $prepare_values);
+	$prepared_sql = str_replace("''",'NULL', $prepared_sql);
 	$rows_affected = $wpdb->query($prepared_sql);
 
 	return $rows_affected;
@@ -1034,6 +1046,7 @@ function insert_taste_credit_trans_rows($taste_credit_rows, $prod_data) {
 	$sql = trim($sql, ',');
 	
 	$prepared_sql = $wpdb->prepare($sql, $prepare_values);
+	$prepared_sql = str_replace("''",'NULL', $prepared_sql);
 	$rows_affected = $wpdb->query($prepared_sql);
 
 	return $rows_affected;

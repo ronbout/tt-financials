@@ -42,6 +42,7 @@ function tfinancial_add_transaction_table() {
 		`venue_due` DECIMAL(19,4) UNSIGNED NOT NULL,,
 		`payment_id` BIGINT(20) UNSIGNED NULL DEFAULT NULL,
 		`payment_date` TIMESTAMP NULL DEFAULT NULL,
+		`redemption_date` TIMESTAMP NULL DEFAULT NULL,
 		PRIMARY KEY (`id`) USING BTREE,
 		INDEX `order_id` (`order_id`) USING BTREE,
 		INDEX `order_item_id` (`order_item_id`) USING BTREE,
