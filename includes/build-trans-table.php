@@ -22,7 +22,7 @@ function build_trans_table($start_date = "2020-08-01") {
 
 	 process_refunded_orders($start_date);
 
-	//  process_taste_credit_orders($start_date);
+	 process_taste_credit_orders($start_date);
 
 	 process_redeemed_orders($start_date); 
 
@@ -131,8 +131,6 @@ function process_redeemed_orders($start_date) {
 
 	$prod_data = build_product_data($prod_ids);
 
-	// var_dump($prod_data);
-
 	// build insert data 
 	$rows_affected = insert_redeemed_trans_rows($redeemed_order_rows, $prod_data);
 
@@ -234,15 +232,15 @@ function process_taste_credit_orders($start_date) {
 		WHERE op.post_status in ('wc-completed', 'wc-refunded', 'wc-on-hold')
 			AND oim.meta_key = '_qty'
 			AND op.post_type = 'shop_order'
-			AND wclook.date_created > %s	
+			AND wclook.date_created > %s		
 			AND NOT EXISTS (
 				SELECT * FROM {$wpdb->prefix}taste_order_transactions ot
 				WHERE ot.order_id = wclook.order_id
 					AND ot.trans_type  = 'Taste Credit'
 			)
 		GROUP BY wclook.order_item_id
-		ORDER BY op.post_date DESC";
-
+		ORDER BY op.post_date DESC";	
+		
 
 //		and wclook.order_id = 353930				
 
@@ -260,8 +258,10 @@ function process_taste_credit_orders($start_date) {
 
 	if ($rows_affected) {
 		echo $rows_affected, " Taste Credit transaction rows inserted";
-	} else {
+	} elseif ($wpdb->last_error) {
 		echo "Failure: ", $wpdb->last_error;
+	} else {
+		echo 'No Taste Credit orders processed';
 	}
 
 	// insert and return  
@@ -311,8 +311,6 @@ function process_paid_orders($start_date) {
 
 	$prod_data = build_product_data($prod_ids);
 
-	// var_dump($prod_data);
-
 	// build insert data 
 	$rows_affected = insert_paid_trans_rows($paid_order_rows, $prod_data);
 
@@ -349,8 +347,6 @@ function build_product_data($prod_ids) {
 			GROUP BY
 				pm.post_id
 		", $prod_ids), ARRAY_A);
-
-	// var_dump($product_rows);
 
 	return array_column($product_rows, null, 'post_id' );
 
@@ -1047,10 +1043,14 @@ function insert_taste_credit_trans_rows($taste_credit_rows, $prod_data) {
 	}
 
 	$sql = trim($sql, ',');
-	
-	$prepared_sql = $wpdb->prepare($sql, $prepare_values);
-	$prepared_sql = str_replace("''",'NULL', $prepared_sql);
-	$rows_affected = $wpdb->query($prepared_sql);
+
+	if (count($prepare_values)) {
+		$prepared_sql = $wpdb->prepare($sql, $prepare_values);	
+		$prepared_sql = str_replace("''",'NULL', $prepared_sql);
+		$rows_affected = $wpdb->query($prepared_sql);
+	} else {
+		$rows_affected = 0;
+	}
 
 	return $rows_affected;
 
