@@ -15,7 +15,8 @@ const tfRunTransBuild = (startDate) => {
     },
     success: function (responseText) {
       console.log(responseText);
-      jQuery("#response").text(responseText);
+      //const parseResponse = JSON.parse(responseText);
+      jQuery("#results").html(responseText);
     },
     error: function (xhr, status, errorThrown) {
       console.log(errorThrown);

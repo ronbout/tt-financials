@@ -29,16 +29,16 @@ defined('ABSPATH') or die('Direct script access disallowed.');
 			padding: 8px;
 		}
 		.entry {
-			width: 800px;
+			width: 500px;
 			margin: auto;
-			height: 400px;
+			height: 200px;
 			border: 2px solid black;
 			display: flex;
 		}
 		#results {
-			width: 800px;
+			width: 500px;
 			margin: auto;
-			height: 800px;
+			height: 400px;
 			border: 2px solid black;
 		}
 	</style>
@@ -60,7 +60,7 @@ defined('ABSPATH') or die('Direct script access disallowed.');
 			<div><input id="start-date" type="date" value="2020-01-01"></div>
 			<div><button id="run-build-trans" type="button">Run</button>	</div>
 		</div>
-		<div id="results"></div>
+		<div id="results">Results here</div>
 	</main>
 
 </body>

@@ -72,11 +72,17 @@ function process_new_orders($start_date) {
 	// build insert data 
 	$rows_affected = insert_new_order_trans_rows($new_order_rows, $prod_data);
 
+	echo "<h3>";
 	if ($rows_affected) {
 		echo $rows_affected, " new order transaction rows inserted";
 	} else {
-		echo "Failure: ", $wpdb->last_error;
+		if ($wpdb->last_error) {
+			echo "Failure inserting new order transaction rows: ", $wpdb->last_error;
+		} else{
+			echo "No new order transaction rows inserted";
+		}
 	}
+	echo "</h3>";
 
 	// insert and return  
 	/*****  TODO:  Error Checking - need log file for errors */
@@ -134,11 +140,17 @@ function process_redeemed_orders($start_date) {
 	// build insert data 
 	$rows_affected = insert_redeemed_trans_rows($redeemed_order_rows, $prod_data);
 
+	echo "<h3>";
 	if ($rows_affected) {
 		echo $rows_affected, " redeemed transaction rows inserted";
 	} else {
-		echo "Failure: ", $wpdb->last_error;
+		if ($wpdb->last_error) {
+			echo "Failure inserting redeemed transaction rows: ", $wpdb->last_error;
+		} else{
+			echo "No redeemed transaction rows inserted";
+		}
 	}
+	echo "</h3>";
 
 	// insert and return  
 	/*****  TODO:  Error Checking - need log file for errors */
@@ -183,7 +195,6 @@ function process_refunded_orders($start_date) {
 				WHERE ot.order_id = wclook.order_id
 					AND ot.trans_type = 'Refund'
 			)
-	and wclook.order_id = 353753
 		GROUP BY wclook.order_item_id
 		ORDER BY op.post_date DESC";
 
@@ -203,11 +214,17 @@ function process_refunded_orders($start_date) {
 	// build insert data 
 	$rows_affected = insert_refunded_trans_rows($refunded_order_rows, $prod_data);
 
+	echo "<h3>";
 	if ($rows_affected) {
 		echo $rows_affected, " refunded transaction rows inserted";
 	} else {
-		echo "Failure: ", $wpdb->last_error;
+		if ($wpdb->last_error) {
+			echo "Failure inserting refunded transaction rows: ", $wpdb->last_error;
+		} else{
+			echo "No refunded transaction rows inserted";
+		}
 	}
+	echo "</h3>";
 
 	// insert and return  
 	/*****  TODO:  Error Checking - need log file for errors */
@@ -261,13 +278,15 @@ function process_taste_credit_orders($start_date) {
 	// build insert data 
 	$rows_affected = insert_taste_credit_trans_rows($taste_credit_rows, $prod_data);
 
+	echo "<h3>";
 	if ($rows_affected) {
 		echo $rows_affected, " Taste Credit transaction rows inserted";
 	} elseif ($wpdb->last_error) {
 		echo "Failure: ", $wpdb->last_error;
 	} else {
-		echo 'No Taste Credit orders processed';
+		echo 'No Taste Credit orders inserted';
 	}
+	echo "</h3>";
 
 	// insert and return  
  // TODO:  Error Checking - need log file for errors 
@@ -319,11 +338,17 @@ function process_paid_orders($start_date) {
 	// build insert data 
 	$rows_affected = insert_paid_trans_rows($paid_order_rows, $prod_data);
 
+	echo "<h3>";
 	if ($rows_affected) {
 		echo $rows_affected, " paid transaction rows inserted";
 	} else {
-		echo "Failure: ", $wpdb->last_error;
+		if ($wpdb->last_error) {
+			echo "Failure inserting paid transaction rows: ", $wpdb->last_error;
+		} else{
+			echo "No paid transaction rows inserted";
+		}
 	}
+	echo "</h3>";
 
 	// insert and return  
 	/*****  TODO:  Error Checking - need log file for errors */
@@ -802,10 +827,14 @@ function insert_refunded_trans_rows($refunded_order_rows, $prod_data) {
 
 	$sql = trim($sql, ',');
 	
-	$prepared_sql = $wpdb->prepare($sql, $prepare_values);
-	$prepared_sql = str_replace("''",'NULL', $prepared_sql);
-	$rows_affected = $wpdb->query($prepared_sql);
-
+	if (count($prepare_values)) {
+		$prepared_sql = $wpdb->prepare($sql, $prepare_values);
+		$prepared_sql = str_replace("''",'NULL', $prepared_sql);
+		$rows_affected = $wpdb->query($prepared_sql);
+	} else {
+		$rows_affected = 0;
+	}
+	
 	return $rows_affected;
 
 }
