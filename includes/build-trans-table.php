@@ -26,7 +26,7 @@ function build_trans_table($start_date = "2020-08-01") {
 
 	 process_redeemed_orders($start_date); 
 
-	process_paid_orders($start_date);
+		process_paid_orders($start_date);
 
 	die();
 	
@@ -56,7 +56,7 @@ function process_new_orders($start_date) {
 				SELECT * FROM {$wpdb->prefix}taste_order_transactions ot
 				WHERE ot.order_item_id = wclook.order_item_id
 					AND ot.trans_type IN ('Order', 'Order - From Credit')
-			)
+			)	
 		GROUP BY wclook.order_item_id
 		ORDER BY op.post_date DESC";
 
@@ -160,7 +160,7 @@ function process_refunded_orders($start_date) {
 				AS refund_total,
 			GROUP_CONCAT(DISTINCT ref_p.ID) AS refund_ids,
 			ROUND(SUM(ref_oim2.meta_value) / (COALESCE ((COUNT(ref_oim1.meta_id) / COUNT(DISTINCT ref_oim1.meta_id)), 1) ),2) * -1
-				AS item_refund_amount
+				AS item_refund_amount, MIN(ref_p.post_date) AS refund_date
 		FROM {$wpdb->prefix}wc_order_product_lookup wclook
 			JOIN {$wpdb->prefix}posts op ON op.ID = wclook.order_id 
 			JOIN {$wpdb->prefix}posts ref_p ON ref_p.post_parent = op.ID
@@ -183,10 +183,14 @@ function process_refunded_orders($start_date) {
 				WHERE ot.order_id = wclook.order_id
 					AND ot.trans_type = 'Refund'
 			)
+	and wclook.order_id = 353753
 		GROUP BY wclook.order_item_id
 		ORDER BY op.post_date DESC";
 
 	$refunded_order_rows = $wpdb->get_results($wpdb->prepare($sql, $start_date), ARRAY_A);
+
+	// print_r($refunded_order_rows);
+	// die();
 
 	if (!count($refunded_order_rows)) {
 		echo 'No Refund orders found';
@@ -220,7 +224,8 @@ function process_taste_credit_orders($start_date) {
 			wclook.product_id, oi.downloaded, op.post_status AS order_status,
 			GROUP_CONCAT( cpn_look.coupon_id ) AS coupon_ids,
 			GROUP_CONCAT( cpn_post.post_title ) AS coupon_codes,
-			wclook.coupon_amount, op.post_date AS order_date
+			wclook.coupon_amount, op.post_date AS order_date,
+			coupon_p.post_date as credit_date
 		FROM {$wpdb->prefix}wc_order_product_lookup wclook
 			JOIN {$wpdb->prefix}posts op ON op.ID = wclook.order_id 
 			JOIN {$wpdb->prefix}woocommerce_order_items oi ON oi.order_item_id = wclook.order_item_id
@@ -359,7 +364,7 @@ function insert_new_order_trans_rows($new_order_rows, $prod_data) {
 
 	$sql = "
 		INSERT INTO $trans_table
-		(	order_id, order_item_id, trans_type, trans_amount, order_date, product_id,
+		(	order_id, order_item_id, transaction_date, trans_type, trans_amount, order_date, product_id,
 			product_price, quantity, gross_revenue, venue_id, venue_name, creditor_id, 
 			venue_creditor, coupon_id, coupon_code, coupon_value, net_cost, commission,
 			vat, gross_income, venue_due )
@@ -424,13 +429,11 @@ function insert_new_order_trans_rows($new_order_rows, $prod_data) {
 		}
 
 
-		$sql .= "(%d, %d, %s, %f, %s, %d, %f, %d, %f, %d, %s, %d,
+		$sql .= "(%d, %d, %s, %s, %f, %s, %d, %f, %d, %f, %d, %s, %d,
 			 %s, %s, %s, %f, %f, %f, %f, %f, %f),";
 
-		array_push( $prepare_values, $order_info['order_id'], $order_info['order_item_id'], $trans_code, $trans_amount, 
-			$order_info['order_date'], $product_id, $product_price, $quantity, $gross_revenue, $venue_id, $venue_name,
-			$creditor_id, $venue_creditor, $order_info['coupon_ids'], $order_info['coupon_codes'], $coupon_value, 
-			$net_cost, $commission, $vat, $gross_income, $venue_due);
+		array_push( $prepare_values, $order_info['order_id'], $order_info['order_item_id'], $order_info['order_date'],
+			 $trans_code, $trans_amount, $order_info['order_date'], $product_id, $product_price, $quantity, $gross_revenue, $venue_id, $venue_name,	$creditor_id, $venue_creditor, $order_info['coupon_ids'], $order_info['coupon_codes'], $coupon_value, $net_cost, $commission, $vat, $gross_income, $venue_due);
 
 	}
 
@@ -628,7 +631,7 @@ function insert_redeemed_trans_rows($redeemed_order_rows, $prod_data) {
 
 	$sql = "
 		INSERT INTO $trans_table
-		(	order_id, order_item_id, trans_type, trans_amount, order_date, product_id,
+		(	order_id, order_item_id, transaction_date, trans_type, trans_amount, order_date, product_id,
 			product_price, quantity, gross_revenue, venue_id, venue_name, creditor_id, 
 			venue_creditor, coupon_id, coupon_code, coupon_value, net_cost, commission,
 			vat, gross_income, venue_due, redemption_date )
@@ -693,12 +696,12 @@ function insert_redeemed_trans_rows($redeemed_order_rows, $prod_data) {
 			$trans_amount = $gross_revenue;
 		}
 
-		$sql .= "(%d, %d, %s, %f, %s, %d, %f, %d, %f, %d, %s, %d,
+		$sql .= "(%d, %d, %s, %s, %f, %s, %d, %f, %d, %f, %d, %s, %d,
 			 %s, %s, %s, %f, %f, %f, %f, %f, %f, %s),";
 
-		array_push( $prepare_values, $order_info['order_id'], $order_info['order_item_id'], $trans_code, $trans_amount, 
-			$order_info['order_date'], $product_id, $product_price, $quantity, $gross_revenue, $venue_id, $venue_name,
-			$creditor_id, $venue_creditor, $order_info['coupon_ids'], $order_info['coupon_codes'], $coupon_value, 
+		array_push( $prepare_values, $order_info['order_id'], $order_info['order_item_id'], $redeem_date, $trans_code, 
+			$trans_amount, 	$order_info['order_date'], $product_id, $product_price, $quantity, $gross_revenue, $venue_id, 
+			$venue_name,	$creditor_id, $venue_creditor, $order_info['coupon_ids'], $order_info['coupon_codes'], $coupon_value, 
 			$net_cost, $commission, $vat, $gross_income, $venue_due, $redeem_date);
 
 	}
@@ -720,7 +723,7 @@ function insert_refunded_trans_rows($refunded_order_rows, $prod_data) {
 
 	$sql = "
 		INSERT INTO $trans_table
-		(	order_id, order_item_id, trans_type, trans_amount, order_date, product_id,
+		(	order_id, order_item_id, transaction_date, trans_type, trans_amount, order_date, product_id,
 			product_price, quantity, gross_revenue, venue_id, venue_name, creditor_id, 
 			venue_creditor, refund_id, coupon_id, coupon_code, coupon_value, net_cost, commission,
 			vat, gross_income, venue_due )
@@ -789,13 +792,11 @@ function insert_refunded_trans_rows($refunded_order_rows, $prod_data) {
 			continue;
 		}
 
-		$sql .= "(%d, %d, %s, %f, %s, %d, %f, %d, %f, %d, %s, %d,
+		$sql .= "(%d, %d, %s, %s, %f, %s, %d, %f, %d, %f, %d, %s, %d,
 			 %s, %s, %s, %s, %f, %f, %f, %f, %f, %f),";
 
-		array_push( $prepare_values, $order_info['order_id'], $order_info['order_item_id'], 'Refund', $trans_amount, 
-			$order_info['order_date'], $product_id, $product_price, $quantity, $gross_revenue, $venue_id, $venue_name,
-			$creditor_id, $venue_creditor, $order_info['refund_ids'], $order_info['coupon_ids'], $order_info['coupon_codes'], $coupon_value, 
-			$net_cost, $commission, $vat, $gross_income, $venue_due);
+		array_push( $prepare_values, $order_info['order_id'], $order_info['order_item_id'], $order_info['refund_date'],
+			'Refund', $trans_amount, $order_info['order_date'], $product_id, $product_price, $quantity, $gross_revenue, $venue_id, $venue_name,	$creditor_id, $venue_creditor, $order_info['refund_ids'], $order_info['coupon_ids'], $order_info['coupon_codes'], $coupon_value, $net_cost, $commission, $vat, $gross_income, $venue_due);
 
 	}
 
@@ -816,7 +817,7 @@ function insert_paid_trans_rows($paid_order_rows, $prod_data) {
 
 	$sql = "
 		INSERT INTO $trans_table
-		(	order_id, order_item_id, trans_type, trans_amount, order_date, product_id,
+		(	order_id, order_item_id, transaction_date, trans_type, trans_amount, order_date, product_id,
 			product_price, quantity, gross_revenue, venue_id, venue_name, creditor_id, 
 			venue_creditor, coupon_id, coupon_code, coupon_value, net_cost, commission,
 			vat, gross_income, venue_due, payment_id, payment_date )
@@ -855,13 +856,12 @@ function insert_paid_trans_rows($paid_order_rows, $prod_data) {
 		$trans_code = "Creditor Payment";
 		$trans_amount = $venue_due;
 
-		$sql .= "(%d, %d, %s, %f, %s, %d, %f, %d, %f, %d, %s, %d,
+		$sql .= "(%d, %d, %s, %s, %f, %s, %d, %f, %d, %f, %d, %s, %d,
 			 %s, %s, %s, %f, %f, %f, %f, %f, %f, %d, %s),";
 
-		array_push( $prepare_values, $order_info['order_id'], $order_info['order_item_id'], $trans_code, $trans_amount, 
-			$order_info['order_date'], $product_id, $product_price, $quantity, $gross_revenue, $venue_id, $venue_name,
-			$creditor_id, $venue_creditor, $order_info['coupon_ids'], $order_info['coupon_codes'], $coupon_value, 
-			$net_cost, $commission, $vat, $gross_income, $venue_due, $payment_id, $payment_date);
+		array_push( $prepare_values, $order_info['order_id'], $order_info['order_item_id'], $payment_date, $trans_code, 	$trans_amount, $order_info['order_date'], $product_id, $product_price, $quantity, $gross_revenue, $venue_id, 
+		$venue_name,	$creditor_id, $venue_creditor, $order_info['coupon_ids'], $order_info['coupon_codes'], $coupon_value, 
+		$net_cost, $commission, $vat, $gross_income, $venue_due, $payment_id, $payment_date);
 
 	}
 
@@ -965,7 +965,7 @@ function insert_taste_credit_trans_rows($taste_credit_rows, $prod_data) {
 
 	$sql = "
 		INSERT INTO $trans_table
-		(	order_id, order_item_id, trans_type, trans_amount, order_date, product_id,
+		(	order_id, order_item_id, transaction_date, trans_type, trans_amount, order_date, product_id,
 			product_price, quantity, gross_revenue, venue_id, venue_name, creditor_id, 
 			venue_creditor, coupon_id, coupon_code, coupon_value, net_cost, commission,
 			vat, gross_income, venue_due )
@@ -1032,10 +1032,11 @@ function insert_taste_credit_trans_rows($taste_credit_rows, $prod_data) {
 			continue;
 		}
 
-		$sql .= "(%d, %d, %s, %f, %s, %d, %f, %d, %f, %d, %s, %d,
+		$sql .= "(%d, %d, %s, %s, %f, %s, %d, %f, %d, %f, %d, %s, %d,
 			 %s, %s, %s, %f, %f, %f, %f, %f, %f),";
 
-		array_push( $prepare_values, $order_info['order_id'], $order_info['order_item_id'], 'Taste Credit', $trans_amount, 
+		array_push( $prepare_values, $order_info['order_id'], $order_info['order_item_id'], $order_info['credit_date'],
+			'Taste Credit', $trans_amount, 
 			$order_info['order_date'], $product_id, $product_price, $quantity, $gross_revenue, $venue_id, $venue_name,
 			$creditor_id, $venue_creditor, $order_info['coupon_ids'], $order_info['coupon_codes'], $coupon_value, 
 			$net_cost, $commission, $vat, $gross_income, $venue_due);
