@@ -57,20 +57,26 @@ function tfinancial_redirect_page_template ($template) {
 }
 add_filter ('page_template', 'tfinancial_redirect_page_template');
 
-// // make sure the campaign manager login does not redirect to wp-admin
-// add_action( 'wp_login_failed', 'tfinancial_login_fail' );  // hook failed login
 
-// function tfinancial_login_fail( $username ) {
-//    $referrer = $_SERVER['HTTP_REFERER'];  
-//    // if there's a valid referrer, and it's not the default log-in screen
-//    if ( !empty($referrer) && !strstr($referrer,'wp-login') && !strstr($referrer,'wp-admin') ) {
-//       wp_redirect( $referrer . '?login=failed' );  // let's append some information (login=failed) to the URL for the theme to use
-//       exit;
-//    }
-// }
-// function tfinancial_query_vars( $qvars ) {
-// 	$qvars[] = 'login';
-// 	return $qvars;
-// }
-// add_filter( 'query_vars', 'tfinancial_query_vars' );
- 
+
+
+ /**********************************************
+ * Test code for hooks/filters goes here
+ **********************************************/
+
+function taste_hide_giftcert_price($price, $product) {
+
+	if ($product->get_meta('hide_reg_price')) {
+		$price_dom = new DOMDocument();
+		if ( !$price_dom->loadHTML(mb_convert_encoding($price, 'HTML-ENTITIES'))) {
+			return $price;
+		}
+		$del_price = $price_dom->getElementsByTagName('ins')->item(0);
+		return $price_dom->saveXML($del_price);
+		
+	} else {
+		return $price;
+	}
+
+}
+add_filter( 'woocommerce_get_price_html', 'taste_hide_giftcert_price', 10, 2 );
