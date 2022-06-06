@@ -18,15 +18,15 @@ defined('ABSPATH') or die('Direct script access disallowed.');
 
 function build_trans_table($start_date = "2020-08-01") {
 
-	 process_new_orders($start_date);
+	process_new_orders($start_date);
 
-	 process_refunded_orders($start_date);
+	process_refunded_orders($start_date);
 
-	 process_taste_credit_orders($start_date);
+	process_taste_credit_orders($start_date);
 
-	 process_redeemed_orders($start_date); 
+	process_redeemed_orders($start_date); 
 
-		process_paid_orders($start_date);
+	process_paid_orders($start_date);
 
 	die();
 	
@@ -200,9 +200,6 @@ function process_refunded_orders($start_date) {
 
 	$refunded_order_rows = $wpdb->get_results($wpdb->prepare($sql, $start_date), ARRAY_A);
 
-	// print_r($refunded_order_rows);
-	// die();
-
 	if (!count($refunded_order_rows)) {
 		echo 'No Refund orders found';
 		return;
@@ -259,13 +256,10 @@ function process_taste_credit_orders($start_date) {
 				SELECT * FROM {$wpdb->prefix}taste_order_transactions ot
 				WHERE ot.order_id = wclook.order_id
 					AND ot.trans_type  = 'Taste Credit'
-			)
+			)	
 		GROUP BY wclook.order_item_id
 		ORDER BY op.post_date DESC";	
 		
-
-//		and wclook.order_id = 353930				
-
 	$taste_credit_rows = $wpdb->get_results($wpdb->prepare($sql, $start_date), ARRAY_A);
 
 	if (!count($taste_credit_rows)) {
@@ -1097,6 +1091,7 @@ function get_credit_coupon_info($order_id) {
 		WHERE coup_p.post_title = %s
 			AND coup_p.post_type = 'shop_coupon'
 			AND coup_p.post_status = 'publish'
+		ORDER BY coup_p.post_date
 		LIMIT 1
 	";
 
@@ -1125,8 +1120,9 @@ function calc_order_credit($order_rows, $order_info, $order_id, $prod_data, $key
 	// need to calculate net cost on each item - then distribute the 
 	// store credit amount as best as possible
 	$total_item_assigned_credit = 0;
+	$total_order_amt = 0;
 
-	// first loop through to calc remaining refund possible for each item
+	// first loop through to calc remaining credit possible for each item
 	// as well as add to the appropriate totals
 	foreach($order_array as &$order_item) {
 		$product_id = $order_item['product_id'];
@@ -1144,15 +1140,40 @@ function calc_order_credit($order_rows, $order_info, $order_id, $prod_data, $key
 		$coupon_value = $order_item['coupon_amount'];
 		$net_cost = $gross_revenue - $coupon_value;
 		$order_item['net_cost'] = $net_cost;	
+		$order_item['gross_cost'] = $gross_revenue;	
 		$order_item['item_credit_amount'] = 0;
+		$total_order_amt += $net_cost;
+		$total_order_gross += $gross_revenue;
 	}
 	
 	$remaining_credit_to_assign = $credit_amount;
 
-	// check to see if any item matches the credit amount exactly.  
-	// If so, just match it up
+	// if total order amount = credit amount, each item credit is its net cost
+	if ($credit_amount == $total_order_amt) {
+		foreach($order_array as &$order_item) {
+			$order_item['item_credit_amount'] = $order_item['net_cost'];
+		}
+		return $order_array;
+	}
+
+	// if total order amount = gross revenue, the coupon was accounted for
+	// and each item credit is its gross cost
+	if ($credit_amount == $total_order_gross) {
+		foreach($order_array as &$order_item) {
+			$order_item['item_credit_amount'] = $order_item['gross_cost'];
+		}
+		return $order_array;
+	}
+
+	// check to see if any item cost matches the credit amount exactly.  
+	// If so, just match it up.  then, check item gross.  
+	// for this go around, do NOT assign if item is downloadd
 	foreach($order_array as &$order_item) {
-		if ( $order_item['net_cost'] == $remaining_credit_to_assign) {
+		if (1 == $order_item['downloaded']) {
+			continue;
+		}
+		if ( $order_item['net_cost'] == $remaining_credit_to_assign || 
+					$order_item['gross_cost'] == $remaining_credit_to_assign) {
 			$order_item['item_credit_amount'] = $remaining_credit_to_assign;
 			$remaining_credit_to_assign = 0;
 			break;
@@ -1163,6 +1184,19 @@ function calc_order_credit($order_rows, $order_info, $order_id, $prod_data, $key
 		return $order_array;
 	}
 
+	// same as above, only assign even if downloaded
+	foreach($order_array as &$order_item) {
+		if ( $order_item['net_cost'] == $remaining_credit_to_assign || 
+					$order_item['gross_cost'] == $remaining_credit_to_assign) {
+			$order_item['item_credit_amount'] = $remaining_credit_to_assign;
+			$remaining_credit_to_assign = 0;
+			break;
+		}
+	}
+
+	if (! $remaining_credit_to_assign) {
+		return $order_array;
+	}
 	// now loop through again and assign the remaining credit to each item
 	foreach($order_array as &$order_item) {
 		if ($order_item['net_cost']) {
