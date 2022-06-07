@@ -4,6 +4,7 @@ jQuery(document).ready(function () {
 });
 
 const tfRunTransBuild = (startDate) => {
+  jQuery("#results").html("Building transaction rows..");
   jQuery.ajax({
     url: tasteFinancial.ajaxurl,
     type: "POST",

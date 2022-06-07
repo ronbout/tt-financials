@@ -259,6 +259,9 @@ function process_taste_credit_orders($start_date) {
 			)	
 		GROUP BY wclook.order_item_id
 		ORDER BY op.post_date DESC";	
+
+		
+//and wclook.order_id = 352826
 		
 	$taste_credit_rows = $wpdb->get_results($wpdb->prepare($sql, $start_date), ARRAY_A);
 
@@ -1197,6 +1200,38 @@ function calc_order_credit($order_rows, $order_info, $order_id, $prod_data, $key
 	if (! $remaining_credit_to_assign) {
 		return $order_array;
 	}
+
+	if (3 === count($order_array)) {
+		$calc_fields = array('net_cost', 'gross_cost');
+		$item_keys = array_keys($order_array);
+
+		foreach ($calc_fields as $calc_field) {
+			if ($order_array[$item_keys[0]][$calc_field] + $order_array[$item_keys[1]][$calc_field] == $remaining_credit_to_assign) {
+				$order_array[$item_keys[0]]['item_credit_amount'] = $order_array[$item_keys[0]][$calc_field];
+				$order_array[$item_keys[1]]['item_credit_amount'] = $order_array[$item_keys[1]][$calc_field];
+				$remaining_credit_to_assign = 0;
+				break;
+			}
+			if ($order_array[$item_keys[0]][$calc_field] + $order_array[$item_keys[2]][$calc_field] == $remaining_credit_to_assign) {
+				$order_array[$item_keys[0]]['item_credit_amount'] = $order_array[$item_keys[0]][$calc_field];
+				$order_array[$item_keys[2]]['item_credit_amount'] = $order_array[$item_keys[2]][$calc_field];
+				$remaining_credit_to_assign = 0;
+				break;
+			}
+			if ($order_array[$item_keys[1]][$calc_field] + $order_array[$item_keys[2]][$calc_field] == $remaining_credit_to_assign) {
+				$order_array[$item_keys[1]]['item_credit_amount'] = $order_array[$item_keys[1]][$calc_field];
+				$order_array[$item_keys[2]]['item_credit_amount'] = $order_array[$item_keys[2]][$calc_field];
+				$remaining_credit_to_assign = 0;
+				break;
+			}
+		}
+	}
+	
+	if (! $remaining_credit_to_assign) {
+		return $order_array;
+	}
+
+
 	// now loop through again and assign the remaining credit to each item
 	foreach($order_array as &$order_item) {
 		if ($order_item['net_cost']) {
