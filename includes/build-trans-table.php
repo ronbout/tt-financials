@@ -408,15 +408,14 @@ function insert_new_order_trans_rows($new_order_rows, $prod_data) {
 		$venue_id = $prod_data[$product_id]['venue_id'];
 		$venue_name = $prod_data[$product_id]['venue_name'];
 		$quantity = $order_info['item_qty'];
-		$gross_revenue = $quantity * $product_price;
-		$commission = ($gross_revenue / 100 ) * $product_comm;
-		$vat = ($commission / 100) * $product_vat;
-		/* round the amounts after calculating ...I think */
-		$gross_revenue = round($gross_revenue, 2);
-		$commission = round($commission, 2);
-		$vat = round($vat, 2);
+		
+		$curr_prod_values = tf_calc_net_payable($product_price, $product_vat, $product_comm, $quantity, true);
+		$gross_revenue = $curr_prod_values['gross_revenue'];
+		$commission = $curr_prod_values['commission'];
+		$vat = $curr_prod_values['vat'];
+		$venue_due = $curr_prod_values['net_payable'];
+
 		$gross_income = $vat + $commission;
-		$venue_due = $gross_revenue - $gross_income;
 		$coupon_value = $order_info['coupon_amount'];
 		$net_cost = $gross_revenue - $coupon_value;
 		$creditor_id = $venue_id;
@@ -675,15 +674,14 @@ function insert_redeemed_trans_rows($redeemed_order_rows, $prod_data) {
 		$venue_id = $prod_data[$product_id]['venue_id'];
 		$venue_name = $prod_data[$product_id]['venue_name'];
 		$quantity = $order_info['item_qty'];
-		$gross_revenue = $quantity * $product_price;
-		$commission = ($gross_revenue / 100 ) * $product_comm;
-		$vat = ($commission / 100) * $product_vat;
-		/* round the amounts after calculating ...I think */
-		$gross_revenue = round($gross_revenue, 2);
-		$commission = round($commission, 2);
-		$vat = round($vat, 2);
+
+		$curr_prod_values = tf_calc_net_payable($product_price, $product_vat, $product_comm, $quantity, true);
+		$gross_revenue = $curr_prod_values['gross_revenue'];
+		$commission = $curr_prod_values['commission'];
+		$vat = $curr_prod_values['vat'];
+		$venue_due = $curr_prod_values['net_payable'];
+
 		$gross_income = $vat + $commission;
-		$venue_due = $gross_revenue - $gross_income;
 		$coupon_value = $order_info['coupon_amount'];
 		$net_cost = $gross_revenue - $coupon_value;
 		$creditor_id = $venue_id;
@@ -770,15 +768,14 @@ function insert_refunded_trans_rows($refunded_order_rows, $prod_data) {
 		$venue_id = $prod_data[$product_id]['venue_id'];
 		$venue_name = $prod_data[$product_id]['venue_name'];
 		$quantity = $order_info['item_qty'];
-		$gross_revenue = $quantity * $product_price;
-		$commission = ($gross_revenue / 100 ) * $product_comm;
-		$vat = ($commission / 100) * $product_vat;
-		/* round the amounts after calculating ...I think */
-		$gross_revenue = round($gross_revenue, 2);
-		$commission = round($commission, 2);
-		$vat = round($vat, 2);
+
+		$curr_prod_values = tf_calc_net_payable($product_price, $product_vat, $product_comm, $quantity, true);
+		$gross_revenue = $curr_prod_values['gross_revenue'];
+		$commission = $curr_prod_values['commission'];
+		$vat = $curr_prod_values['vat'];
+		$venue_due = $curr_prod_values['net_payable'];
+
 		$gross_income = $vat + $commission;
-		$venue_due = $gross_revenue - $gross_income;
 		$coupon_value = $order_info['coupon_amount'];
 		$net_cost = $gross_revenue - $coupon_value;
 		$creditor_id = $venue_id;
@@ -865,15 +862,14 @@ function insert_paid_trans_rows($paid_order_rows, $prod_data) {
 		$venue_id = $prod_data[$product_id]['venue_id'];
 		$venue_name = $prod_data[$product_id]['venue_name'];
 		$quantity = $order_info['item_qty'];
-		$gross_revenue = $quantity * $product_price;
-		$commission = ($gross_revenue / 100 ) * $product_comm;
-		$vat = ($commission / 100) * $product_vat;
-		/* round the amounts after calculating ...I think */
-		$gross_revenue = round($gross_revenue, 2);
-		$commission = round($commission, 2);
-		$vat = round($vat, 2);
+
+		$curr_prod_values = tf_calc_net_payable($product_price, $product_vat, $product_comm, $quantity, true);
+		$gross_revenue = $curr_prod_values['gross_revenue'];
+		$commission = $curr_prod_values['commission'];
+		$vat = $curr_prod_values['vat'];
+		$venue_due = $curr_prod_values['net_payable'];
+
 		$gross_income = $vat + $commission;
-		$venue_due = $gross_revenue - $gross_income;
 		$coupon_value = $order_info['coupon_amount'];
 		$net_cost = $gross_revenue - $coupon_value;
 		$creditor_id = $venue_id;
@@ -935,13 +931,14 @@ function calc_order_refund($refunded_order_rows, $order_info, $order_id, $prod_d
 		$product_comm = $prod_data[$product_id]['commission'];
 		$product_vat = $prod_data[$product_id]['vat'];
 		$quantity = $order_item['item_qty'];
-		$gross_revenue = $quantity * $product_price;
-		$commission = ($gross_revenue / 100 ) * $product_comm;
-		$vat = ($commission / 100) * $product_vat;
-		/* round the amounts after calculating ...I think */
-		$gross_revenue = round($gross_revenue, 2);
-		$commission = round($commission, 2);
-		$vat = round($vat, 2);
+
+		$curr_prod_values = tf_calc_net_payable($product_price, $product_vat, $product_comm, $quantity, true);
+		$gross_revenue = $curr_prod_values['gross_revenue'];
+		$commission = $curr_prod_values['commission'];
+		$vat = $curr_prod_values['vat'];
+		$venue_due = $curr_prod_values['net_payable'];
+		$gross_income = $vat + $commission;
+
 		$coupon_value = $order_item['coupon_amount'];
 		$net_cost = $gross_revenue - $coupon_value;
 		$item_refund_amount = $order_item['item_refund_amount'];
@@ -1016,15 +1013,14 @@ function insert_taste_credit_trans_rows($taste_credit_rows, $prod_data) {
 		$venue_id = $prod_data[$product_id]['venue_id'];
 		$venue_name = $prod_data[$product_id]['venue_name'];
 		$quantity = $order_info['item_qty'];
-		$gross_revenue = $quantity * $product_price;
-		$commission = ($gross_revenue / 100 ) * $product_comm;
-		$vat = ($commission / 100) * $product_vat;
-		// round the amounts after calculating ...I think ***
-		$gross_revenue = round($gross_revenue, 2);
-		$commission = round($commission, 2);
-		$vat = round($vat, 2);
+
+		$curr_prod_values = tf_calc_net_payable($product_price, $product_vat, $product_comm, $quantity, true);
+		$gross_revenue = $curr_prod_values['gross_revenue'];
+		$commission = $curr_prod_values['commission'];
+		$vat = $curr_prod_values['vat'];
+		$venue_due = $curr_prod_values['net_payable'];
+
 		$gross_income = $vat + $commission;
-		$venue_due = $gross_revenue - $gross_income;
 		$coupon_value = $order_info['coupon_amount'];
 		$net_cost = $gross_revenue - $coupon_value;
 		$creditor_id = $venue_id;
@@ -1133,13 +1129,14 @@ function calc_order_credit($order_rows, $order_info, $order_id, $prod_data, $key
 		$product_comm = $prod_data[$product_id]['commission'];
 		$product_vat = $prod_data[$product_id]['vat'];
 		$quantity = $order_item['item_qty'];
-		$gross_revenue = $quantity * $product_price;
-		$commission = ($gross_revenue / 100 ) * $product_comm;
-		$vat = ($commission / 100) * $product_vat;
-		/* round the amounts after calculating ...I think */
-		$gross_revenue = round($gross_revenue, 2);
-		$commission = round($commission, 2);
-		$vat = round($vat, 2);
+
+		$curr_prod_values = tf_calc_net_payable($product_price, $product_vat, $product_comm, $quantity, true);
+		$gross_revenue = $curr_prod_values['gross_revenue'];
+		$commission = $curr_prod_values['commission'];
+		$vat = $curr_prod_values['vat'];
+		$venue_due = $curr_prod_values['net_payable'];
+		$gross_income = $vat + $commission;
+
 		$coupon_value = $order_item['coupon_amount'];
 		$net_cost = $gross_revenue - $coupon_value;
 		$order_item['net_cost'] = $net_cost;	
