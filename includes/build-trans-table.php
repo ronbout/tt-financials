@@ -63,7 +63,7 @@ function process_new_orders($start_date) {
 	$new_order_rows = $wpdb->get_results($wpdb->prepare($sql, $start_date), ARRAY_A);
 
 	if (!count($new_order_rows)) {
-		echo 'No new orders found';
+		echo '<h3>No new orders found</h3>';
 		return;
 	}
 	$prod_ids = array_unique(array_column($new_order_rows, 'product_id'));
@@ -129,7 +129,7 @@ function process_redeemed_orders($start_date) {
 	$redeemed_order_rows = $wpdb->get_results($wpdb->prepare($sql, $start_date), ARRAY_A);
 
 	if (!count($redeemed_order_rows)) {
-		echo 'No Redeemed orders found';
+		echo '<h3>No Redeemed orders found</h3>';
 		return;
 	}
 
@@ -201,7 +201,7 @@ function process_refunded_orders($start_date) {
 	$refunded_order_rows = $wpdb->get_results($wpdb->prepare($sql, $start_date), ARRAY_A);
 
 	if (!count($refunded_order_rows)) {
-		echo 'No Refund orders found';
+		echo '<h3>No Refund orders found</h3>';
 		return;
 	}
 
@@ -266,7 +266,7 @@ function process_taste_credit_orders($start_date) {
 	$taste_credit_rows = $wpdb->get_results($wpdb->prepare($sql, $start_date), ARRAY_A);
 
 	if (!count($taste_credit_rows)) {
-		echo 'No Taste Credit orders found';
+		echo '<h3>No Taste Credit orders found</h3>';
 		return;
 	}
 	$prod_ids = array_unique(array_column($taste_credit_rows, 'product_id'));
@@ -324,7 +324,7 @@ function process_paid_orders($start_date) {
 	$paid_order_rows = $wpdb->get_results($wpdb->prepare($sql, $start_date), ARRAY_A);
 
 	if (!count($paid_order_rows)) {
-		echo 'No Paid orders found';
+		echo '<h3>No Paid orders found</h3>';
 		return;
 	}
 
@@ -898,6 +898,8 @@ function insert_paid_trans_rows($paid_order_rows, $prod_data) {
 }
 
 function calc_order_refund($refunded_order_rows, $order_info, $order_id, $prod_data, $key) {
+
+	$refund_amount = $order_info['refund_total'];
 	
 	$order_array = array_filter($refunded_order_rows, function ($order_item_row) use ($order_id) {
 		return $order_item_row['order_id'] === $order_id;
@@ -907,21 +909,21 @@ function calc_order_refund($refunded_order_rows, $order_info, $order_id, $prod_d
 	$item_cnt = count($order_array);
 
 	if ($item_cnt === 1) {
-		$order_array[$key]['item_refund_amount'] = $order_info['refund_total'];
+		$order_array[$key]['item_refund_amount'] = $refund_amount;
 		return $order_array;
 	}
 
-	if ($order_array[$key]['item_refund_amount'] === $order_array[$key]['refund_total']) {
+	if ($order_array[$key]['item_refund_amount'] === $refund_amount) {
 		return $order_array;
 	}
-
 
 	// need to calculate net cost on each item - any item assigned refund
 	// for each item in the order.  Also, get total of all item assigned refunds.
 	// then, calculate remaining refund to distribute and loop through each order,
 	// assigning available remaining amount until remaining refund = 0
-	$total_refund = $order_array[$key]['refund_total'];
 	$total_item_assigned_refund = 0;
+	$total_order_amt = 0;
+	$total_order_gross = 0;
 
 	// first loop through to calc remaining refund possible for each item
 	// as well as add to the appropriate totals
@@ -944,20 +946,86 @@ function calc_order_refund($refunded_order_rows, $order_info, $order_id, $prod_d
 		$item_refund_amount = $order_item['item_refund_amount'];
 		$remaining_net_cost = $net_cost - $item_refund_amount;
 		$total_item_assigned_refund += $item_refund_amount;
-		$order_item['remaining_net_cost'] = $remaining_net_cost;	
+		$order_item['remaining_net_cost'] = $remaining_net_cost;
+		$order_item['gross_cost'] = $gross_revenue;		
+		$total_order_amt += $net_cost;
+		$total_order_gross += $gross_revenue;
 		// convert any null refund amounts to 0...prevents trying to write out null later
 		$order_item['item_refund_amount'] = $order_item['item_refund_amount'] ? $order_item['item_refund_amount'] : 0;
 	}
 	
-	$remaining_refund_to_assign = $total_refund - $total_item_assigned_refund;
+	$remaining_refund_to_assign = $refund_amount - $total_item_assigned_refund;
+	
+	// if total order amount = refund amount, each item refund is its net cost
+	if ($refund_amount == $total_order_amt) {
+		foreach($order_array as &$order_item) {
+			$order_item['item_refund_amount'] = $order_item['net_cost'];
+		}
+		return $order_array;
+	}
+
+	// if gross revenue = refund amount, the coupon was accounted for
+	// and each item refund is its gross cost
+	if ($refund_amount == $total_order_gross) {
+		foreach($order_array as &$order_item) {
+			$order_item['item_refund_amount'] = $order_item['gross_cost'];
+		}
+		return $order_array;
+	}
 
 	// check to see if any item, which does not have an item amount assigned yet,
 	// matches the remaining refund amount exactly.  If so, just match it up
 	foreach($order_array as &$order_item) {
-		if (! $order_item['item_refund_amount'] && $order_item['remaining_net_cost'] == $remaining_refund_to_assign) {
+		if (1 == $order_item['downloaded']) {
+			continue;
+		}
+		if (! $order_item['item_refund_amount'] && ($order_item['remaining_net_cost'] == $remaining_refund_to_assign || $order_item['gross_cost'] == $remaining_refund_to_assign)) {
 			$order_item['item_refund_amount'] = $remaining_refund_to_assign;
 			$remaining_refund_to_assign = 0;
 			break;
+		}
+	}
+
+	if (! $remaining_refund_to_assign) {
+		return $order_array;
+	}
+
+	// same as above, only assign even if downloaded
+	foreach($order_array as &$order_item) {
+		if (! $order_item['item_refund_amount'] && ($order_item['remaining_net_cost'] == $remaining_refund_to_assign || $order_item['gross_cost'] == $remaining_refund_to_assign)) {
+			$order_item['item_refund_amount'] = $remaining_refund_to_assign;
+			$remaining_refund_to_assign = 0;
+			break;
+		}
+	}
+
+	if (! $remaining_refund_to_assign) {
+		return $order_array;
+	}
+
+	if (3 === count($order_array)) {
+		$calc_fields = array('remaining_net_cost', 'gross_cost');
+		$item_keys = array_keys($order_array);
+
+		foreach ($calc_fields as $calc_field) {
+			if ($order_array[$item_keys[0]][$calc_field] + $order_array[$item_keys[1]][$calc_field] == $remaining_refund_to_assign) {
+				$order_array[$item_keys[0]]['item_refund_amount'] = $order_array[$item_keys[0]][$calc_field];
+				$order_array[$item_keys[1]]['item_refund_amount'] = $order_array[$item_keys[1]][$calc_field];
+				$remaining_refund_to_assign = 0;
+				break;
+			}
+			if ($order_array[$item_keys[0]][$calc_field] + $order_array[$item_keys[2]][$calc_field] == $remaining_refund_to_assign) {
+				$order_array[$item_keys[0]]['item_refund_amount'] = $order_array[$item_keys[0]][$calc_field];
+				$order_array[$item_keys[2]]['item_refund_amount'] = $order_array[$item_keys[2]][$calc_field];
+				$remaining_refund_to_assign = 0;
+				break;
+			}
+			if ($order_array[$item_keys[1]][$calc_field] + $order_array[$item_keys[2]][$calc_field] == $remaining_refund_to_assign) {
+				$order_array[$item_keys[1]]['item_refund_amount'] = $order_array[$item_keys[1]][$calc_field];
+				$order_array[$item_keys[2]]['item_refund_amount'] = $order_array[$item_keys[2]][$calc_field];
+				$remaining_refund_to_assign = 0;
+				break;
+			}
 		}
 	}
 
@@ -1120,6 +1188,7 @@ function calc_order_credit($order_rows, $order_info, $order_id, $prod_data, $key
 	// store credit amount as best as possible
 	$total_item_assigned_credit = 0;
 	$total_order_amt = 0;
+	$total_order_gross = 0;
 
 	// first loop through to calc remaining credit possible for each item
 	// as well as add to the appropriate totals
@@ -1156,7 +1225,7 @@ function calc_order_credit($order_rows, $order_info, $order_id, $prod_data, $key
 		return $order_array;
 	}
 
-	// if total order amount = gross revenue, the coupon was accounted for
+	// if gross revenue = credit amount, the coupon was accounted for
 	// and each item credit is its gross cost
 	if ($credit_amount == $total_order_gross) {
 		foreach($order_array as &$order_item) {
@@ -1227,7 +1296,6 @@ function calc_order_credit($order_rows, $order_info, $order_id, $prod_data, $key
 	if (! $remaining_credit_to_assign) {
 		return $order_array;
 	}
-
 
 	// now loop through again and assign the remaining credit to each item
 	foreach($order_array as &$order_item) {
