@@ -32,6 +32,7 @@ function tfinancial_add_transaction_table() {
 		`venue_name` VARCHAR(80) NULL DEFAULT NULL COLLATE 'latin1_swedish_ci',
 		`creditor_id` BIGINT(20) NOT NULL,
 		`venue_creditor` VARCHAR(80) NOT NULL COLLATE 'latin1_swedish_ci',
+		`taste_credit_coupon_id` BIGINT(20) UNSIGNED NULL DEFAULT NULL,
 		`refund_id` MEDIUMTEXT NULL DEFAULT NULL COLLATE 'latin1_swedish_ci',
 		`coupon_id` MEDIUMTEXT NULL DEFAULT NULL COLLATE 'latin1_swedish_ci',
 		`coupon_code` MEDIUMTEXT NULL DEFAULT NULL COLLATE 'latin1_swedish_ci',

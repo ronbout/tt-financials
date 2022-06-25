@@ -1058,7 +1058,7 @@ function insert_taste_credit_trans_rows($taste_credit_rows, $prod_data) {
 		INSERT INTO $trans_table
 		(	order_id, order_item_id, transaction_date, trans_type, trans_amount, order_date, product_id,
 			product_price, quantity, gross_revenue, venue_id, venue_name, creditor_id, 
-			venue_creditor, coupon_id, coupon_code, coupon_value, net_cost, commission,
+			venue_creditor, taste_credit_coupon_id, coupon_id, coupon_code, coupon_value, net_cost, commission,
 			vat, gross_income, venue_due )
 		VALUES 
 	";
@@ -1100,6 +1100,7 @@ function insert_taste_credit_trans_rows($taste_credit_rows, $prod_data) {
 		$credit_coupon_info = get_credit_coupon_info($order_id);
 
 		$credit_amount = $credit_coupon_info[0]['coupon_amount'];
+		$credit_coupon_id = $credit_coupon_info[0]['ID'];
 
 		if ($prev_order_id !== $order_id) {
 			// grab all rows for that order and then make decisions
@@ -1123,12 +1124,12 @@ function insert_taste_credit_trans_rows($taste_credit_rows, $prod_data) {
 		}
 
 		$sql .= "(%d, %d, %s, %s, %f, %s, %d, %f, %d, %f, %d, %s, %d,
-			 %s, %s, %s, %f, %f, %f, %f, %f, %f),";
+			 %s, %d, %s, %s, %f, %f, %f, %f, %f, %f),";
 
 		array_push( $prepare_values, $order_info['order_id'], $order_info['order_item_id'], $order_info['credit_date'],
 			'Taste Credit', $trans_amount, 
 			$order_info['order_date'], $product_id, $product_price, $quantity, $gross_revenue, $venue_id, $venue_name,
-			$creditor_id, $venue_creditor, $order_info['coupon_ids'], $order_info['coupon_codes'], $coupon_value, 
+			$creditor_id, $venue_creditor, $credit_coupon_id, $order_info['coupon_ids'], $order_info['coupon_codes'], $coupon_value, 
 			$net_cost, $commission, $vat, $gross_income, $venue_due);
 
 	}
