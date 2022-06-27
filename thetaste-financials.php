@@ -36,22 +36,21 @@ if (is_admin()) {
 //require_once TFINANCIAL_PLUGIN_INCLUDES.'/enqueues.php';
 require_once TFINANCIAL_PLUGIN_INCLUDES.'/ajax/ajax-functions.php';
 require_once TFINANCIAL_PLUGIN_INCLUDES.'/functions.php';
-
-//require_once TFINANCIAL_PLUGIN_INCLUDES.'/build-trans-table.php';
+require_once TFINANCIAL_PLUGIN_INCLUDES.'/real-time-trans-build.php';
 
 /**
  * Page Templates setup code
  */
 // set up page templates
 function tfinancial_add_template ($templates) {
-	$templates['test-build-trans.php'] = 'Build Transaction Table';
+	$templates['test-build-trans-bulk.php'] = 'Build Transaction Table';
 	return $templates;
 	}
 add_filter ('theme_page_templates', 'tfinancial_add_template');
 
 function tfinancial_redirect_page_template ($template) {
-	if (is_page_template('test-build-trans.php')) {
-		$template = plugin_dir_path( __FILE__ ).'page-templates/test-build-trans.php';
+	if (is_page_template('test-build-trans-bulk.php')) {
+		$template = plugin_dir_path( __FILE__ ).'page-templates/test-build-trans-bulk.php';
 	}
 	return $template;
 }
@@ -61,7 +60,7 @@ add_filter ('page_template', 'tfinancial_redirect_page_template');
 
 
  /**********************************************
- * Test code for hooks/filters goes here
+ * Code for hooks/filters goes here
  **********************************************/
 
 function taste_hide_giftcert_price($price, $product) {

@@ -10,7 +10,7 @@ const tfRunTransBuild = (startDate) => {
     type: "POST",
     datatype: "html",
     data: {
-      action: "build_trans",
+      action: "build_trans_bulk",
       security: tasteFinancial.security,
       start_date: startDate,
     },

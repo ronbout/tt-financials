@@ -1,10 +1,10 @@
 <?php 
 /**
  * 
- *  build-trans-table.php
+ *  build-trans-table-bulk.php
  *  08/07/2021  Ron Boutilier
  * 
- *  build_trans_table function which will update the {$wpdb->prefix}taste_order_transactions
+ *  build_trans_table_bulk function which will update the {$wpdb->prefix}taste_order_transactions
  *  table with any order transactions since the given date that have not already 
  *  been entered into the trans table.  This will most likely be run on a nightly
  *  basis.
@@ -16,7 +16,7 @@
 
 defined('ABSPATH') or die('Direct script access disallowed.');
 
-function build_trans_table($start_date = "2020-08-01") {
+function build_trans_table_bulk($start_date = "2020-08-01") {
 
 	process_new_orders($start_date);
 

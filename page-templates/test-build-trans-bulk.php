@@ -22,7 +22,7 @@ defined('ABSPATH') or die('Direct script access disallowed.');
 		integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
 		crossorigin="anonymous">
 	</script>
-	<script src="<?php echo TFINANCIAL_PLUGIN_INCLUDES_URL?>/js/build-trans-table.js"></script>
+	<script src="<?php echo TFINANCIAL_PLUGIN_INCLUDES_URL?>/js/build-trans-table-bulk.js"></script>
 	<style>
 		* {
 			margin: 8px;
