@@ -37,6 +37,7 @@ if (is_admin()) {
 require_once TFINANCIAL_PLUGIN_INCLUDES.'/ajax/ajax-functions.php';
 require_once TFINANCIAL_PLUGIN_INCLUDES.'/functions.php';
 require_once TFINANCIAL_PLUGIN_INCLUDES.'/real-time-trans-build.php';
+require_once TFINANCIAL_PLUGIN_INCLUDES.'/trans-insert-functions.php';
 
 /**
  * Page Templates setup code
