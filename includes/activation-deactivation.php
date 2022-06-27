@@ -18,7 +18,7 @@ function tfinancial_add_transaction_table() {
 		`order_id` BIGINT(20) UNSIGNED NOT NULL,
 		`order_item_id` BIGINT(20) UNSIGNED NOT NULL,
 		`transaction_date` TIMESTAMP NULL DEFAULT NULL,
-		`trans_type` ENUM('Order','Redemption','Creditor Payment','Refund','Taste Credit','Order - From Credit','Redemption - From Credit','Bank Receipt') NOT NULL COLLATE 'latin1_swedish_ci',
+		`trans_type` ENUM('Order','Redemption','UnRedeem','Creditor Payment','Refund','Taste Credit','Order - From Credit','Redemption - From Credit','Bank Receipt') NOT NULL COLLATE 'latin1_swedish_ci',
 		`trans_amount` DECIMAL(19,4) UNSIGNED NULL DEFAULT NULL,
 		`trans_entry_timestamp` TIMESTAMP NOT NULL DEFAULT current_timestamp(),
 		`batch_id` BIGINT(20) UNSIGNED NULL DEFAULT NULL,
