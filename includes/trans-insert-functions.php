@@ -16,14 +16,13 @@ defined('ABSPATH') or die('Direct script access disallowed.');
 *   Functions for Redeemed / UnRedeemed transaction types
 ************************************************************/
 
-function process_redeemed_order_list($redeemed_order_rows, $redeem_flg) {
+function process_redeemed_order_list($redeemed_order_rows, $redeem_flg=1, $formatted_date='') {
 
   $prod_ids = array_unique(array_column($redeemed_order_rows, 'product_id'));
-
   $prod_data = build_product_data($prod_ids);
 
   // build insert data 
-  $rows_affected = insert_redeemed_trans_rows($redeemed_order_rows, $prod_data);
+  $rows_affected = insert_redeemed_trans_rows($redeemed_order_rows, $prod_data, $redeem_flg, $formatted_date);
 
   return $rows_affected;
 
@@ -31,7 +30,7 @@ function process_redeemed_order_list($redeemed_order_rows, $redeem_flg) {
 
 }
 
-function insert_redeemed_trans_rows($redeemed_order_rows, $prod_data) {
+function insert_redeemed_trans_rows($redeemed_order_rows, $prod_data, $redeem_flg=1, $formatted_date='') {
 	global $wpdb;
 
 	$trans_table = "{$wpdb->prefix}taste_order_transactions";
@@ -59,7 +58,7 @@ function insert_redeemed_trans_rows($redeemed_order_rows, $prod_data) {
 		$product_vat = $prod_data[$product_id]['vat'];
 		$venue_id = $prod_data[$product_id]['venue_id'];
 		$venue_name = $prod_data[$product_id]['venue_name'];
-		$quantity = $order_info['item_qty'];
+		$quantity = $redeem_flg ? $order_info['item_qty'] : (int) $order_info['item_qty'] * -1;
 
 		$curr_prod_values = tf_calc_net_payable($product_price, $product_vat, $product_comm, $quantity, true);
 		$gross_revenue = $curr_prod_values['gross_revenue'];
@@ -68,11 +67,11 @@ function insert_redeemed_trans_rows($redeemed_order_rows, $prod_data) {
 		$venue_due = $curr_prod_values['net_payable'];
 
 		$gross_income = $vat + $commission;
-		$coupon_value = $order_info['coupon_amount'];
+		$coupon_value = $redeem_flg ? $order_info['coupon_amount'] : $order_info['coupon_amount'] * -1;
 		$net_cost = $gross_revenue - $coupon_value;
 		$creditor_id = $venue_id;
 		$venue_creditor = $venue_name;
-		$redeem_date = $order_info['redeem_date'];
+		$redeem_date = $formatted_date ? $formatted_date : $order_info['redeem_date'];
 		
 		// need to check for any coupon code's that match a previous order.  
 		// Those are store credit coupons and orders created with them, get
@@ -95,12 +94,12 @@ function insert_redeemed_trans_rows($redeemed_order_rows, $prod_data) {
 		}
 
 		if (isset($order_info['store_credit_amount']) && $order_info['store_credit_amount'] ) {
-			$trans_code = "Redemption - From Credit";
-			$trans_amount = $order_info['store_credit_amount'];
+			$trans_code = $redeem_flg ? "Redemption - From Credit" : "UnRedeem";
+			$trans_amount = $redeem_flg ? $order_info['store_credit_amount'] : $order_info['store_credit_amount'] * -1 ;
 		} else {
-			$trans_code = "Redemption";
-			$trans_amount = $gross_revenue;
-		}
+			$trans_code = $redeem_flg ? "Redemption": "UnRedeem";
+			$trans_amount = $gross_revenue;  //  gross_revenue will already be negative (- qty) if UnRedeem
+    }
 
 		$sql .= "(%d, %d, %s, %s, %f, %s, %d, %f, %d, %f, %d, %s, %d,
 			 %s, %s, %s, %f, %f, %f, %f, %f, %f, %s),";
@@ -217,4 +216,36 @@ function check_redeemed_for_store_credit_coupon($order_rows, $order_info, $order
 		}
 	}
 	return $order_array;
+}
+/***********************************************************
+*   End of Redeemed / UnRedeemed transaction types
+************************************************************/
+
+/***********************************************************
+*   Functions for all transaction types
+************************************************************/
+
+function build_product_data($prod_ids) {
+	global $wpdb;
+
+	// get the product-specific info
+	$pid_placeholders = array_fill(0, count($prod_ids), '%d');
+	$pid_placeholders = implode(', ', $pid_placeholders);
+
+	$product_rows = $wpdb->get_results($wpdb->prepare("
+			SELECT  pm.post_id, v.venue_id, v.name AS venue_name,
+							MAX(CASE WHEN pm.meta_key = '_sale_price' then pm.meta_value ELSE NULL END) as price,
+							MAX(CASE WHEN pm.meta_key = 'vat' then pm.meta_value ELSE NULL END) as vat,
+							MAX(CASE WHEN pm.meta_key = 'commission' then pm.meta_value ELSE NULL END) as commission
+			FROM   {$wpdb->prefix}postmeta pm
+			JOIN {$wpdb->prefix}posts p ON p.id = pm.post_id
+			LEFT JOIN {$wpdb->prefix}taste_venue_products vp ON vp.product_id = pm.post_id
+			LEFT JOIN {$wpdb->prefix}taste_venue v ON v.venue_id = vp.venue_id
+			WHERE pm.post_id in ($pid_placeholders)                 
+			GROUP BY
+				pm.post_id
+		", $prod_ids), ARRAY_A);
+
+	return array_column($product_rows, null, 'post_id' );
+
 }

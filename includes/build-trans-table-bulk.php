@@ -344,33 +344,6 @@ function process_paid_orders($start_date) {
 
 }
 
-
-
-function build_product_data($prod_ids) {
-	global $wpdb;
-
-	// get the product-specific info
-	$pid_placeholders = array_fill(0, count($prod_ids), '%d');
-	$pid_placeholders = implode(', ', $pid_placeholders);
-
-	$product_rows = $wpdb->get_results($wpdb->prepare("
-			SELECT  pm.post_id, v.venue_id, v.name AS venue_name,
-							MAX(CASE WHEN pm.meta_key = '_sale_price' then pm.meta_value ELSE NULL END) as price,
-							MAX(CASE WHEN pm.meta_key = 'vat' then pm.meta_value ELSE NULL END) as vat,
-							MAX(CASE WHEN pm.meta_key = 'commission' then pm.meta_value ELSE NULL END) as commission
-			FROM   {$wpdb->prefix}postmeta pm
-			JOIN {$wpdb->prefix}posts p ON p.id = pm.post_id
-			LEFT JOIN {$wpdb->prefix}taste_venue_products vp ON vp.product_id = pm.post_id
-			LEFT JOIN {$wpdb->prefix}taste_venue v ON v.venue_id = vp.venue_id
-			WHERE pm.post_id in ($pid_placeholders)                 
-			GROUP BY
-				pm.post_id
-		", $prod_ids), ARRAY_A);
-
-	return array_column($product_rows, null, 'post_id' );
-
-}
-
 function insert_new_order_trans_rows($new_order_rows, $prod_data) {
 	global $wpdb;
 

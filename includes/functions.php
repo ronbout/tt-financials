@@ -33,3 +33,12 @@ function tf_calc_net_payable($product_price, $vat_val, $commission_val, $cnt, $r
 		'net_payable' => $payable
 	);
 }
+
+// function local_debug_write($info) {
+	
+// 	$file = "C:/Users/ronbo/Documents/jim-stuff/tmp/local_debug_" . time() . ".txt";
+
+// 	$msg = serialize($info);
+
+// 	file_put_contents($file, $msg);
+// }
