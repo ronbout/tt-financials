@@ -29,10 +29,22 @@ function redeem_trans_rows_cm($order_list, $redeem_flg) {
 }
 add_action('taste_after_redeem', 'redeem_trans_rows_cm', 10, 2);
 
-// function redeem_trans_rows_mini($order_item_id) {
+function redeem_trans_rows_mini($order_item_id) {
+  $redeem_flg = 1;
+  $item_id_array = array($order_item_id);
+  $redeemed_order_rows = retrieve_redeem_order_info($item_id_array);
+  
+  $formatted_date = date('Y-m-d H:i:s');
 
-// }
-// add_action('taste_after_redeem_mini', 'redeem_trans_rows_mini');
+  $rows_affected = process_redeemed_order_list($redeemed_order_rows, $redeem_flg, $formatted_date);
+  
+  /**
+   * should write to some log file
+   * 
+   */
+
+}
+add_action('taste_after_redeem_mini', 'redeem_trans_rows_mini');
 
 function retrieve_redeem_order_info($order_item_list) {
 	global $wpdb;
