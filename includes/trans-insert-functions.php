@@ -222,6 +222,93 @@ function check_redeemed_for_store_credit_coupon($order_rows, $order_info, $order
 ************************************************************/
 
 /***********************************************************
+*   Functions for Creditor Payment transaction types
+************************************************************/
+
+function process_paid_order_list($paid_order_rows, $formatted_date='', $pay_id='') {
+
+  $prod_ids = array_unique(array_column($paid_order_rows, 'product_id'));
+  $prod_data = build_product_data($prod_ids);
+
+  // build insert data 
+  $rows_affected = insert_paid_trans_rows($paid_order_rows, $prod_data, $formatted_date, $pay_id);
+
+  return $rows_affected;
+
+	/*****  TODO:  Error Checking - need log file for errors */
+
+}
+
+function insert_paid_trans_rows($paid_order_rows, $prod_data, $formatted_date='', $pay_id='') {
+	global $wpdb;
+
+	$trans_table = "{$wpdb->prefix}taste_order_transactions";
+
+	$sql = "
+		INSERT INTO $trans_table
+		(	order_id, order_item_id, transaction_date, trans_type, trans_amount, order_date, product_id,
+			product_price, quantity, gross_revenue, venue_id, venue_name, creditor_id, 
+			venue_creditor, coupon_id, coupon_code, coupon_value, net_cost, commission,
+			vat, gross_income, venue_due, payment_id, payment_date )
+		VALUES 
+	";
+
+	$prepare_values = array();
+	$order_cnt = count($paid_order_rows);
+
+	for($key = 0; $key < $order_cnt; $key++) {
+		$order_info = $paid_order_rows[$key];
+		$order_id = $order_info['order_id'];
+		$product_id = $order_info['product_id'];
+		$payment_id = $pay_id ? $pay_id : $order_info['payment_id'];
+		$payment_date = $formatted_date ?  $formatted_date : $order_info['payment_date'];
+		$product_price = $prod_data[$product_id]['price'];
+		$product_comm = $prod_data[$product_id]['commission'];
+		$product_vat = $prod_data[$product_id]['vat'];
+		$venue_id = $prod_data[$product_id]['venue_id'];
+		$venue_name = $prod_data[$product_id]['venue_name'];
+		$quantity = $order_info['item_qty'];
+
+		$curr_prod_values = tf_calc_net_payable($product_price, $product_vat, $product_comm, $quantity, true);
+		$gross_revenue = $curr_prod_values['gross_revenue'];
+		$commission = $curr_prod_values['commission'];
+		$vat = $curr_prod_values['vat'];
+		$venue_due = $curr_prod_values['net_payable'];
+
+		$gross_income = $vat + $commission;
+		$coupon_value = $order_info['coupon_amount'];
+		$net_cost = $gross_revenue - $coupon_value;
+		$creditor_id = $venue_id;
+		$venue_creditor = $venue_name;
+
+		$trans_code = "Creditor Payment";
+		$trans_amount = $venue_due;
+
+		$sql .= "(%d, %d, %s, %s, %f, %s, %d, %f, %d, %f, %d, %s, %d,
+			 %s, %s, %s, %f, %f, %f, %f, %f, %f, %d, %s),";
+
+		array_push( $prepare_values, $order_info['order_id'], $order_info['order_item_id'], $payment_date, $trans_code, 	$trans_amount, $order_info['order_date'], $product_id, $product_price, $quantity, $gross_revenue, $venue_id, 
+		$venue_name,	$creditor_id, $venue_creditor, $order_info['coupon_ids'], $order_info['coupon_codes'], $coupon_value, 
+		$net_cost, $commission, $vat, $gross_income, $venue_due, $payment_id, $payment_date);
+
+	}
+
+	$sql = trim($sql, ',');
+	
+	$prepared_sql = $wpdb->prepare($sql, $prepare_values);
+	$prepared_sql = str_replace("''",'NULL', $prepared_sql);
+
+	$rows_affected = $wpdb->query($prepared_sql);
+
+	return $rows_affected;
+
+}
+
+/***********************************************************
+*   End of Creditor Payment transaction types
+************************************************************/
+
+/***********************************************************
 *   Functions for all transaction types
 ************************************************************/
 
