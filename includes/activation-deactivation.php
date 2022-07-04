@@ -43,6 +43,7 @@ function tfinancial_add_transaction_table() {
 		`gross_income` DECIMAL(19,4) UNSIGNED NOT NULL,
 		`venue_due` DECIMAL(19,4) UNSIGNED NOT NULL,,
 		`payment_id` BIGINT(20) UNSIGNED NULL DEFAULT NULL,
+		`payment_status` TINYINT(3) UNSIGNED NULL DEFAULT NULL,
 		`payment_date` TIMESTAMP NULL DEFAULT NULL,
 		`redemption_date` TIMESTAMP NULL DEFAULT NULL,
 		PRIMARY KEY (`id`) USING BTREE,
