@@ -78,20 +78,25 @@ function retrieve_redeem_order_info($order_item_list) {
 function payment_trans_rows_cm($payment_id, $payment_info) {
   $edit_mode = $payment_info['edit_mode'];
   $order_item_ids = $payment_info['order_item_ids'];
+  $payment_status = $payment_info['payment_status'];
   $payment_date =  $payment_info['payment_date'];
 
   switch($edit_mode) {
     case 'INSERT':
-      $paid_order_rows = retrieve_paid_order_info($order_item_ids);
-      $rows_affected = process_paid_order_list($paid_order_rows, $payment_date, $payment_id);
+      if (TASTE_PAYMENT_STATUS_ADJ != $payment_status) {
+        $paid_order_rows = retrieve_paid_order_info($order_item_ids);
+        $rows_affected = process_paid_order_list($paid_order_rows, $payment_date, $payment_id, $payment_status);
+      }
       break;
     case 'DELETE':
       delete_paid_order_rows($payment_id);
       break;
     case 'UPDATE':
       delete_paid_order_rows($payment_id);
-      $paid_order_rows = retrieve_paid_order_info($order_item_ids);
-      $rows_affected = process_paid_order_list($paid_order_rows, $payment_date, $payment_id);
+      if (TASTE_PAYMENT_STATUS_ADJ != $payment_status) {
+        $paid_order_rows = retrieve_paid_order_info($order_item_ids);
+        $rows_affected = process_paid_order_list($paid_order_rows, $payment_date, $payment_id, $payment_status);
+      }
   }
 
 }

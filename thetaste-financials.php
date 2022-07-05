@@ -39,6 +39,13 @@ require_once TFINANCIAL_PLUGIN_INCLUDES.'/functions.php';
 require_once TFINANCIAL_PLUGIN_INCLUDES.'/real-time-trans-build.php';
 require_once TFINANCIAL_PLUGIN_INCLUDES.'/trans-insert-functions.php';
 
+/* some helpful CONSTANTS */
+define('TASTE_PAYMENT_STATUS_PAID', 1);
+define('TASTE_PAYMENT_STATUS_ADJ', 2);
+define('TASTE_PAYMENT_STATUS_PENDING', 3);
+define('TASTE_PAYMENT_STATUS_PROCESSING', 4);
+define('TASTE_DEFAULT_PAYMENT_STATUS', TASTE_PAYMENT_STATUS_PAID);
+
 /**
  * Page Templates setup code
  */

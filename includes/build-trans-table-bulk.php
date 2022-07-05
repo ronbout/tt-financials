@@ -292,7 +292,7 @@ function process_paid_orders($start_date) {
 			GROUP_CONCAT( cpn_look.coupon_id ) AS coupon_ids,
 			GROUP_CONCAT( cpn_post.post_title ) AS coupon_codes,
 			wclook.coupon_amount, op.post_date AS order_date,
-			pay.id AS payment_id, pay.payment_date
+			pay.id AS payment_id, pay.payment_date, pay.status AS payment_status
 		FROM {$wpdb->prefix}wc_order_product_lookup wclook
 			JOIN {$wpdb->prefix}posts op ON op.ID = wclook.order_id 
 			JOIN {$wpdb->prefix}woocommerce_order_items oi ON oi.order_item_id = wclook.order_item_id
@@ -300,7 +300,7 @@ function process_paid_orders($start_date) {
 			LEFT JOIN {$wpdb->prefix}wc_order_coupon_lookup cpn_look ON cpn_look.order_id = wclook.order_id
 			LEFT JOIN {$wpdb->prefix}posts cpn_post ON cpn_post.ID = cpn_look.coupon_id
 			JOIN {$wpdb->prefix}taste_venue_payment_order_item_xref poix ON poix.order_item_id = wclook.order_item_id
-			JOIN {$wpdb->prefix}taste_venue_payment pay ON pay.id = poix.payment_id AND pay.`status` = 1
+			JOIN {$wpdb->prefix}taste_venue_payment pay ON pay.id = poix.payment_id AND pay.status <> 2
 		WHERE op.post_status in ('wc-completed', 'wc-refunded', 'wc-on-hold')
 			AND oim.meta_key = '_qty'
 			AND op.post_type = 'shop_order'

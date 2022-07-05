@@ -225,13 +225,13 @@ function check_redeemed_for_store_credit_coupon($order_rows, $order_info, $order
 *   Functions for Creditor Payment transaction types
 ************************************************************/
 
-function process_paid_order_list($paid_order_rows, $formatted_date='', $pay_id='') {
+function process_paid_order_list($paid_order_rows, $formatted_date='', $pay_id='', $pay_status='') {
 
   $prod_ids = array_unique(array_column($paid_order_rows, 'product_id'));
   $prod_data = build_product_data($prod_ids);
 
   // build insert data 
-  $rows_affected = insert_paid_trans_rows($paid_order_rows, $prod_data, $formatted_date, $pay_id);
+  $rows_affected = insert_paid_trans_rows($paid_order_rows, $prod_data, $formatted_date, $pay_id, $pay_status);
 
   return $rows_affected;
 
@@ -239,7 +239,7 @@ function process_paid_order_list($paid_order_rows, $formatted_date='', $pay_id='
 
 }
 
-function insert_paid_trans_rows($paid_order_rows, $prod_data, $formatted_date='', $pay_id='') {
+function insert_paid_trans_rows($paid_order_rows, $prod_data, $formatted_date='', $pay_id='', $pay_status='') {
 	global $wpdb;
 
 	$trans_table = "{$wpdb->prefix}taste_order_transactions";
@@ -249,7 +249,7 @@ function insert_paid_trans_rows($paid_order_rows, $prod_data, $formatted_date=''
 		(	order_id, order_item_id, transaction_date, trans_type, trans_amount, order_date, product_id,
 			product_price, quantity, gross_revenue, venue_id, venue_name, creditor_id, 
 			venue_creditor, coupon_id, coupon_code, coupon_value, net_cost, commission,
-			vat, gross_income, venue_due, payment_id, payment_date )
+			vat, gross_income, venue_due, payment_id, payment_date, payment_status )
 		VALUES 
 	";
 
@@ -261,6 +261,7 @@ function insert_paid_trans_rows($paid_order_rows, $prod_data, $formatted_date=''
 		$order_id = $order_info['order_id'];
 		$product_id = $order_info['product_id'];
 		$payment_id = $pay_id ? $pay_id : $order_info['payment_id'];
+		$payment_status = $pay_status ? $pay_status : $order_info['payment_status'];
 		$payment_date = $formatted_date ?  $formatted_date : $order_info['payment_date'];
 		$product_price = $prod_data[$product_id]['price'];
 		$product_comm = $prod_data[$product_id]['commission'];
@@ -285,11 +286,11 @@ function insert_paid_trans_rows($paid_order_rows, $prod_data, $formatted_date=''
 		$trans_amount = $venue_due;
 
 		$sql .= "(%d, %d, %s, %s, %f, %s, %d, %f, %d, %f, %d, %s, %d,
-			 %s, %s, %s, %f, %f, %f, %f, %f, %f, %d, %s),";
+			 %s, %s, %s, %f, %f, %f, %f, %f, %f, %d, %s, %d),";
 
 		array_push( $prepare_values, $order_info['order_id'], $order_info['order_item_id'], $payment_date, $trans_code, 	$trans_amount, $order_info['order_date'], $product_id, $product_price, $quantity, $gross_revenue, $venue_id, 
 		$venue_name,	$creditor_id, $venue_creditor, $order_info['coupon_ids'], $order_info['coupon_codes'], $coupon_value, 
-		$net_cost, $commission, $vat, $gross_income, $venue_due, $payment_id, $payment_date);
+		$net_cost, $commission, $vat, $gross_income, $venue_due, $payment_id, $payment_date, $payment_status);
 
 	}
 
