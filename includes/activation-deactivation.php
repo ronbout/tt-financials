@@ -71,6 +71,7 @@ function tfinancial_activation() {
  */
 function tfinancial_deactivation() {
 
+	wp_clear_scheduled_hook( 'taste_nightly_event' );
 	/**
 	 *  *** NO!!!  DO NOT WANT TO LOSE INFO UNLESS SPECIFICALLY CHOSEN BY USER  ***
 	 * remove table for one to many (venue to vouchers)

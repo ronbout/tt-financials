@@ -16,7 +16,9 @@
 
 defined('ABSPATH') or die('Direct script access disallowed.');
 
-function build_trans_table_bulk($start_date = "2020-08-01") {
+function build_trans_table_bulk($start_date = "2020-01-01", $output_to_file=false) {
+
+	ob_start();
 
 	process_new_orders($start_date);
 
@@ -27,6 +29,14 @@ function build_trans_table_bulk($start_date = "2020-08-01") {
 	process_redeemed_orders($start_date); 
 
 	process_paid_orders($start_date);
+
+	$trans_build_output = ob_get_clean();
+
+	if ($output_to_file) {
+		local_debug_write($trans_build_output);
+	} else {
+		echo $trans_build_output;
+	}
 
 	die();
 	

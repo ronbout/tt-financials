@@ -12,7 +12,7 @@ function tf_ajax_build_trans_bulk() {
 	$start_date = $_POST['start_date'];
 
 	require_once TFINANCIAL_PLUGIN_INCLUDES.'/build-trans-table-bulk.php';
-	build_trans_table_bulk($start_date);
+	build_trans_table_bulk($start_date, false);
 
 	wp_die();
 }

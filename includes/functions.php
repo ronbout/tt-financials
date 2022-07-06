@@ -34,11 +34,11 @@ function tf_calc_net_payable($product_price, $vat_val, $commission_val, $cnt, $r
 	);
 }
 
-// function local_debug_write($info) {
+function local_debug_write($info) {
 	
-// 	$file = "C:/Users/ronbo/Documents/jim-stuff/tmp/local_debug_" . time() . ".txt";
+	$file = "C:/Users/ronbo/Documents/jim-stuff/tmp/local_debug_" . time() . ".txt";
 
-// 	$msg = serialize($info);
+	$msg = serialize($info);
 
-// 	file_put_contents($file, $msg);
-// }
+	file_put_contents($file, $msg);
+}
