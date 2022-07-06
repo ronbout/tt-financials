@@ -18,6 +18,14 @@ defined('ABSPATH') or die('Direct script access disallowed.');
 
 function build_trans_table_bulk($start_date = "2020-01-01", $output_to_file=false) {
 
+	if ($output_to_file) {
+		define('COMMENT_START', PHP_EOL);
+		define('COMMENT_END', PHP_EOL);
+	} else {
+		define('COMMENT_START', '<h3>');
+		define('COMMENT_END', '</h3>');
+	}
+
 	ob_start();
 
 	process_new_orders($start_date);
@@ -33,7 +41,8 @@ function build_trans_table_bulk($start_date = "2020-01-01", $output_to_file=fals
 	$trans_build_output = ob_get_clean();
 
 	if ($output_to_file) {
-		local_debug_write($trans_build_output);
+		$trans_build_output = date("Y-m-d H:i:s") . COMMENT_END . $trans_build_output;
+		trans_build_log_write($trans_build_output);
 	} else {
 		echo $trans_build_output;
 	}
@@ -73,7 +82,7 @@ function process_new_orders($start_date) {
 	$new_order_rows = $wpdb->get_results($wpdb->prepare($sql, $start_date), ARRAY_A);
 
 	if (!count($new_order_rows)) {
-		echo '<h3>No new orders found</h3>';
+		echo  COMMENT_START . 'No new orders found' . COMMENT_END;
 		return;
 	}
 	$prod_ids = array_unique(array_column($new_order_rows, 'product_id'));
@@ -82,7 +91,7 @@ function process_new_orders($start_date) {
 	// build insert data 
 	$rows_affected = insert_new_order_trans_rows($new_order_rows, $prod_data);
 
-	echo "<h3>";
+	echo COMMENT_START;
 	if ($rows_affected) {
 		echo $rows_affected, " new order transaction rows inserted";
 	} else {
@@ -92,7 +101,7 @@ function process_new_orders($start_date) {
 			echo "No new order transaction rows inserted";
 		}
 	}
-	echo "</h3>";
+	echo COMMENT_END;
 
 	// insert and return  
 	/*****  TODO:  Error Checking - need log file for errors */
@@ -139,13 +148,13 @@ function process_redeemed_orders($start_date) {
 	$redeemed_order_rows = $wpdb->get_results($wpdb->prepare($sql, $start_date), ARRAY_A);
 
 	if (!count($redeemed_order_rows)) {
-		echo '<h3>No Redeemed orders found</h3>';
+		echo COMMENT_START . 'No Redeemed orders found. ' . COMMENT_END;
 		return;
 	}
 
 	$rows_affected = process_redeemed_order_list($redeemed_order_rows, 1);
 
-	echo "<h3>";
+	echo COMMENT_START;
 	if ($rows_affected) {
 		echo $rows_affected, " redeemed transaction rows inserted";
 	} else {
@@ -155,7 +164,7 @@ function process_redeemed_orders($start_date) {
 			echo "No redeemed transaction rows inserted";
 		}
 	}
-	echo "</h3>";
+	echo COMMENT_END;
 
 }
 
@@ -203,7 +212,7 @@ function process_refunded_orders($start_date) {
 	$refunded_order_rows = $wpdb->get_results($wpdb->prepare($sql, $start_date), ARRAY_A);
 
 	if (!count($refunded_order_rows)) {
-		echo '<h3>No Refund orders found</h3>';
+		echo COMMENT_START . 'No Refund orders found. ' . COMMENT_END;
 		return;
 	}
 
@@ -213,7 +222,7 @@ function process_refunded_orders($start_date) {
 	// build insert data 
 	$rows_affected = insert_refunded_trans_rows($refunded_order_rows, $prod_data);
 
-	echo "<h3>";
+	echo COMMENT_START;
 	if ($rows_affected) {
 		echo $rows_affected, " refunded transaction rows inserted";
 	} else {
@@ -223,7 +232,7 @@ function process_refunded_orders($start_date) {
 			echo "No refunded transaction rows inserted";
 		}
 	}
-	echo "</h3>";
+	echo COMMENT_END;
 
 	// insert and return  
 	/*****  TODO:  Error Checking - need log file for errors */
@@ -268,7 +277,7 @@ function process_taste_credit_orders($start_date) {
 	$taste_credit_rows = $wpdb->get_results($wpdb->prepare($sql, $start_date), ARRAY_A);
 
 	if (!count($taste_credit_rows)) {
-		echo '<h3>No Taste Credit orders found</h3>';
+		echo COMMENT_START . 'No Taste Credit orders found. ' . COMMENT_END;
 		return;
 	}
 	$prod_ids = array_unique(array_column($taste_credit_rows, 'product_id'));
@@ -277,7 +286,7 @@ function process_taste_credit_orders($start_date) {
 	// build insert data 
 	$rows_affected = insert_taste_credit_trans_rows($taste_credit_rows, $prod_data);
 
-	echo "<h3>";
+	echo COMMENT_START;
 	if ($rows_affected) {
 		echo $rows_affected, " Taste Credit transaction rows inserted";
 	} elseif ($wpdb->last_error) {
@@ -285,7 +294,7 @@ function process_taste_credit_orders($start_date) {
 	} else {
 		echo 'No Taste Credit orders inserted';
 	}
-	echo "</h3>";
+	echo COMMENT_END;
 
 	// insert and return  
  // TODO:  Error Checking - need log file for errors 
@@ -326,13 +335,13 @@ function process_paid_orders($start_date) {
 	$paid_order_rows = $wpdb->get_results($wpdb->prepare($sql, $start_date), ARRAY_A);
 
 	if (!count($paid_order_rows)) {
-		echo '<h3>No Paid orders found</h3>';
+		echo COMMENT_START . 'No Paid orders found. ' . COMMENT_END;
 		return;
 	}
 	
 	$rows_affected = process_paid_order_list($paid_order_rows);
 
-	echo "<h3>";
+	echo COMMENT_START;
 	if ($rows_affected) {
 		echo $rows_affected, " paid transaction rows inserted";
 	} else {
@@ -342,7 +351,7 @@ function process_paid_orders($start_date) {
 			echo "No paid transaction rows inserted";
 		}
 	}
-	echo "</h3>";
+	echo COMMENT_END;
 
 	// insert and return  
 	/*****  TODO:  Error Checking - need log file for errors */

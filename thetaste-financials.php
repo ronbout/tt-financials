@@ -18,6 +18,7 @@ define('TFINANCIAL_PLUGIN_PATH', plugin_dir_path(__FILE__));
 define('TFINANCIAL_PLUGIN_URL', plugin_dir_url(__FILE__));
 define('TFINANCIAL_PLUGIN_INCLUDES', TFINANCIAL_PLUGIN_PATH.'includes');
 define('TFINANCIAL_PLUGIN_INCLUDES_URL', TFINANCIAL_PLUGIN_URL.'includes');
+define('TFINANCIAL_PLUGIN_LOGS_PATH', TFINANCIAL_PLUGIN_PATH.'logs');
 
 
 require_once TFINANCIAL_PLUGIN_INCLUDES.'/activation-deactivation.php';

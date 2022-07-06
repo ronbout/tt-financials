@@ -36,9 +36,17 @@ function tf_calc_net_payable($product_price, $vat_val, $commission_val, $cnt, $r
 
 function local_debug_write($info) {
 	
-	$file = "C:/Users/ronbo/Documents/jim-stuff/tmp/local_debug_" . time() . ".txt";
+	$file = TFINANCIAL_PLUGIN_LOGS_PATH . "/debug/debug_" . time() . ".txt";
 
 	$msg = serialize($info);
 
 	file_put_contents($file, $msg);
+}
+
+function trans_build_log_write($log_str) {
+	$fname_timestamp = date("Y_m_d_H_i_s");
+
+	$file = TFINANCIAL_PLUGIN_LOGS_PATH . "/trans_build/trans_$fname_timestamp.txt";
+
+	file_put_contents($file, $log_str);
 }
