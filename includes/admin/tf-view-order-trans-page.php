@@ -168,6 +168,13 @@ class TFTRans_list_table extends Taste_list_table {
     return $sort_array;
   }
 
+  public function get_bulk_actions() {
+    $bulk_actions = array(
+      'bulk-export' => "Export",
+    );
+    return $bulk_actions;
+  }
+
 	public function column_cb($item) {
 		return "<input type='checkbox' name='ot-list-cb' value='{$item['id']}'";
 	}
