@@ -137,24 +137,6 @@ class TFTRans_list_table extends Taste_list_table {
   public function no_items() {
     echo "No transactions found.";
   }
-
-  public function load_trans_table($order_by="id", $order="DESC", $per_page=20, $page_number=1) {
-    global $wpdb;
-
-    $offset = ($page_number - 1) * $per_page;
-  
-    $sql = "
-      SELECT *
-      FROM {$wpdb->prefix}taste_order_transactions oit_o 
-      ORDER BY oit_o.$order_by $order, oit_o.transaction_date ASC
-      LIMIT $per_page
-      OFFSET $offset;
-      ";
-  
-    $trans_rows = $wpdb->get_results($sql, ARRAY_A);
-    
-    return $trans_rows;
-  }
   
   public function prepare_items() {
     $get_vars = $this->check_list_get_vars();
@@ -162,8 +144,15 @@ class TFTRans_list_table extends Taste_list_table {
     $order = $get_vars['order'] ? $get_vars['order'] : 'DESC';
 
     $per_page = $this->get_user_per_page_option();
+    $page_num = $this->get_pagenum();
+    $trans_count = $this->count_trans_table();
+    $pagination_args = array( 
+      'total_items' => $trans_count,
+      'per_page' => $per_page,
+    );
+    $this->set_pagination_args($pagination_args);
 
-    $this->items = $this->load_trans_table($order_by, $order, $per_page);
+    $this->items = $this->load_trans_table($order_by, $order, $per_page, $page_num);
 
     $columns = $this->get_columns();
     $hidden = $this->get_hidden_columns();
@@ -188,6 +177,38 @@ class TFTRans_list_table extends Taste_list_table {
     }
     return $per_page;
   }
+
+  public function load_trans_table($order_by="id", $order="DESC", $per_page=20, $page_number=1) {
+    global $wpdb;
+
+    $offset = ($page_number - 1) * $per_page;
+  
+    $sql = "
+      SELECT *
+      FROM {$wpdb->prefix}taste_order_transactions oit_o 
+      ORDER BY oit_o.$order_by $order, oit_o.transaction_date ASC
+      LIMIT $per_page
+      OFFSET $offset;
+      ";
+  
+    $trans_rows = $wpdb->get_results($sql, ARRAY_A);
+    
+    return $trans_rows;
+  }
+
+  public function count_trans_table() {
+    global $wpdb;
+
+    $sql = "
+      SELECT COUNT(*)
+      FROM {$wpdb->prefix}taste_order_transactions
+      ";
+  
+    $trans_count = $wpdb->get_var($sql);
+    
+    return $trans_count;
+  }
+
 }
 /***********************************
  * End of TFTRans_list_table Class
