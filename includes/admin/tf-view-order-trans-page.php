@@ -161,7 +161,9 @@ class TFTRans_list_table extends Taste_list_table {
     $order_by = $get_vars['order_by'] ? $get_vars['order_by'] : 'id';
     $order = $get_vars['order'] ? $get_vars['order'] : 'DESC';
 
-    $this->items = $this->load_trans_table($order_by, $order);
+    $per_page = $this->get_user_per_page_option();
+
+    $this->items = $this->load_trans_table($order_by, $order, $per_page);
 
     $columns = $this->get_columns();
     $hidden = $this->get_hidden_columns();
@@ -174,6 +176,17 @@ class TFTRans_list_table extends Taste_list_table {
     $order = isset($_GET['order']) ? $_GET['order'] : '';
 
     return compact('order_by', 'order');
+  }
+
+  public function get_user_per_page_option() {
+    $user = get_current_user_id();
+    $screen = get_current_screen();
+    $option = $screen->get_option( 'per_page', 'option' );
+    $per_page = get_user_meta( $user, $option, true );
+    if (empty( $per_page ) || !$per_page) {
+      $per_page = $screen->get_option( 'per_page', 'default' );
+    }
+    return $per_page;
   }
 }
 /***********************************
