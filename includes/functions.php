@@ -50,3 +50,13 @@ function trans_build_log_write($log_str) {
 
 	file_put_contents($file, $log_str);
 }
+
+function tf_check_query($convert_array=false) {
+	// checks and returns the query string if present
+	$query_str =  isset($_SERVER['QUERY_STRING']) ? urldecode($_SERVER['QUERY_STRING']) : '';
+  if (!$convert_array) {
+    return $query_str;
+  }
+  parse_str($query_str, $query_array);
+  return $query_array;
+}
