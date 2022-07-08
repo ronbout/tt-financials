@@ -21,7 +21,7 @@
  * @since 3.1.0
  * @access private
  */
-class Taste_List_Table {
+class Taste_list_table {
 
 	/**
 	 * The current list of items.
