@@ -203,12 +203,12 @@ class TFTRans_list_table extends Taste_list_table {
     $get_vars = $this->check_list_get_vars();
     $order_by = $get_vars['order_by'] ? $get_vars['order_by'] : 'id';
     $order = $get_vars['order'] ? $get_vars['order'] : 'DESC';
-    $trans_type = $get_vars['trans_type'] ? $get_vars['trans_type'] : '';
+		$filters = $get_vars['filters'];
 			
     $per_page = $this->get_user_per_page_option();
     $page_num = $this->get_pagenum();
 
-		$trans_db_info = $this->load_trans_table($order_by, $order, $per_page, $page_num, $trans_type);
+		$trans_db_info = $this->load_trans_table($order_by, $order, $per_page, $page_num, $filters);
 		$trans_count = $trans_db_info['cnt'];
     $this->items = $trans_db_info['rows'];
 	
@@ -227,9 +227,24 @@ class TFTRans_list_table extends Taste_list_table {
   protected function check_list_get_vars() {
     $order_by = isset($_REQUEST['orderby']) ? $_REQUEST['orderby'] : '';
     $order = isset($_REQUEST['order']) ? $_REQUEST['order'] : '';
-    $trans_type = isset($_REQUEST['trans-type']) ? $_REQUEST['trans-type'] : '';
 
-    return compact('order_by', 'order', 'trans_type');
+		$filters_list_to_check = array(
+			'trans-type' => 'trans_type',
+			'order-id' => 'order_id',
+		);
+
+		$filters = array();
+		foreach($filters_list_to_check as $get_name => $arr_name) {
+			if (isset($_REQUEST[$get_name]) &&  $_REQUEST[$get_name]) {
+				$filters[$arr_name] = $_REQUEST[$get_name];
+			}
+		}
+
+		return array( 
+			'order_by' => $order_by,
+			'order' => $order,
+			'filters' => $filters,
+		);
   }
 
   protected function get_user_per_page_option() {
@@ -243,11 +258,12 @@ class TFTRans_list_table extends Taste_list_table {
     return $per_page;
   }
 
-  protected function load_trans_table($order_by="id", $order="DESC", $per_page=20, $page_number=1, $trans_type='') {
+  protected function load_trans_table($order_by="id", $order="DESC", $per_page=20, $page_number=1, $filters=array()) {
     global $wpdb;
 
     $offset = ($page_number - 1) * $per_page;
-    $trans_test = '';
+    $trans_type = isset($filters['trans_type']) ? $filters['trans_type'] : false;
+
 
     if ($trans_type) {
       $trans_types = array( 
@@ -272,7 +288,7 @@ class TFTRans_list_table extends Taste_list_table {
       OFFSET $offset;
       ";
 
-    if ($trans_test) {
+    if ($trans_type) {
       $sql = $wpdb->prepare($sql, $db_trans_type);
     }
   

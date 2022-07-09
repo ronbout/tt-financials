@@ -34,6 +34,15 @@ global $tf_trans_table;
 
 	$tf_trans_table = new TFTRans_list_table();
 
+	/*****
+	 * 
+	 * 
+	 * 
+	 *    Can I SET COLUMNS IN HERE???
+	 * 
+	 * 
+	 */
+
 }
 
 function tf_set_screen_option($status, $option, $value) {
