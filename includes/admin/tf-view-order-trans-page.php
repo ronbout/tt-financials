@@ -62,7 +62,7 @@ class TFTRans_list_table extends Taste_list_table {
     return $ret_array;
    }
    
-   public function column_venue_id($item) {
+   protected function column_venue_id($item) {
     $venue_id = $item['venue_id'];
     $cm_link = get_site_url(null, "/campaign-manager/?venue-id={$venue_id}");
       return "
@@ -70,7 +70,7 @@ class TFTRans_list_table extends Taste_list_table {
         ";
    }
 
-  public function column_default($item, $column_name) {
+  protected function column_default($item, $column_name) {
     switch($column_name) {
       case 'order_id':
       case 'product_id':
@@ -98,7 +98,7 @@ class TFTRans_list_table extends Taste_list_table {
     }
   }
 
-  public function get_hidden_columns() {
+  protected function get_hidden_columns() {
     $hidden_cols = array(
       'trans_entry_timestamp',
       'batch_id',
@@ -158,7 +158,31 @@ class TFTRans_list_table extends Taste_list_table {
     return $trans_type_views;
   }
 
-  public function get_sortable_columns() {
+  protected function extra_tablenav($which) {
+    if ('top' == $which) {
+      $venue_list = $this->get_venue_list();
+      $options_list = "          
+        <option value='0'>
+       		Select By Venue
+        </option>";
+      foreach($venue_list as $venue_info) {
+        $venue_id = $venue_info['venue_id'];
+        $venue_name = $venue_info['name'];
+        $options_list  .= "<option value='$venue_id'>$venue_name</option> ";
+      }
+      ?>
+      <div class="alignleft actions">
+        <select name="venue-selection" id="trans-list-venue-selection">
+					<?php echo $options_list ?>
+        </select>
+        <input type="submit" name="filter_action" id="trans-list_submit" class="button" value="Filter">
+      </div>
+
+      <?php
+    }
+  }
+
+  protected function get_sortable_columns() {
     $sort_array = array(
       'id' => array('id', true),
       'order_id' => array('order_id', true),
@@ -168,14 +192,14 @@ class TFTRans_list_table extends Taste_list_table {
     return $sort_array;
   }
 
-  public function get_bulk_actions() {
+  protected function get_bulk_actions() {
     $bulk_actions = array(
       'bulk-export' => "Export",
     );
     return $bulk_actions;
   }
 
-	public function column_cb($item) {
+	protected function column_cb($item) {
 		return "<input type='checkbox' name='ot-list-cb' value='{$item['id']}'";
 	}
   
@@ -206,15 +230,15 @@ class TFTRans_list_table extends Taste_list_table {
     $this->_column_headers = array($columns, $hidden, $sortable);
   }
 
-  public function check_list_get_vars() {
-    $order_by = isset($_GET['orderby']) ? $_GET['orderby'] : '';
-    $order = isset($_GET['order']) ? $_GET['order'] : '';
-    $trans_type = isset($_GET['trans-type']) ? $_GET['trans-type'] : '';
+  protected function check_list_get_vars() {
+    $order_by = isset($_REQUEST['orderby']) ? $_REQUEST['orderby'] : '';
+    $order = isset($_REQUEST['order']) ? $_REQUEST['order'] : '';
+    $trans_type = isset($_REQUEST['trans-type']) ? $_REQUEST['trans-type'] : '';
 
     return compact('order_by', 'order', 'trans_type');
   }
 
-  public function get_user_per_page_option() {
+  protected function get_user_per_page_option() {
     $user = get_current_user_id();
     $screen = get_current_screen();
     $option = $screen->get_option( 'per_page', 'option' );
@@ -225,7 +249,7 @@ class TFTRans_list_table extends Taste_list_table {
     return $per_page;
   }
 
-  public function load_trans_table($order_by="id", $order="DESC", $per_page=20, $page_number=1, $trans_type='') {
+  protected function load_trans_table($order_by="id", $order="DESC", $per_page=20, $page_number=1, $trans_type='') {
     global $wpdb;
 
     $offset = ($page_number - 1) * $per_page;
@@ -265,7 +289,7 @@ class TFTRans_list_table extends Taste_list_table {
     return $trans_rows;
   }
 
-  public function count_trans_table() {
+  protected function count_trans_table() {
     global $wpdb;
 
     $sql = "
@@ -278,7 +302,7 @@ class TFTRans_list_table extends Taste_list_table {
     return $trans_count;
   }
 
-  public function count_trans_types() {
+  protected function count_trans_types() {
     global $wpdb;
 
     $sql = "
@@ -290,6 +314,18 @@ class TFTRans_list_table extends Taste_list_table {
     $trans_types_count = $wpdb->get_results($sql, ARRAY_A);
     
     return $trans_types_count;
+  }
+  
+  protected function get_venue_list() {
+    global $wpdb;
+
+    $venue_rows = $wpdb->get_results("
+		SELECT venue_id, name, description, venue_type
+		FROM " . $wpdb->prefix . "taste_venue
+		ORDER BY name
+	", ARRAY_A);
+    
+    return $venue_rows;
   }
 
 }
