@@ -284,7 +284,7 @@ class TFTRans_list_table extends Taste_list_table {
 
 		if ($venue_id) {
 			$filter_test .= $filter_test ? " AND " : " WHERE ";
-			$filter_test .= "oit.venue_id = $venue_id";
+			$filter_test .= "oit.venue_id = %d";
 			$db_parms[] = $venue_id;
 		}
   
