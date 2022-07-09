@@ -149,18 +149,23 @@ class TFTRans_list_table extends Taste_list_table {
 
   protected function extra_tablenav($which) {
     if ('top' == $which) {
+			$get_vars = $this->check_list_get_vars();
+			$filters = $get_vars['filters'];
+			$venue_select = isset($filters['venue_id']) ? $filters['venue_id'] : -1;
+
       $venue_list = $this->get_venue_list();
       $options_list = "          
-        <option value='-1'>
+        <option value='-1' " . (-1 == $venue_select ? " selected " : "") . ">
        		Select By Venue
         </option>          
-        <option value='0'>
+        <option value='0' " . (0 == $venue_select ? " selected " : "") . ">
        		Unassigned
         </option>";
+
       foreach($venue_list as $venue_info) {
         $venue_id = $venue_info['venue_id'];
         $venue_name = $venue_info['name'];
-        $options_list  .= "<option value='$venue_id'>$venue_name</option> ";
+        $options_list  .= "<option value='$venue_id' " . ($venue_id == $venue_select ? " selected " : "") . ">$venue_name</option> ";
       }
       ?>
       <div class="alignleft actions">
