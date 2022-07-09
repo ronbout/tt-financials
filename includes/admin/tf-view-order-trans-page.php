@@ -140,10 +140,7 @@ class TFTRans_list_table extends Taste_list_table {
     foreach ($trans_types_counts as $trans_type_info) {
       $t_cnt = $trans_type_info['trans_count'];
       $tot_cnt += (int) $t_cnt;
-      $trans_type = $trans_type_info['trans_type'];
-      $trans_type = str_replace(' - ', '_', $trans_type);
-      $trans_type = str_replace(' ', '_', $trans_type);
-      $trans_type = strtolower($trans_type);
+      $trans_type = $this->convert_trans_type_to_slug( $trans_type_info['trans_type']);
       $t_cnt = number_format($t_cnt);
 
       $tmp_views[$trans_type] = "<a href='${list_link}&trans-type=$trans_type'>{$trans_type_info['trans_type']} ($t_cnt)</a>";
@@ -162,8 +159,11 @@ class TFTRans_list_table extends Taste_list_table {
     if ('top' == $which) {
       $venue_list = $this->get_venue_list();
       $options_list = "          
-        <option value='0'>
+        <option value='-1'>
        		Select By Venue
+        </option>          
+        <option value='0'>
+       		Unassigned
         </option>";
       foreach($venue_list as $venue_info) {
         $venue_id = $venue_info['venue_id'];
@@ -212,17 +212,19 @@ class TFTRans_list_table extends Taste_list_table {
     $order_by = $get_vars['order_by'] ? $get_vars['order_by'] : 'id';
     $order = $get_vars['order'] ? $get_vars['order'] : 'DESC';
     $trans_type = $get_vars['trans_type'] ? $get_vars['trans_type'] : '';
-
+			
     $per_page = $this->get_user_per_page_option();
     $page_num = $this->get_pagenum();
-    $trans_count = $this->count_trans_table();
+
+		$trans_db_info = $this->load_trans_table($order_by, $order, $per_page, $page_num, $trans_type);
+		$trans_count = $trans_db_info['cnt'];
+    $this->items = $trans_db_info['rows'];
+	
     $pagination_args = array( 
       'total_items' => $trans_count,
       'per_page' => $per_page,
     );
     $this->set_pagination_args($pagination_args);
-
-    $this->items = $this->load_trans_table($order_by, $order, $per_page, $page_num, $trans_type);
 
     $columns = $this->get_columns();
     $hidden = $this->get_hidden_columns();
@@ -282,11 +284,24 @@ class TFTRans_list_table extends Taste_list_table {
       $sql = $wpdb->prepare($sql, $db_trans_type);
     }
   
-    // echo '<h1>', $sql, '</h1>';
-    // die();
     $trans_rows = $wpdb->get_results($sql, ARRAY_A);
+
+		$sql = "
+		SELECT COUNT(*)
+		FROM {$wpdb->prefix}taste_order_transactions
+		";
+
+		if ($db_trans_type) {
+			$sql .= " WHERE trans_type = %s";
+      $sql = $wpdb->prepare($sql, $db_trans_type);
+		}
+
+		$trans_count = $wpdb->get_var($sql);
     
-    return $trans_rows;
+    return array( 
+			'rows' => $trans_rows,
+			'cnt' => $trans_count,
+		);
   }
 
   protected function count_trans_table() {
@@ -328,6 +343,13 @@ class TFTRans_list_table extends Taste_list_table {
     return $venue_rows;
   }
 
+	protected function convert_trans_type_to_slug($t_type) {
+		$trans_type = str_replace(' - ', '_', $t_type);
+		$trans_type = str_replace(' ', '_', $trans_type);
+		$trans_type = strtolower($trans_type);
+		return $trans_type;
+	}
+
 }
 /***********************************
  * End of TFTRans_list_table Class
@@ -342,7 +364,7 @@ function tf_build_trans_admin_list_table() {
 	<div class="wrap">    
 		<h2>Order Transactions</h2>
 		<div id="tf_order_trans">			
-			<div id="tf_post_body">		
+			<div id="tf_post_body">	
         <?php $tf_trans_table->views() ?>
 				<form id="tf-order-trans-form" method="get">					
 					<?php $tf_trans_table->display(); ?>					
