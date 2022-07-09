@@ -231,6 +231,7 @@ class TFTRans_list_table extends Taste_list_table {
 		$filters_list_to_check = array(
 			'trans-type' => 'trans_type',
 			'order-id' => 'order_id',
+			'venue-selection' => 'venue_id',
 		);
 
 		$filters = array();
@@ -263,8 +264,10 @@ class TFTRans_list_table extends Taste_list_table {
 
     $offset = ($page_number - 1) * $per_page;
     $trans_type = isset($filters['trans_type']) ? $filters['trans_type'] : false;
-
-
+    $venue_id = isset($filters['venue_id']) ? $filters['venue_id'] : false;
+		$filter_test = '';
+		$db_parms = array();
+	
     if ($trans_type) {
       $trans_types = array( 
         'order' => "Order",
@@ -275,34 +278,40 @@ class TFTRans_list_table extends Taste_list_table {
         'order_from_credit' => "Order - From Credit",
         'redemption_from_credit' => "Redemption - From Credit",
       );
-      $trans_test = "WHERE oit.trans_type = %s";
-      $db_trans_type = $trans_types[$trans_type];
+      $filter_test = "WHERE oit.trans_type = %s";
+      $db_parms[] = $trans_types[$trans_type];
     }
+
+		if ($venue_id) {
+			$filter_test .= $filter_test ? " AND " : " WHERE ";
+			$filter_test .= "oit.venue_id = $venue_id";
+			$db_parms[] = $venue_id;
+		}
   
     $sql = "
       SELECT *
       FROM {$wpdb->prefix}taste_order_transactions oit
-      $trans_test
+      $filter_test
       ORDER BY oit.$order_by $order, oit.transaction_date ASC
       LIMIT $per_page
       OFFSET $offset;
       ";
 
-    if ($trans_type) {
-      $sql = $wpdb->prepare($sql, $db_trans_type);
+    if ($filter_test) {
+      $sql = $wpdb->prepare($sql, $db_parms);
     }
   
     $trans_rows = $wpdb->get_results($sql, ARRAY_A);
 
 		$sql = "
-		SELECT COUNT(*)
-		FROM {$wpdb->prefix}taste_order_transactions
+		SELECT COUNT(oit.id)
+		FROM {$wpdb->prefix}taste_order_transactions oit
+		$filter_test
 		";
 
-		if ($db_trans_type) {
-			$sql .= " WHERE trans_type = %s";
-      $sql = $wpdb->prepare($sql, $db_trans_type);
-		}
+    if ($filter_test) {
+      $sql = $wpdb->prepare($sql, $db_parms);
+    }
 
 		$trans_count = $wpdb->get_var($sql);
     
@@ -366,6 +375,10 @@ class TFTRans_list_table extends Taste_list_table {
 function tf_build_trans_admin_list_table() {
 	global $tf_trans_table;
   // $tf_trans_table = new TFTRans_list_table();
+	if ( ! empty( $_REQUEST['_wp_http_referer'] ) ) {
+		wp_redirect( remove_query_arg( array( '_wp_http_referer', '_wpnonce' ), wp_unslash( $_SERVER['REQUEST_URI'] ) ) );
+		exit;
+	}
 
   $tf_trans_table->get_columns();
   $tf_trans_table->prepare_items();
@@ -375,7 +388,8 @@ function tf_build_trans_admin_list_table() {
 		<div id="tf_order_trans">			
 			<div id="tf_post_body">	
         <?php $tf_trans_table->views() ?>
-				<form id="tf-order-trans-form" method="get">					
+				<form id="tf-order-trans-form" method="get">	
+					<input type="hidden" name="page" value="<?php echo $_REQUEST['page'] ?>" />				
 					<?php $tf_trans_table->display(); ?>					
 				</form>
 			</div>			
