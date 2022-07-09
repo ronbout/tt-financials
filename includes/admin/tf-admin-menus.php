@@ -5,6 +5,7 @@
  */
  
 defined('ABSPATH') or die('Direct script access disallowed.');
+global $tf_trans_table;
 
  function tf_submenu_options() {
 
@@ -23,14 +24,16 @@ defined('ABSPATH') or die('Direct script access disallowed.');
 add_action('admin_menu', 'tf_submenu_options', 99);
 
 function tf_add_trans_page_options() {
-	$option = "per_page";
-
+global $tf_trans_table;
 	$args = array( 
 		'label' => 'Transactions Per Page: ',
 		'default' => 20,
 		'option' => 'tf_trans_rows_per_page',
 	);
-	add_screen_option($option, $args);
+	add_screen_option('per_page', $args);
+
+	$tf_trans_table = new TFTRans_list_table();
+
 }
 
 function tf_set_screen_option($status, $option, $value) {

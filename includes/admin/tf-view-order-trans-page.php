@@ -121,16 +121,8 @@ class TFTRans_list_table extends Taste_list_table {
   }
 
   protected function get_views() {
-    $get_string_array = tf_check_query(true);
-
-    $get_string = '';
-    foreach($get_string_array as $get_var => $get_val) {
-      if ('trans-type' == $get_var) {
-        continue;
-      }
-      $get_string .= $get_string ? '&' : '';
-      $get_string .= $get_var . "=" . $get_val;
-    }
+		$get_string = tf_check_query(false);
+		$get_string = remove_query_arg( 'trans-type', $get_string );
 
     $list_link = "admin.php?$get_string";
 
@@ -356,7 +348,8 @@ class TFTRans_list_table extends Taste_list_table {
  ***********************************/
 
 function tf_build_trans_admin_list_table() {
-  $tf_trans_table = new TFTRans_list_table();
+	global $tf_trans_table;
+  // $tf_trans_table = new TFTRans_list_table();
 
   $tf_trans_table->get_columns();
   $tf_trans_table->prepare_items();
