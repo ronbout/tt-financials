@@ -19,8 +19,8 @@ defined('ABSPATH') or die('Direct script access disallowed.');
 function build_trans_table_bulk($start_date = "2020-01-01", $output_to_file=false) {
 
 	if ($output_to_file) {
-		define('COMMENT_START', PHP_EOL);
-		define('COMMENT_END', PHP_EOL);
+		define('COMMENT_START', ' | ');
+		define('COMMENT_END', ' | ');
 	} else {
 		define('COMMENT_START', '<h3>');
 		define('COMMENT_END', '</h3>');
@@ -41,7 +41,7 @@ function build_trans_table_bulk($start_date = "2020-01-01", $output_to_file=fals
 	$trans_build_output = ob_get_clean();
 
 	if ($output_to_file) {
-		$trans_build_output = date("Y-m-d H:i:s") . COMMENT_END . $trans_build_output;
+		$trans_build_output = date("Y-m-d H:i:s") . COMMENT_END . $trans_build_output . PHP_EOL;
 		trans_build_log_write($trans_build_output);
 	} else {
 		echo $trans_build_output;

@@ -44,11 +44,10 @@ function local_debug_write($info) {
 }
 
 function trans_build_log_write($log_str) {
-	$fname_timestamp = date("Y_m_d_H_i_s");
 
-	$file = TFINANCIAL_PLUGIN_LOGS_PATH . "/trans_build/trans_$fname_timestamp.txt";
+	$file = TFINANCIAL_PLUGIN_LOGS_PATH . "/trans_build/trans.log";
 
-	file_put_contents($file, $log_str);
+	file_put_contents($file, $log_str, FILE_APPEND);
 }
 
 function tf_check_query($convert_array=false) {

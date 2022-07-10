@@ -1,3 +1,4 @@
 /logs/debug
 /logs/trans_build/*.txt
+/logs/trans_build/*.log
 .idea
