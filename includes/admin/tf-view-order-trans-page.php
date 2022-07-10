@@ -30,7 +30,7 @@ class TFTRans_list_table extends Taste_list_table {
 			'cb' => '<input type="checkbox" >',
 			'id' => 'ID',
       'order_id' => "Order ID",
-      'order_item_id' => "Order Item ID",
+      'order_item_id' => "Order Item <br>ID",
 			'transaction_date' => "Transaction Date",
       'trans_type' => "Transaction Type",
       'trans_amount' => "Amount",
@@ -38,22 +38,23 @@ class TFTRans_list_table extends Taste_list_table {
 			'batch_id' => "Batch ID",
 			'batch_timestamp' => "Batch Date",
 			'order_date' => "Order Date",
-			'product_id' => "Product ID",
+			'product_id' => "Product<br>  ID",
 			'product_price' => "Product Price",
 			'quantity' => "Item Quantity",
 			'gross_revenue' => "Gross Revenue",
+      'customer_id' => "Customer<br>  ID",
 			'venue_id' => "Venue ID",
 			'venue_name' => "Venue Name",
 			'taste_credit_coupon_id' => "Store Credit<br>Coupon ID",
       'refund_id' => "Refund ID",
-      'coupon_id' => "Applied<br>Coupon ID",
+      'coupon_id' => "Applied<br>Coupon  ID",
       'coupon_value' => "Applied<br>Coupon Value",
       'net_cost' => "Net Cost",
       'commission' => "Commission",
       'vat' => "VAT",
       'gross_income' => "Gross Income",
       'venue_due' => "Venue Due",
-      'payment_id' => "Payment ID",
+      'payment_id' => "Payment<br>  ID",
       'payment_status' => "Payment Status",
       'payment_date' => "Payment Date",
       'redemption_date' => "Redemption Date",
@@ -86,10 +87,10 @@ class TFTRans_list_table extends Taste_list_table {
       case 'transaction_date':
       case 'trans_amount':
       case 'order_date':
-      case 'product_id':
       case 'venue_name':
       case 'net_cost':
       case 'gross_income':
+      case 'customer_id':
       case 'venue_due':
       case 'payment_id':
         return $item[$column_name] ? $item[$column_name] : "N/A";
@@ -185,6 +186,7 @@ class TFTRans_list_table extends Taste_list_table {
       'order_id' => array('order_id', true),
       'venue_id' => array('venue_id', true),
       'product_id' => array('product_id', true),
+      'customer_id' => array('customer_id', true),
     );
     return $sort_array;
   }
@@ -241,7 +243,7 @@ class TFTRans_list_table extends Taste_list_table {
 
 		$filters = array();
 		foreach($filters_list_to_check as $get_name => $arr_name) {
-			if (isset($_REQUEST[$get_name]) &&  $_REQUEST[$get_name]) {
+			if (isset($_REQUEST[$get_name]) &&  !is_null($_REQUEST[$get_name])) {
 				$filters[$arr_name] = $_REQUEST[$get_name];
 			}
 		}
@@ -287,7 +289,7 @@ class TFTRans_list_table extends Taste_list_table {
       $db_parms[] = $trans_types[$trans_type];
     }
 
-		if ($venue_id) {
+		if (false !== $venue_id) {
 			$filter_test .= $filter_test ? " AND " : " WHERE ";
 			$filter_test .= "oit.venue_id = %d";
 			$db_parms[] = $venue_id;

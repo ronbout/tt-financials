@@ -49,7 +49,7 @@ function retrieve_redeem_order_info($order_item_list) {
       wclook.product_id, oi.downloaded, op.post_status AS order_status,
       GROUP_CONCAT( cpn_look.coupon_id ) AS coupon_ids,
       GROUP_CONCAT( cpn_post.post_title ) AS coupon_codes,
-      wclook.coupon_amount, op.post_date AS order_date
+      wclook.coupon_amount, op.post_date AS order_date, wclook.customer_id
     FROM {$wpdb->prefix}wc_order_product_lookup wclook
       JOIN {$wpdb->prefix}posts op ON op.ID = wclook.order_id 
       JOIN {$wpdb->prefix}woocommerce_order_items oi ON oi.order_item_id = wclook.order_item_id
@@ -113,7 +113,7 @@ function retrieve_paid_order_info($order_item_list) {
 			wclook.product_id, oi.downloaded, op.post_status AS order_status,
 			GROUP_CONCAT( cpn_look.coupon_id ) AS coupon_ids,
 			GROUP_CONCAT( cpn_post.post_title ) AS coupon_codes,
-			wclook.coupon_amount, op.post_date AS order_date
+			wclook.coupon_amount, op.post_date AS order_date, wclook.customer_id
 		FROM {$wpdb->prefix}wc_order_product_lookup wclook
 			JOIN {$wpdb->prefix}posts op ON op.ID = wclook.order_id 
 			JOIN {$wpdb->prefix}woocommerce_order_items oi ON oi.order_item_id = wclook.order_item_id
