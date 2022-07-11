@@ -73,7 +73,12 @@ function insert_redeemed_trans_rows($redeemed_order_rows, $prod_data, $redeem_fl
 		$creditor_id = $venue_id;
 		$venue_creditor = $venue_name;
 		$redeem_date = $formatted_date ? $formatted_date : $order_info['redeem_date'];
-		
+		if (!$redeem_date) {
+			$order_dt = date_create($order_info['order_date']);
+			$redeem_dt = date_add($order_dt, date_interval_create_from_date_string("1 day"));
+			$redeem_date = date_format($redeem_dt, "Y-m-d H:i:s");
+		}
+
 		// need to check for any coupon code's that match a previous order.  
 		// Those are store credit coupons and orders created with them, get
 		// a different transaction code:  "Redemption - From Credit"
