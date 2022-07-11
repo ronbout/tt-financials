@@ -42,6 +42,7 @@ require_once TFINANCIAL_PLUGIN_INCLUDES.'/ajax/ajax-functions.php';
 require_once TFINANCIAL_PLUGIN_INCLUDES.'/functions.php';
 require_once TFINANCIAL_PLUGIN_INCLUDES.'/real-time-trans-build.php';
 require_once TFINANCIAL_PLUGIN_INCLUDES.'/trans-insert-functions.php';
+require_once TFINANCIAL_PLUGIN_INCLUDES.'/build-trans-table-bulk.php';
 
 /* some helpful CONSTANTS */
 define('TASTE_PAYMENT_STATUS_PAID', 1);
