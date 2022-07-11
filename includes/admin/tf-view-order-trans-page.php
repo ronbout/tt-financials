@@ -272,6 +272,7 @@ class TFTRans_list_table extends Taste_list_table {
     $offset = ($page_number - 1) * $per_page;
     $trans_type = isset($filters['trans_type']) ? $filters['trans_type'] : false;
     $venue_id = isset($filters['venue_id']) ? $filters['venue_id'] : false;
+    $venue_id = -1 == $venue_id ? false : $venue_id;
 		$filter_test = '';
 		$db_parms = array();
 	
