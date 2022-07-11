@@ -273,6 +273,7 @@ class TFTRans_list_table extends Taste_list_table {
     $trans_type = isset($filters['trans_type']) ? $filters['trans_type'] : false;
     $venue_id = isset($filters['venue_id']) ? $filters['venue_id'] : false;
     $venue_id = -1 == $venue_id ? false : $venue_id;
+    $order_id = isset($filters['order_id']) ? $filters['order_id'] : false;
 		$filter_test = '';
 		$db_parms = array();
 	
@@ -294,6 +295,12 @@ class TFTRans_list_table extends Taste_list_table {
 			$filter_test .= $filter_test ? " AND " : " WHERE ";
 			$filter_test .= "oit.venue_id = %d";
 			$db_parms[] = $venue_id;
+		}
+ 
+		if (false !== $order_id) {
+			$filter_test .= $filter_test ? " AND " : " WHERE ";
+			$filter_test .= "oit.order_id = %d";
+			$db_parms[] = $order_id;
 		}
   
     $sql = "
