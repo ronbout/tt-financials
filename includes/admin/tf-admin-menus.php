@@ -5,7 +5,7 @@
  */
  
 defined('ABSPATH') or die('Direct script access disallowed.');
-global $tf_trans_table;
+global $tf_trans_table, $tf_venues_table;
 
  function tf_submenu_options() {
 
@@ -16,6 +16,17 @@ global $tf_trans_table;
 		'manage_options',
 		'view-order-transactions',
 		'tf_view_order_trans'
+	 );
+
+	 add_action("load-$trans_list_page", 'tf_add_trans_page_options');
+	 
+	 $venues_list_page = add_submenu_page(
+		'woocommerce',
+		__('Venues'),
+		__('Venues'),
+		'manage_options',
+		'view-venues',
+		'tf_view_venues'
 	 );
 
 	 add_action("load-$trans_list_page", 'tf_add_trans_page_options');
@@ -35,8 +46,20 @@ global $tf_trans_table;
 	$tf_trans_table = new TFTRans_list_table();
 }
 
+function tf_add_venues_page_options() {
+	global $tf_venues_table;
+		$args = array( 
+			'label' => 'Venues Per Page: ',
+			'default' => 20,
+			'option' => 'tf_venues_rows_per_page',
+		);
+		add_screen_option('per_page', $args);
+	
+		$tf_venues_table = new TFVenues_list_table();
+	}
+
 function tf_set_screen_option($status, $option, $value) {
-	if ('tf_trans_rows_per_page' == $option) {
+	if (in_array($option, array('tf_trans_rows_per_page', 'tf_venues_rows_per_page'))) {
 		return $value;
 	}
 }
