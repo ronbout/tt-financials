@@ -28,7 +28,6 @@ class TFTRans_list_table extends Taste_list_table {
   public function get_columns() {
     $ret_array =  array(
 			'cb' => '<input type="checkbox" >',
-			'id' => 'ID',
       'order_id' => "Order ID",
       'order_item_id' => "Order Item <br>ID",
 			'transaction_date' => "Transaction Date",
@@ -43,6 +42,8 @@ class TFTRans_list_table extends Taste_list_table {
 			'quantity' => "Item Quantity",
 			'gross_revenue' => "Gross Revenue",
       'customer_id' => "Customer<br>  ID",
+      'customer_name' => "Customer<br>Name",
+      'customer_email' => "Customer<br>Email",
 			'venue_id' => "Venue ID",
 			'venue_name' => "Venue Name",
 			'taste_credit_coupon_id' => "Store Credit<br>Coupon ID",
@@ -91,6 +92,8 @@ class TFTRans_list_table extends Taste_list_table {
       case 'net_cost':
       case 'gross_income':
       case 'customer_id':
+      case 'customer_name':
+      case 'customer_email':
       case 'venue_due':
       case 'payment_id':
         return $item[$column_name] ? $item[$column_name] : "N/A";
@@ -106,6 +109,8 @@ class TFTRans_list_table extends Taste_list_table {
       'batch_timestamp',
       'product_price',
       'quantity',
+      'customer_id',
+      'customer_email',
       'gross_revenue',
       'taste_credit_coupon_id',
       'refund_id',
@@ -182,11 +187,20 @@ class TFTRans_list_table extends Taste_list_table {
 
   protected function get_sortable_columns() {
     $sort_array = array(
-      'id' => array('id', true),
       'order_id' => array('order_id', true),
       'venue_id' => array('venue_id', true),
+      'transaction_date' => array('transaction_date', true),
+      'trans_type' => array('trans_type', true),
+      'trans_amount' => array('trans_amount', true),
+      'order_date' => array('order_date', true),
       'product_id' => array('product_id', true),
       'customer_id' => array('customer_id', true),
+      'customer_name' => array('customer_name', true),
+      'customer_email' => array('customer_email', true),
+      'venue_id' => array('venue_id', true),
+      'venue_name' => array('venue_name', true),
+      'net_cost' => array('net_cost', true),
+      'gross_income' => array('gross_income', true),
     );
     return $sort_array;
   }

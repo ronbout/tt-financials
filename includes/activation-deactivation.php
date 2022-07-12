@@ -29,6 +29,8 @@ function tfinancial_add_transaction_table() {
 		`quantity` DECIMAL(19,4) NULL DEFAULT NULL,
 		`gross_revenue` DECIMAL(19,4) NOT NULL,
 		`customer_id` BIGINT(19) NULL DEFAULT NULL,
+		`customer_name` VARCHAR(255) NULL DEFAULT NULL COLLATE 'utf8_general_ci',
+		`customer_email` VARCHAR(100) NULL DEFAULT NULL COLLATE 'utf8_general_ci',
 		`venue_id` BIGINT(20) UNSIGNED NULL DEFAULT NULL,
 		`venue_name` VARCHAR(80) NULL DEFAULT NULL COLLATE 'latin1_swedish_ci',
 		`creditor_id` BIGINT(20) NOT NULL,

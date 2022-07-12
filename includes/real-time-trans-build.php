@@ -49,13 +49,15 @@ function retrieve_redeem_order_info($order_item_list) {
       wclook.product_id, oi.downloaded, op.post_status AS order_status,
       GROUP_CONCAT( cpn_look.coupon_id ) AS coupon_ids,
       GROUP_CONCAT( cpn_post.post_title ) AS coupon_codes,
-      wclook.coupon_amount, op.post_date AS order_date, wclook.customer_id
+      wclook.coupon_amount, op.post_date AS order_date, wclook.customer_id,
+			cust.first_name, cust.last_name, cust.email
     FROM {$wpdb->prefix}wc_order_product_lookup wclook
       JOIN {$wpdb->prefix}posts op ON op.ID = wclook.order_id 
       JOIN {$wpdb->prefix}woocommerce_order_items oi ON oi.order_item_id = wclook.order_item_id
       JOIN {$wpdb->prefix}woocommerce_order_itemmeta oim ON oim.order_item_id = wclook.order_item_id
       LEFT JOIN {$wpdb->prefix}wc_order_coupon_lookup cpn_look ON cpn_look.order_id = wclook.order_id
       LEFT JOIN {$wpdb->prefix}posts cpn_post ON cpn_post.ID = cpn_look.coupon_id
+      LEFT JOIN {$wpdb->prefix}wc_customer_lookup cust ON cust.customer_id = wclook.customer_id
     WHERE oim.meta_key = '_qty'
       AND op.post_type = 'shop_order'	
       AND wclook.order_item_id IN ($placeholders)
@@ -113,13 +115,15 @@ function retrieve_paid_order_info($order_item_list) {
 			wclook.product_id, oi.downloaded, op.post_status AS order_status,
 			GROUP_CONCAT( cpn_look.coupon_id ) AS coupon_ids,
 			GROUP_CONCAT( cpn_post.post_title ) AS coupon_codes,
-			wclook.coupon_amount, op.post_date AS order_date, wclook.customer_id
+			wclook.coupon_amount, op.post_date AS order_date, wclook.customer_id,
+			cust.first_name, cust.last_name, cust.email
 		FROM {$wpdb->prefix}wc_order_product_lookup wclook
 			JOIN {$wpdb->prefix}posts op ON op.ID = wclook.order_id 
 			JOIN {$wpdb->prefix}woocommerce_order_items oi ON oi.order_item_id = wclook.order_item_id
 			JOIN {$wpdb->prefix}woocommerce_order_itemmeta oim ON oim.order_item_id = wclook.order_item_id
 			LEFT JOIN {$wpdb->prefix}wc_order_coupon_lookup cpn_look ON cpn_look.order_id = wclook.order_id
 			LEFT JOIN {$wpdb->prefix}posts cpn_post ON cpn_post.ID = cpn_look.coupon_id
+      LEFT JOIN {$wpdb->prefix}wc_customer_lookup cust ON cust.customer_id = wclook.customer_id
 		WHERE oim.meta_key = '_qty'
 			AND op.post_type = 'shop_order'
       AND wclook.order_item_id IN ($placeholders)
