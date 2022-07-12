@@ -136,6 +136,7 @@ class TFTRans_list_table extends Taste_list_table {
     $trans_types_counts = $this->count_trans_types();
 
     $tot_cnt = 0;
+    $tmp_views = array();
     foreach ($trans_types_counts as $t_type => $t_cnt) {
       $tot_cnt += (int) $t_cnt;
       $trans_type = $this->convert_trans_type_to_slug( $t_type);

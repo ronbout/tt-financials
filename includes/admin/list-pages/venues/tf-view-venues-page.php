@@ -101,26 +101,25 @@ class TFVenues_list_table extends Taste_list_table {
   }
 
   protected function get_views() {
-    return;
-    /*
 		$get_string = tf_check_query(false);
-    $cur_venue_type = isset($_REQUEST['trans-type']) && $_REQUEST['trans-type'] ? $_REQUEST['trans-type'] : 'all';
-		$get_string = remove_query_arg( 'trans-type', $get_string ); 
+    $cur_venue_type = isset($_REQUEST['venue-type']) && $_REQUEST['venue-type'] ? $_REQUEST['venue-type'] : 'all';
+		$get_string = remove_query_arg( 'venue-type', $get_string ); 
 
     $list_link = "admin.php?$get_string";
 
     $venue_types_counts = $this->count_venue_types();
 
     $tot_cnt = 0;
-    foreach ($venue_types_counts as $t_type => $t_cnt) {
-      $tot_cnt += (int) $t_cnt;
-      $venue_type = $this->convert_venue_type_to_slug( $t_type);
-      $t_cnt = number_format($t_cnt);
+    $tmp_views = array();
+    foreach ($venue_types_counts as $v_type => $v_cnt) {
+      $tot_cnt += (int) $v_cnt;
+      $venue_type = $this->convert_venue_type_to_slug( $v_type);
+      $v_cnt = number_format($v_cnt);
 
       if ($cur_venue_type == $venue_type ) {
-        $tmp_views[$venue_type] = "<strong>{$t_type} ($t_cnt)</strong>";
+        $tmp_views[$venue_type] = "<strong>{$v_type} ($v_cnt)</strong>";
       } else {
-        $tmp_views[$venue_type] = "<a href='${list_link}&trans-type=$venue_type'>{$t_type} ($t_cnt)</a>";
+        $tmp_views[$venue_type] = "<a href='${list_link}&venue-type=$venue_type'>{$v_type} ($v_cnt)</a>";
       }
     }
     $tot_cnt = number_format($tot_cnt);
@@ -137,7 +136,6 @@ class TFVenues_list_table extends Taste_list_table {
     $venue_type_views = array_merge($venue_type_views, $tmp_views);
 
     return $venue_type_views;
-    */
   }
 
   protected function extra_tablenav($which) {
@@ -273,6 +271,7 @@ class TFVenues_list_table extends Taste_list_table {
 
     $offset = ($page_number - 1) * $per_page;
     $venue_type = isset($filters['venue_type']) ? $filters['venue_type'] : false;
+
     $venue_id = isset($filters['venue_id']) ? $filters['venue_id'] : false;
     $venue_id = -1 == $venue_id ? false : $venue_id;
 		$filter_test = '';
@@ -280,7 +279,12 @@ class TFVenues_list_table extends Taste_list_table {
 	
     if ($venue_type) {
       $db_venue_type =  ucfirst($venue_type);
-      $filter_test = "WHERE ven.venue_type IN ($db_venue_type)";
+      if ("None" == $db_venue_type) {
+        $filter_test = "WHERE ven.venue_type IS NULL";
+      } else {
+        $filter_test = "WHERE ven.venue_type = %s";
+        $db_parms[] = $db_venue_type;
+      }
     }
 
 		if (false !== $venue_id) {
@@ -305,7 +309,7 @@ class TFVenues_list_table extends Taste_list_table {
       OFFSET $offset;
       ";
 
-    if ($filter_test) {
+    if (count($db_parms)) {
       $sql = $wpdb->prepare($sql, $db_parms);
     }
 
@@ -317,7 +321,7 @@ class TFVenues_list_table extends Taste_list_table {
 		$filter_test
 		";
 
-    if ($filter_test) {
+    if (count($db_parms)) {
       $sql = $wpdb->prepare($sql, $db_parms);
     }
 
@@ -355,11 +359,11 @@ class TFVenues_list_table extends Taste_list_table {
 	  $venues_count_by_type = array_column($venue_types_count, 'venue_type_count', 'venue_type');
 
     $ret_counts = array(
-      'None' => $venues_count_by_type[null],
       'Restaurant' => $venues_count_by_type['Restaurant'],
       'Hotel' => $venues_count_by_type['Hotel'],
       'Product' => $venues_count_by_type['Product'],
       'Bar' => $venues_count_by_type['Bar'],
+      'None' => $venues_count_by_type[null],
     );
     
     return $ret_counts;
@@ -377,8 +381,8 @@ class TFVenues_list_table extends Taste_list_table {
     return $venue_rows;
   }
 
-	protected function convert_venue_type_to_slug($t_type) {
-		$venue_type = strtolower($venue_type);
+	protected function convert_venue_type_to_slug($v_type) {
+		$venue_type = strtolower($v_type);
 		return $venue_type;
 	}
 
