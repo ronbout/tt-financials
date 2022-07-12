@@ -399,7 +399,7 @@ function insert_new_order_trans_rows($new_order_rows, $prod_data) {
 		$venue_name = $prod_data[$product_id]['venue_name'];
 		$quantity = $order_info['item_qty'];
 		$customer_id = $order_info['customer_id'];
-		$customer_name = $order_info['first_name'] . " " . $order_info['last_name'];
+		$customer_name = $order_info['last_name'] . ", " . $order_info['first_name'];
 		$customer_email = $order_info['email'];
 		
 		$curr_prod_values = tf_calc_net_payable($product_price, $product_vat, $product_comm, $quantity, true);
@@ -574,7 +574,7 @@ function insert_refunded_trans_rows($refunded_order_rows, $prod_data) {
 		$venue_name = $prod_data[$product_id]['venue_name'];
 		$quantity = $order_info['item_qty'];
 		$customer_id = $order_info['customer_id'];
-		$customer_name = $order_info['first_name'] . " " . $order_info['last_name'];
+		$customer_name = $order_info['last_name'] . ", " . $order_info['first_name'];
 		$customer_email = $order_info['email'];
 
 		$curr_prod_values = tf_calc_net_payable($product_price, $product_vat, $product_comm, $quantity, true);
@@ -827,7 +827,7 @@ function insert_taste_credit_trans_rows($taste_credit_rows, $prod_data) {
 		$venue_name = $prod_data[$product_id]['venue_name'];
 		$quantity = $order_info['item_qty'];
 		$customer_id = $order_info['customer_id'];
-		$customer_name = $order_info['first_name'] . " " . $order_info['last_name'];
+		$customer_name = $order_info['last_name'] . ", " . $order_info['first_name'];
 		$customer_email = $order_info['email'];
 
 		$curr_prod_values = tf_calc_net_payable($product_price, $product_vat, $product_comm, $quantity, true);
