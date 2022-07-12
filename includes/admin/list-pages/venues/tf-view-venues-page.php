@@ -28,20 +28,20 @@ class TFVenues_list_table extends Taste_list_table {
   public function get_columns() {
     $ret_array =  array(
 			'cb' => '<input type="checkbox" >',
-      'venue_id' => "Order ID",
+      'venue_id' => "Venue ID",
       'name' => "Venue Name",
-      'venue_email' => "Venue Email",
-      'login_name' => "Login Name",
+      'user_email' => "Venue Email",
+      'user_login' => "Login Name",
       'description' => "Description",
-      'address1' => "Address Line 1",
-      'address2' => "Address Line 2",
+      'address1' => "Address 1",
+      'address2' => "Address 2",
       'city' => "City",
       'postcode' => "Postcode",
       'state' => "State",
       'country' => "Country",
       'phone' => "Phone",
       'venue_type' => "Venue Type",
-      'registration_date' => "Registration Date",
+      'user_registered' => "Registration<br> Date",
       'voucher_pct' => "Voucher Pct",
       'paid_member' => "Paid Member",
       'member_renewal_date' => "member_renewal_date",
@@ -62,8 +62,8 @@ class TFVenues_list_table extends Taste_list_table {
   protected function column_default($item, $column_name) {
     switch($column_name) {
       case 'name':
-      case 'venue_email':
-      case 'login_name':
+      case 'user_email':
+      case 'user_login':
       case 'description':
       case 'address1':
       case 'address2':
@@ -73,11 +73,12 @@ class TFVenues_list_table extends Taste_list_table {
       case 'country':
       case 'phone':
       case 'venue_type':
-      case 'registration_date':
       case 'voucher_pct':
         return $item[$column_name] ? $item[$column_name] : "N/A";
       case 'paid_member':
         return $item[$column_name] ? 'Y' : '';
+      case 'user_registered':
+        return explode(' ', $item[$column_name])[0];
       default:
       return $item[$column_name] ? $item[$column_name] : "N/A";
     }
@@ -85,6 +86,12 @@ class TFVenues_list_table extends Taste_list_table {
 
   protected function get_hidden_columns() {
     $hidden_cols = array(
+      'description',
+      'address1',
+      'address2',
+      'postcode',
+      'state',
+      'country',
       'paid_member',
       'member_renewal_date',
       'membership_cost',
@@ -97,39 +104,39 @@ class TFVenues_list_table extends Taste_list_table {
     return;
     /*
 		$get_string = tf_check_query(false);
-    $cur_trans_type = isset($_REQUEST['trans-type']) && $_REQUEST['trans-type'] ? $_REQUEST['trans-type'] : 'all';
+    $cur_venue_type = isset($_REQUEST['trans-type']) && $_REQUEST['trans-type'] ? $_REQUEST['trans-type'] : 'all';
 		$get_string = remove_query_arg( 'trans-type', $get_string ); 
 
     $list_link = "admin.php?$get_string";
 
-    $trans_types_counts = $this->count_trans_types();
+    $venue_types_counts = $this->count_venue_types();
 
     $tot_cnt = 0;
-    foreach ($trans_types_counts as $t_type => $t_cnt) {
+    foreach ($venue_types_counts as $t_type => $t_cnt) {
       $tot_cnt += (int) $t_cnt;
-      $trans_type = $this->convert_trans_type_to_slug( $t_type);
+      $venue_type = $this->convert_venue_type_to_slug( $t_type);
       $t_cnt = number_format($t_cnt);
 
-      if ($cur_trans_type == $trans_type ) {
-        $tmp_views[$trans_type] = "<strong>{$t_type} ($t_cnt)</strong>";
+      if ($cur_venue_type == $venue_type ) {
+        $tmp_views[$venue_type] = "<strong>{$t_type} ($t_cnt)</strong>";
       } else {
-        $tmp_views[$trans_type] = "<a href='${list_link}&trans-type=$trans_type'>{$t_type} ($t_cnt)</a>";
+        $tmp_views[$venue_type] = "<a href='${list_link}&trans-type=$venue_type'>{$t_type} ($t_cnt)</a>";
       }
     }
     $tot_cnt = number_format($tot_cnt);
-    if ("all" == $cur_trans_type) {
-      $trans_type_views = array(
+    if ("all" == $cur_venue_type) {
+      $venue_type_views = array(
         'all' => "<strong>All ($tot_cnt)</strong>"
       );
     } else {
-      $trans_type_views = array(
+      $venue_type_views = array(
         'all' => "<a href='${list_link}'>All ($tot_cnt)</a>"
       );
     }
 
-    $trans_type_views = array_merge($trans_type_views, $tmp_views);
+    $venue_type_views = array_merge($venue_type_views, $tmp_views);
 
-    return $trans_type_views;
+    return $venue_type_views;
     */
   }
 
@@ -172,8 +179,8 @@ class TFVenues_list_table extends Taste_list_table {
     $sort_array = array(
       'venue_id' => array('venue_id', true),
       'name' => array('name', true),
-      'venue_email' => array('venue_email', true),
-      'login_name' => array('login_name', true),
+      'user_email' => array('user_email', true),
+      'user_login' => array('user_login', true),
       'description' => array('description', true),
       'city' => array('city', true),
       'postcode' => array('postcode', true),
@@ -181,7 +188,7 @@ class TFVenues_list_table extends Taste_list_table {
       'country' => array('country', true),
       'phone' => array('phone', true),
       'venue_type' => array('venue_type', true),
-      'registration_date' => array('registration_date', true),
+      'user_registered' => array('user_registered', true),
       'voucher_pct' => array('voucher_pct', true),
     );
     return $sort_array;
@@ -204,19 +211,19 @@ class TFVenues_list_table extends Taste_list_table {
   
   public function prepare_items() {
     $get_vars = $this->check_list_get_vars();
-    $order_by = $get_vars['order_by'] ? $get_vars['order_by'] : 'transaction_date';
-    $order = $get_vars['order'] ? $get_vars['order'] : 'DESC';
+    $order_by = $get_vars['order_by'] ? $get_vars['order_by'] : 'venue_id';
+    $order = $get_vars['order'] ? $get_vars['order'] : 'ASC';
 		$filters = $get_vars['filters'];
 			
     $per_page = $this->get_user_per_page_option();
     $page_num = $this->get_pagenum();
 
-		$trans_db_info = $this->load_trans_table($order_by, $order, $per_page, $page_num, $filters);
-		$trans_count = $trans_db_info['cnt'];
-    $this->items = $trans_db_info['rows'];
+		$venues_db_info = $this->load_venues_table($order_by, $order, $per_page, $page_num, $filters);
+		$venues_count = $venues_db_info['cnt'];
+    $this->items = $venues_db_info['rows'];
 	
     $pagination_args = array( 
-      'total_items' => $trans_count,
+      'total_items' => $venues_count,
       'per_page' => $per_page,
     );
     $this->set_pagination_args($pagination_args);
@@ -261,48 +268,39 @@ class TFVenues_list_table extends Taste_list_table {
     return $per_page;
   }
 
-  protected function load_trans_table($order_by="transaction_date", $order="DESC", $per_page=20, $page_number=1, $filters=array()) {
+  protected function load_venues_table($order_by="venue_id", $order="ASC", $per_page=20, $page_number=1, $filters=array()) {
     global $wpdb;
 
     $offset = ($page_number - 1) * $per_page;
-    $trans_type = isset($filters['trans_type']) ? $filters['trans_type'] : false;
+    $venue_type = isset($filters['venue_type']) ? $filters['venue_type'] : false;
     $venue_id = isset($filters['venue_id']) ? $filters['venue_id'] : false;
     $venue_id = -1 == $venue_id ? false : $venue_id;
-    $order_id = isset($filters['order_id']) ? $filters['order_id'] : false;
 		$filter_test = '';
 		$db_parms = array();
 	
-    if ($trans_type) {
-      $trans_types = array( 
-        'order' => '"Order", "Order - From Credit"',
-        'redemption' => '"Redemption", "Redemption - From Credit"',
-        'creditor_payment' => "Creditor Payment",
-        'refund' => "Refund",
-        'taste_credit' => "Taste Credit",
-        'order_from_credit' => "Order - From Credit",
-        'redemption_from_credit' => "Redemption - From Credit",
-      );
-      $db_trans_type =  $trans_types[$trans_type];
-      $filter_test = "WHERE oit.trans_type IN ($db_trans_type)";
+    if ($venue_type) {
+      $db_venue_type =  ucfirst($venue_type);
+      $filter_test = "WHERE ven.venue_type IN ($db_venue_type)";
     }
 
 		if (false !== $venue_id) {
 			$filter_test .= $filter_test ? " AND " : " WHERE ";
-			$filter_test .= "oit.venue_id = %d";
+			$filter_test .= "ven.venue_id = %d";
 			$db_parms[] = $venue_id;
 		}
- 
-		if (false !== $order_id) {
-			$filter_test .= $filter_test ? " AND " : " WHERE ";
-			$filter_test .= "oit.order_id = %d";
-			$db_parms[] = $order_id;
-		}
+
+    if (in_array($order_by, array('user_email', 'user_login', 'user_registered'))) {
+      $db_order_by = "u.$order_by";
+    } else {
+      $db_order_by = "ven.$order_by";
+    }
   
     $sql = "
-      SELECT *
-      FROM {$wpdb->prefix}taste_order_transactions oit
+      SELECT ven.*, u.user_email, u.user_login, u.user_registered
+      FROM {$wpdb->prefix}taste_venue ven
+      JOIN $wpdb->users u on u.ID = ven.venue_id
       $filter_test
-      ORDER BY oit.$order_by $order
+      ORDER BY $db_order_by $order
       LIMIT $per_page
       OFFSET $offset;
       ";
@@ -311,11 +309,11 @@ class TFVenues_list_table extends Taste_list_table {
       $sql = $wpdb->prepare($sql, $db_parms);
     }
 
-    $trans_rows = $wpdb->get_results($sql, ARRAY_A);
+    $venues_rows = $wpdb->get_results($sql, ARRAY_A);
 
 		$sql = "
-		SELECT COUNT(oit.id)
-		FROM {$wpdb->prefix}taste_order_transactions oit
+		SELECT COUNT(ven.venue_id)
+		FROM {$wpdb->prefix}taste_venue ven
 		$filter_test
 		";
 
@@ -323,45 +321,45 @@ class TFVenues_list_table extends Taste_list_table {
       $sql = $wpdb->prepare($sql, $db_parms);
     }
 
-		$trans_count = $wpdb->get_var($sql);
+		$venues_count = $wpdb->get_var($sql);
     
     return array( 
-			'rows' => $trans_rows,
-			'cnt' => $trans_count,
+			'rows' => $venues_rows,
+			'cnt' => $venues_count,
 		);
   }
 
-  protected function count_trans_table() {
+  protected function count_venues_table() {
     global $wpdb;
 
     $sql = "
       SELECT COUNT(*)
-      FROM {$wpdb->prefix}taste_order_transactions
+      FROM {$wpdb->prefix}taste_venue
       ";
   
-    $trans_count = $wpdb->get_var($sql);
+    $venue_count = $wpdb->get_var($sql);
     
-    return $trans_count;
+    return $venue_count;
   }
 
-  protected function count_trans_types() {
+  protected function count_venue_types() {
     global $wpdb;
 
     $sql = "
-      SELECT oit.trans_type, COUNT(*) AS trans_count
-      FROM {$wpdb->prefix}taste_order_transactions oit
-      GROUP BY oit.trans_type
+      SELECT ven.venue_type, COUNT(*) AS venue_type_count
+      FROM {$wpdb->prefix}taste_venue ven
+      GROUP BY ven.venue_type
       ";
   
-    $trans_types_count = $wpdb->get_results($sql, ARRAY_A);
-	  $trans_count_by_type = array_column($trans_types_count, 'trans_count', 'trans_type');
+    $venue_types_count = $wpdb->get_results($sql, ARRAY_A);
+	  $venues_count_by_type = array_column($venue_types_count, 'venue_type_count', 'venue_type');
 
     $ret_counts = array(
-      'Order' => $trans_count_by_type['Order'] + $trans_count_by_type['Order - From Credit'],
-      'Redemption' => $trans_count_by_type['Redemption'] + $trans_count_by_type['Redemption - From Credit'],
-      'Payment' => $trans_count_by_type['Creditor Payment'],
-      'Refund' => $trans_count_by_type['Refund'],
-      'Taste Credit' => $trans_count_by_type['Taste Credit'],
+      'None' => $venues_count_by_type[null],
+      'Restaurant' => $venues_count_by_type['Restaurant'],
+      'Hotel' => $venues_count_by_type['Hotel'],
+      'Product' => $venues_count_by_type['Product'],
+      'Bar' => $venues_count_by_type['Bar'],
     );
     
     return $ret_counts;
@@ -379,21 +377,18 @@ class TFVenues_list_table extends Taste_list_table {
     return $venue_rows;
   }
 
-	protected function convert_trans_type_to_slug($t_type) {
-		$trans_type = str_replace(' - ', '_', $t_type);
-		$trans_type = str_replace(' ', '_', $trans_type);
-		$trans_type = strtolower($trans_type);
-		return $trans_type;
+	protected function convert_venue_type_to_slug($t_type) {
+		$venue_type = strtolower($venue_type);
+		return $venue_type;
 	}
 
 }
 /***********************************
- * End of TFTRans_list_table Class
+ * End of TFVenues_list_table Class
  ***********************************/
 
 function tf_build_venues_admin_list_table() {
 	global $tf_venues_table;
-  // $tf_venues_table = new TFTRans_list_table();
 	if ( ! empty( $_REQUEST['_wp_http_referer'] ) ) {
 		wp_redirect( remove_query_arg( array( '_wp_http_referer', '_wpnonce' ), wp_unslash( $_SERVER['REQUEST_URI'] ) ) );
 		exit;
@@ -403,7 +398,7 @@ function tf_build_venues_admin_list_table() {
   $tf_venues_table->prepare_items();
   ?>
 	<div class="wrap">    
-		<h2>Order Transactions</h2>
+		<h2>Venues</h2>
 		<div id="tf_venues">			
 			<div id="tf_post_body">	
         <?php $tf_venues_table->views() ?>
