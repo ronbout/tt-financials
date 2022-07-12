@@ -93,6 +93,31 @@ function taste_hide_giftcert_price($price, $product) {
 }
 add_filter( 'woocommerce_get_price_html', 'taste_hide_giftcert_price', 10, 2 );
 
+ /***********************************************************
+ * Set up Order Auto-complete when status set to processing
+ ************************************************************/
+add_action('woocommerce_order_status_changed', 'tf_auto_complete_by_payment_method');
+
+function tf_auto_complete_by_payment_method($order_id) {
+  if ( ! $order_id ) {
+		return;
+	}
+	global $product;
+	$order = wc_get_order( $order_id );
+
+	if ('processing' == $order->data['status']) {
+				$payment_method = $order->get_payment_method();
+				if (! in_array($payment_method, array("cod", "cheque"))) {
+					$order->update_status( 'completed' );
+				}
+			
+	}
+}
+  
+
+  
+
+
  /*************************************************
  * Set up nightly cron job to update trans table
  *************************************************/
