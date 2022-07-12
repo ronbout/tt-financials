@@ -29,7 +29,7 @@ global $tf_trans_table, $tf_venues_table;
 		'tf_view_venues'
 	 );
 
-	 add_action("load-$trans_list_page", 'tf_add_trans_page_options');
+	 add_action("load-$venues_list_page", 'tf_add_venues_page_options');
  }
 
 add_action('admin_menu', 'tf_submenu_options', 99);

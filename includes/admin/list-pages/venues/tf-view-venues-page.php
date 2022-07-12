@@ -28,37 +28,24 @@ class TFVenues_list_table extends Taste_list_table {
   public function get_columns() {
     $ret_array =  array(
 			'cb' => '<input type="checkbox" >',
-      'order_id' => "Order ID",
-      'order_item_id' => "Order Item<br> ID",
-			'transaction_date' => "Transaction Date",
-      'trans_type' => "Transaction Type",
-      'trans_amount' => "Amount",
-			'trans_entry_timestamp' => "Transaction Record<br> Creation Date",
-			'batch_id' => "Batch ID",
-			'batch_timestamp' => "Batch Date",
-			'order_date' => "Order Date",
-			'product_id' => "Product<br> ID",
-			'product_price' => "Product Price",
-			'quantity' => "Item Quantity",
-			'gross_revenue' => "Gross Revenue",
-      'customer_id' => "Customer<br> ID",
-      'customer_name' => "Customer<br >Name",
-      'customer_email' => "Customer<br >Email",
-			'venue_id' => "Venue ID",
-			'venue_name' => "Venue Name",
-			'taste_credit_coupon_id' => "Taste Credit<br> Coupon ID",
-      'refund_id' => "Refund ID",
-      'coupon_id' => "Applied<br> Coupon  ID",
-      'coupon_value' => "Applied<br> Coupon Value",
-      'net_cost' => "Net Cost",
-      'commission' => "Commission",
-      'vat' => "VAT",
-      'gross_income' => "Gross Income",
-      'venue_due' => "Venue Due",
-      'payment_id' => "Payment<br> ID",
-      'payment_status' => "Payment Status",
-      'payment_date' => "Payment Date",
-      'redemption_date' => "Redemption Date",
+      'venue_id' => "Order ID",
+      'name' => "Venue Name",
+      'venue_email' => "Venue Email",
+      'login_name' => "Login Name",
+      'description' => "Description",
+      'address1' => "Address Line 1",
+      'address2' => "Address Line 2",
+      'city' => "City",
+      'postcode' => "Postcode",
+      'state' => "State",
+      'country' => "Country",
+      'phone' => "Phone",
+      'venue_type' => "Venue Type",
+      'registration_date' => "Registration Date",
+      'voucher_pct' => "Voucher Pct",
+      'paid_member' => "Paid Member",
+      'member_renewal_date' => "member_renewal_date",
+      'membership_cost' => "membership_cost",
     );
 
     return $ret_array;
@@ -74,29 +61,23 @@ class TFVenues_list_table extends Taste_list_table {
 
   protected function column_default($item, $column_name) {
     switch($column_name) {
-      case 'order_id':
-      case 'product_id':
-        $col_id = $item[$column_name];
-        $col_link = get_edit_post_link($col_id);
-          return "
-            <a href='$col_link' target='_blank'>$col_id</a>
-            ";
-        break;
-      case 'id':
-      case 'order_item_id':
-      case 'trans_type':
-      case 'transaction_date':
-      case 'trans_amount':
-      case 'order_date':
-      case 'venue_name':
-      case 'net_cost':
-      case 'gross_income':
-      case 'customer_id':
-      case 'customer_name':
-      case 'customer_email':
-      case 'venue_due':
-      case 'payment_id':
+      case 'name':
+      case 'venue_email':
+      case 'login_name':
+      case 'description':
+      case 'address1':
+      case 'address2':
+      case 'city':
+      case 'postcode':
+      case 'state':
+      case 'country':
+      case 'phone':
+      case 'venue_type':
+      case 'registration_date':
+      case 'voucher_pct':
         return $item[$column_name] ? $item[$column_name] : "N/A";
+      case 'paid_member':
+        return $item[$column_name] ? 'Y' : '';
       default:
       return $item[$column_name] ? $item[$column_name] : "N/A";
     }
@@ -104,29 +85,17 @@ class TFVenues_list_table extends Taste_list_table {
 
   protected function get_hidden_columns() {
     $hidden_cols = array(
-      'trans_entry_timestamp',
-      'batch_id',
-      'batch_timestamp',
-      'product_price',
-      'quantity',
-      'customer_id',
-      'customer_email',
-      'gross_revenue',
-      'taste_credit_coupon_id',
-      'refund_id',
-      'coupon_id',
-      'coupon_value',
-      'commission',
-      'vat',
-      'payment_status',
-      'payment_date',
-      'redemption_date',
+      'paid_member',
+      'member_renewal_date',
+      'membership_cost',
     );
     
     return $hidden_cols;
   }
 
   protected function get_views() {
+    return;
+    /*
 		$get_string = tf_check_query(false);
     $cur_trans_type = isset($_REQUEST['trans-type']) && $_REQUEST['trans-type'] ? $_REQUEST['trans-type'] : 'all';
 		$get_string = remove_query_arg( 'trans-type', $get_string ); 
@@ -161,9 +130,12 @@ class TFVenues_list_table extends Taste_list_table {
     $trans_type_views = array_merge($trans_type_views, $tmp_views);
 
     return $trans_type_views;
+    */
   }
 
   protected function extra_tablenav($which) {
+    return;
+    /*
     if ('top' == $which) {
 			$get_vars = $this->check_list_get_vars();
 			$filters = $get_vars['filters'];
@@ -193,41 +165,41 @@ class TFVenues_list_table extends Taste_list_table {
 
       <?php
     }
+    */
   }
 
   protected function get_sortable_columns() {
     $sort_array = array(
-      'order_id' => array('order_id', true),
       'venue_id' => array('venue_id', true),
-      'transaction_date' => array('transaction_date', true),
-      'trans_type' => array('trans_type', true),
-      'trans_amount' => array('trans_amount', true),
-      'order_date' => array('order_date', true),
-      'product_id' => array('product_id', true),
-      'customer_id' => array('customer_id', true),
-      'customer_name' => array('customer_name', true),
-      'customer_email' => array('customer_email', true),
-      'venue_id' => array('venue_id', true),
-      'venue_name' => array('venue_name', true),
-      'net_cost' => array('net_cost', true),
-      'gross_income' => array('gross_income', true),
+      'name' => array('name', true),
+      'venue_email' => array('venue_email', true),
+      'login_name' => array('login_name', true),
+      'description' => array('description', true),
+      'city' => array('city', true),
+      'postcode' => array('postcode', true),
+      'state' => array('state', true),
+      'country' => array('country', true),
+      'phone' => array('phone', true),
+      'venue_type' => array('venue_type', true),
+      'registration_date' => array('registration_date', true),
+      'voucher_pct' => array('voucher_pct', true),
     );
     return $sort_array;
   }
 
   protected function get_bulk_actions() {
     $bulk_actions = array(
-      'bulk-export' => "Export",
+      'bulk-export' => "Email",
     );
     return $bulk_actions;
   }
  
 	protected function column_cb($item) {
-		return "<input type='checkbox' name='ot-list-cb' value='{$item['id']}'";
+		return "<input type='checkbox' name='venues-list-cb' value='{$item['venue_id']}'";
 	}
   
   public function no_items() {
-    echo "No transactions found.";
+    echo "No Venues found.";
   }
   
   public function prepare_items() {
@@ -260,9 +232,8 @@ class TFVenues_list_table extends Taste_list_table {
     $order = isset($_REQUEST['order']) ? $_REQUEST['order'] : '';
 
 		$filters_list_to_check = array(
-			'trans-type' => 'trans_type',
-			'order-id' => 'order_id',
-			'venue-selection' => 'venue_id',
+			'venue-type' => 'venue_type',
+			'venue-id' => 'venue_id',
 		);
 
 		$filters = array();
