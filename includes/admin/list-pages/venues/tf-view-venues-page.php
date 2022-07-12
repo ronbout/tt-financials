@@ -139,8 +139,6 @@ class TFVenues_list_table extends Taste_list_table {
   }
 
   protected function extra_tablenav($which) {
-    return;
-    /*
     if ('top' == $which) {
 			$get_vars = $this->check_list_get_vars();
 			$filters = $get_vars['filters'];
@@ -150,9 +148,6 @@ class TFVenues_list_table extends Taste_list_table {
       $options_list = "          
         <option value='-1' " . (-1 == $venue_select ? " selected " : "") . ">
        		Select By Venue
-        </option>          
-        <option value='0' " . (0 == $venue_select ? " selected " : "") . ">
-       		Unassigned
         </option>";
 
       foreach($venue_list as $venue_info) {
@@ -162,15 +157,14 @@ class TFVenues_list_table extends Taste_list_table {
       }
       ?>
       <div class="alignleft actions">
-        <select name="venue-selection" id="trans-list-venue-selection">
+        <select name="venue-id" id="venues-list-venue-selection">
 					<?php echo $options_list ?>
         </select>
-        <input type="submit" name="filter_action" id="trans-list_submit" class="button" value="Filter">
+        <input type="submit" name="filter_action" id="venues-list_submit" class="button" value="Filter">
       </div>
 
       <?php
     }
-    */
   }
 
   protected function get_sortable_columns() {
