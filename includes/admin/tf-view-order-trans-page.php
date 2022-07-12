@@ -211,7 +211,7 @@ class TFTRans_list_table extends Taste_list_table {
     );
     return $bulk_actions;
   }
-
+ 
 	protected function column_cb($item) {
 		return "<input type='checkbox' name='ot-list-cb' value='{$item['id']}'";
 	}
@@ -222,7 +222,7 @@ class TFTRans_list_table extends Taste_list_table {
   
   public function prepare_items() {
     $get_vars = $this->check_list_get_vars();
-    $order_by = $get_vars['order_by'] ? $get_vars['order_by'] : 'id';
+    $order_by = $get_vars['order_by'] ? $get_vars['order_by'] : 'transaction_date';
     $order = $get_vars['order'] ? $get_vars['order'] : 'DESC';
 		$filters = $get_vars['filters'];
 			
@@ -280,7 +280,7 @@ class TFTRans_list_table extends Taste_list_table {
     return $per_page;
   }
 
-  protected function load_trans_table($order_by="id", $order="DESC", $per_page=20, $page_number=1, $filters=array()) {
+  protected function load_trans_table($order_by="transaction_date", $order="DESC", $per_page=20, $page_number=1, $filters=array()) {
     global $wpdb;
 
     $offset = ($page_number - 1) * $per_page;
@@ -321,7 +321,7 @@ class TFTRans_list_table extends Taste_list_table {
       SELECT *
       FROM {$wpdb->prefix}taste_order_transactions oit
       $filter_test
-      ORDER BY oit.$order_by $order, oit.transaction_date ASC
+      ORDER BY oit.$order_by $order
       LIMIT $per_page
       OFFSET $offset;
       ";
