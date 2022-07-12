@@ -128,25 +128,35 @@ class TFTRans_list_table extends Taste_list_table {
 
   protected function get_views() {
 		$get_string = tf_check_query(false);
-		$get_string = remove_query_arg( 'trans-type', $get_string );
+    $cur_trans_type = isset($_REQUEST['trans-type']) && $_REQUEST['trans-type'] ? $_REQUEST['trans-type'] : 'all';
+		$get_string = remove_query_arg( 'trans-type', $get_string ); 
 
     $list_link = "admin.php?$get_string";
 
     $trans_types_counts = $this->count_trans_types();
 
     $tot_cnt = 0;
-    foreach ($trans_types_counts as $trans_type_info) {
-      $t_cnt = $trans_type_info['trans_count'];
+    foreach ($trans_types_counts as $t_type => $t_cnt) {
       $tot_cnt += (int) $t_cnt;
-      $trans_type = $this->convert_trans_type_to_slug( $trans_type_info['trans_type']);
+      $trans_type = $this->convert_trans_type_to_slug( $t_type);
       $t_cnt = number_format($t_cnt);
 
-      $tmp_views[$trans_type] = "<a href='${list_link}&trans-type=$trans_type'>{$trans_type_info['trans_type']} ($t_cnt)</a>";
+      if ($cur_trans_type == $trans_type ) {
+        $tmp_views[$trans_type] = "<strong>{$t_type} ($t_cnt)</strong>";
+      } else {
+        $tmp_views[$trans_type] = "<a href='${list_link}&trans-type=$trans_type'>{$t_type} ($t_cnt)</a>";
+      }
     }
     $tot_cnt = number_format($tot_cnt);
-    $trans_type_views = array(
-      'all' => "<a href='${list_link}'>All ($tot_cnt)</a>"
-    );
+    if ("all" == $cur_trans_type) {
+      $trans_type_views = array(
+        'all' => "<strong>All ($tot_cnt)</strong>"
+      );
+    } else {
+      $trans_type_views = array(
+        'all' => "<a href='${list_link}'>All ($tot_cnt)</a>"
+      );
+    }
 
     $trans_type_views = array_merge($trans_type_views, $tmp_views);
 
@@ -293,16 +303,16 @@ class TFTRans_list_table extends Taste_list_table {
 	
     if ($trans_type) {
       $trans_types = array( 
-        'order' => "Order",
-        'redemption' => "Redemption",
+        'order' => '"Order", "Order - From Credit"',
+        'redemption' => '"Redemption", "Redemption - From Credit"',
         'creditor_payment' => "Creditor Payment",
         'refund' => "Refund",
         'taste_credit' => "Taste Credit",
         'order_from_credit' => "Order - From Credit",
         'redemption_from_credit' => "Redemption - From Credit",
       );
-      $filter_test = "WHERE oit.trans_type = %s";
-      $db_parms[] = $trans_types[$trans_type];
+      $db_trans_type =  $trans_types[$trans_type];
+      $filter_test = "WHERE oit.trans_type IN ($db_trans_type)";
     }
 
 		if (false !== $venue_id) {
@@ -329,7 +339,7 @@ class TFTRans_list_table extends Taste_list_table {
     if ($filter_test) {
       $sql = $wpdb->prepare($sql, $db_parms);
     }
-  
+
     $trans_rows = $wpdb->get_results($sql, ARRAY_A);
 
 		$sql = "
@@ -373,8 +383,17 @@ class TFTRans_list_table extends Taste_list_table {
       ";
   
     $trans_types_count = $wpdb->get_results($sql, ARRAY_A);
+	  $trans_count_by_type = array_column($trans_types_count, 'trans_count', 'trans_type');
+
+    $ret_counts = array(
+      'Order' => $trans_count_by_type['Order'] + $trans_count_by_type['Order - From Credit'],
+      'Redemption' => $trans_count_by_type['Redemption'] + $trans_count_by_type['Redemption - From Credit'],
+      'Payment' => $trans_count_by_type['Creditor Payment'],
+      'Refund' => $trans_count_by_type['Refund'],
+      'Taste Credit' => $trans_count_by_type['Taste Credit'],
+    );
     
-    return $trans_types_count;
+    return $ret_counts;
   }
   
   protected function get_venue_list() {
