@@ -186,9 +186,10 @@ class TFVenues_list_table extends Taste_list_table {
 			$get_vars = $this->check_list_get_vars();
 			$filters = $get_vars['filters'];
 			$venue_select = isset($filters['venue_id']) ? $filters['venue_id'] : -1;
+      $balance_select = isset($filters['balance_due']) ? $filters['balance_due'] : -1;
 
       $venue_list = $this->get_venue_list();
-      $options_list = "          
+      $venue_options = "          
         <option value='-1' " . (-1 == $venue_select ? " selected " : "") . ">
        		Select By Venue
         </option>";
@@ -196,13 +197,26 @@ class TFVenues_list_table extends Taste_list_table {
       foreach($venue_list as $venue_info) {
         $venue_id = $venue_info['venue_id'];
         $venue_name = $venue_info['name'];
-        $options_list  .= "<option value='$venue_id' " . ($venue_id == $venue_select ? " selected " : "") . ">$venue_name</option> ";
+        $venue_options  .= "<option value='$venue_id' " . ($venue_id == $venue_select ? " selected " : "") . ">$venue_name</option> ";
       }
+
+      $balance_options = "
+        <option value='-1' " . (-1 == $balance_select ? " selected " : "") . ">
+            Select By Balance Due
+        </option>
+        <option value='positive' " . ('positive' == $balance_select ? " selected " : "") . ">Positive Balance Due</option>
+        <option value='zero' " . ('zero' == $balance_select ? " selected " : "") . ">Zero Balance Due</option>
+        <option value='negative' " . ('negative' == $balance_select ? " selected " : "") . ">Negative Balance Due</option>
+      ";
       ?>
       <div class="alignleft actions">
         <select name="venue-id" id="venues-list-venue-selection">
-					<?php echo $options_list ?>
+					<?php echo $venue_options ?>
         </select>
+        <select name="balance-due" id="balance-due-venue-selection">
+					<?php echo $balance_options ?>
+        </select>
+
         <input type="submit" name="filter_action" id="venues-list_submit" class="button" value="Filter">
       </div>
 
@@ -287,6 +301,7 @@ class TFVenues_list_table extends Taste_list_table {
 		$filters_list_to_check = array(
 			'venue-type' => 'venue_type',
 			'venue-id' => 'venue_id',
+      'balance-due' => 'balance_due',
 		);
 
 		$filters = array();
@@ -322,9 +337,11 @@ class TFVenues_list_table extends Taste_list_table {
 
     $venue_id = isset($filters['venue_id']) ? $filters['venue_id'] : false;
     $venue_id = -1 == $venue_id ? false : $venue_id;
-		$filter_test = '';
-		$db_parms = array();
-	
+    $use_finance_test = false;
+    
+    $filter_test = '';
+    $db_parms = array();
+  
     if ($venue_type) {
       $db_venue_type =  ucfirst($venue_type);
       if ("None" == $db_venue_type) {
@@ -335,34 +352,63 @@ class TFVenues_list_table extends Taste_list_table {
       }
     }
 
-		if (false !== $venue_id) {
-			$filter_test .= $filter_test ? " AND " : " WHERE ";
-			$filter_test .= "ven.venue_id = %d";
-			$db_parms[] = $venue_id;
-		}
-
-    if (in_array($order_by, array('user_email', 'user_login', 'user_registered'))) {
-      $db_order_by = "u.$order_by";
-    } else {
-      $db_order_by = "ven.$order_by";
+    if (!$venue_id ) {
+      // if a venue is chosen, ignore other filters
+      $financial_columns = $this->get_financial_columns();
+      $balance_filter = isset($filters['balance_due']) ? $filters['balance_due'] : false;
+      if ($balance_filter || in_array($order_by, $financial_columns)) {
+        $use_finance_test = true;
+      }
     }
-  
-    $sql = "
-      SELECT ven.*, u.user_email, u.user_login, u.user_registered
-      FROM {$wpdb->prefix}taste_venue ven
-      JOIN $wpdb->users u on u.ID = ven.venue_id
-      $filter_test
-      ORDER BY $db_order_by $order
-      LIMIT $per_page
-      OFFSET $offset;
+    
+    if ($use_finance_test) {
+      $sql = "
+        SELECT ven.*, u.user_email, u.user_login, u.user_registered
+        FROM {$wpdb->prefix}taste_venue ven
+        JOIN $wpdb->users u on u.ID = ven.venue_id
+        $filter_test
       ";
+      
+      if (count($db_parms)) {
+        $sql = $wpdb->prepare($sql, $db_parms);
+      }
 
-    if (count($db_parms)) {
-      $sql = $wpdb->prepare($sql, $db_parms);
+    } else {
+  
+      if (false !== $venue_id) {
+        $filter_test .= $filter_test ? " AND " : " WHERE ";
+        $filter_test .= "ven.venue_id = %d";
+        $db_parms[] = $venue_id;
+      }
+  
+      if (in_array($order_by, array('user_email', 'user_login', 'user_registered'))) {
+        $db_order_by = "u.$order_by";
+      } else {
+        $db_order_by = "ven.$order_by";
+      }
+    
+      $sql = "
+        SELECT ven.*, u.user_email, u.user_login, u.user_registered
+        FROM {$wpdb->prefix}taste_venue ven
+        JOIN $wpdb->users u on u.ID = ven.venue_id
+        $filter_test
+        ORDER BY $db_order_by $order
+        LIMIT $per_page
+        OFFSET $offset;
+      ";
+      
+      if (count($db_parms)) {
+        $sql = $wpdb->prepare($sql, $db_parms);
+      }
     }
 
     $venues_rows = $wpdb->get_results($sql, ARRAY_A);
     $venue_rows_w_financials = $this->add_venue_financials($venues_rows);
+
+    if ($use_finance_test) {
+      $venue_rows_w_financials = $this->sort_select_venues_by_financials($venue_rows_w_financials, $order_by, $order, $per_page, $page_number, $balance_filter);
+      return $venue_rows_w_financials;
+    }
 
 		$sql = "
 		SELECT COUNT(ven.venue_id)
@@ -438,6 +484,42 @@ class TFVenues_list_table extends Taste_list_table {
   protected function add_venue_financials($venue_rows) {
     require_once TFINANCIAL_PLUGIN_INCLUDES.'/admin/list-pages/venues/calc_venue_financials.php';
     return $return_rows;
+  }
+
+  protected function sort_select_venues_by_financials($venue_rows_w_financials, $order_by, $order, $per_page, $page_number, $balance_filter) {
+    $tmp_rows = $venue_rows_w_financials;
+    if ($balance_filter) {
+      switch($balance_filter) {
+        case 'positive':
+          $tmp_rows = array_filter($tmp_rows, function ($tmp_row)  {
+            return round($tmp_row['balance_due'], 2) > 0;
+          } );
+          break;
+        case 'negative':
+          $tmp_rows = array_filter($tmp_rows, function ($tmp_row)  {
+            return round($tmp_row['balance_due'], 2) < 0;
+          } );
+          break;
+        case 'zero':
+          $tmp_rows = array_filter($tmp_rows, function ($tmp_row)  {
+            return round($tmp_row['balance_due'], 2) == 0;
+          } );
+          break;
+      }
+    }
+    $cnt = count($tmp_rows);
+    if ($order_by) {
+      $sort_dir = "desc" == strtolower($order) ? SORT_DESC : SORT_ASC;
+      $sort_column = array_column($tmp_rows, $order_by);
+      array_multisort($sort_column, $sort_dir, $tmp_rows);
+    }
+    
+    $offset = ($page_number - 1) * $per_page;
+    $tmp_rows = array_slice($tmp_rows, $offset, $per_page);
+    return array(
+			'rows' => $tmp_rows,
+			'cnt' => $cnt,
+    );
   }
 
 }
