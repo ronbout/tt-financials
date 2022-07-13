@@ -1,0 +1,11 @@
+/* tf-admin.css
+	 For the user pages and the venue/products/posts pages
+*/
+body.woocommerce_page_view-venues .wp-list-table .column-gross_revenue,
+body.woocommerce_page_view-venues .wp-list-table .column-net_payable,
+body.woocommerce_page_view-venues .wp-list-table .column-paid_amount,
+body.woocommerce_page_view-venues .wp-list-table .column-balance_due {
+  text-align: right;
+}
+
+/*# sourceMappingURL=tf-admin.css.map */

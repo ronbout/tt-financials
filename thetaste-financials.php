@@ -31,6 +31,7 @@ if (is_admin()) {
 	require_once TFINANCIAL_PLUGIN_INCLUDES.'/admin/list-products-by-venue.php';
 	VenueUserFields::get_instance();
 	*/
+	require_once TFINANCIAL_PLUGIN_INCLUDES.'/admin/admin-enqueues.php';
 	require_once TFINANCIAL_PLUGIN_INCLUDES.'/admin/list-pages/Taste_list_table.php';
 	require_once TFINANCIAL_PLUGIN_INCLUDES.'/admin/list-pages/transactions/tf-view-order-trans-page.php';
 	require_once TFINANCIAL_PLUGIN_INCLUDES.'/admin/list-pages/venues/tf-view-venues-page.php';

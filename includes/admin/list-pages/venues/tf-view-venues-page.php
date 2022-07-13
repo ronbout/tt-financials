@@ -44,8 +44,12 @@ class TFVenues_list_table extends Taste_list_table {
       'user_registered' => "Registration<br> Date",
       'voucher_pct' => "Voucher Pct",
       'paid_member' => "Paid Member",
-      'member_renewal_date' => "member_renewal_date",
-      'membership_cost' => "membership_cost",
+      'member_renewal_date' => "Member<br> Renewal Date",
+      'membership_cost' => "Membership<br> Cost",
+      'gross_revenue' => "Gross<br> Revenue",
+      'net_payable' => "Net Payable",
+      'paid_amount' => "Paid Amount",
+      'balance_due' => "Balance Due",
     );
 
     return $ret_array;
@@ -61,6 +65,16 @@ class TFVenues_list_table extends Taste_list_table {
 
   protected function column_default($item, $column_name) {
     switch($column_name) {
+      
+      case 'gross_revenue':
+      case 'net_payable':
+      case 'paid_amount':
+      case 'balance_due':
+        return isset($item[$column_name]) ? number_format($item[$column_name],2) : "N/A";
+      case 'paid_member':
+        return $item[$column_name] ? 'Y' : '';
+      case 'user_registered':
+        return explode(' ', $item[$column_name])[0];
       case 'name':
       case 'user_email':
       case 'user_login':
@@ -74,13 +88,9 @@ class TFVenues_list_table extends Taste_list_table {
       case 'phone':
       case 'venue_type':
       case 'voucher_pct':
-        return $item[$column_name] ? $item[$column_name] : "N/A";
-      case 'paid_member':
-        return $item[$column_name] ? 'Y' : '';
-      case 'user_registered':
-        return explode(' ', $item[$column_name])[0];
+        return isset($item[$column_name]) ? $item[$column_name] : "N/A";
       default:
-      return $item[$column_name] ? $item[$column_name] : "N/A";
+      return isset($item[$column_name]) ? $item[$column_name] : "N/A";
     }
   }
 
@@ -95,6 +105,7 @@ class TFVenues_list_table extends Taste_list_table {
       'paid_member',
       'member_renewal_date',
       'membership_cost',
+      'voucher_pct',
     );
     
     return $hidden_cols;
@@ -211,6 +222,7 @@ class TFVenues_list_table extends Taste_list_table {
     $page_num = $this->get_pagenum();
 
 		$venues_db_info = $this->load_venues_table($order_by, $order, $per_page, $page_num, $filters);
+
 		$venues_count = $venues_db_info['cnt'];
     $this->items = $venues_db_info['rows'];
 	
@@ -308,6 +320,7 @@ class TFVenues_list_table extends Taste_list_table {
     }
 
     $venues_rows = $wpdb->get_results($sql, ARRAY_A);
+    $venue_rows_w_financials = $this->add_venue_financials($venues_rows);
 
 		$sql = "
 		SELECT COUNT(ven.venue_id)
@@ -322,7 +335,7 @@ class TFVenues_list_table extends Taste_list_table {
 		$venues_count = $wpdb->get_var($sql);
     
     return array( 
-			'rows' => $venues_rows,
+			'rows' => $venue_rows_w_financials,
 			'cnt' => $venues_count,
 		);
   }
@@ -379,6 +392,11 @@ class TFVenues_list_table extends Taste_list_table {
 		$venue_type = strtolower($v_type);
 		return $venue_type;
 	}
+
+  protected function add_venue_financials($venue_rows) {
+    require_once TFINANCIAL_PLUGIN_INCLUDES.'/admin/list-pages/venues/calc_venue_financials.php';
+    return $return_rows;
+  }
 
 }
 /***********************************
