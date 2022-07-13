@@ -25,6 +25,8 @@ class TFVenues_list_table extends Taste_list_table {
     );
   }
 
+  
+
   public function get_columns() {
     $ret_array =  array(
 			'cb' => '<input type="checkbox" >',
@@ -46,7 +48,13 @@ class TFVenues_list_table extends Taste_list_table {
       'paid_member' => "Paid Member",
       'member_renewal_date' => "Member<br> Renewal Date",
       'membership_cost' => "Membership<br> Cost",
+      'products' => "Products",
+      'redeemed_qty' => "Quantity<br> Redeemed",
+      'order_cnt' => "Order<br> Count",
+      'order_qty' => "Qty<br> Ordered",
       'gross_revenue' => "Gross<br> Revenue",
+      'commission' => "Commission",
+      'vat' => "VAT",
       'net_payable' => "Net Payable",
       'paid_amount' => "Paid Amount",
       'balance_due' => "Balance Due",
@@ -55,6 +63,22 @@ class TFVenues_list_table extends Taste_list_table {
     return $ret_array;
    }
    
+   protected function get_financial_columns() {
+    $financial_columns = array(
+      'products',
+      'redeemed_qty',
+      'order_cnt',
+      'order_qty',
+      'gross_revenue',
+      'commission',
+      'vat',
+      'net_payable',
+      'paid_amount',
+      'balance_due',
+    );
+    return $financial_columns;
+   }
+
    protected function column_venue_id($item) {
     $venue_id = $item['venue_id'];
     $cm_link = get_site_url(null, "/campaign-manager/?venue-id={$venue_id}");
@@ -101,11 +125,19 @@ class TFVenues_list_table extends Taste_list_table {
       'address2',
       'postcode',
       'state',
+      'phone',
       'country',
+      'user_login',
       'paid_member',
       'member_renewal_date',
       'membership_cost',
+      'user_registered',
       'voucher_pct',
+      'redeemed_qty',
+      'order_cnt',
+      'order_qty',
+      'commission',
+      'vat',
     );
     
     return $hidden_cols;
@@ -193,6 +225,16 @@ class TFVenues_list_table extends Taste_list_table {
       'venue_type' => array('venue_type', true),
       'user_registered' => array('user_registered', true),
       'voucher_pct' => array('voucher_pct', true),
+      'products' => array('products', true),
+      'redeemed_qty' => array('redeemed_qty', true),
+      'order_cnt' => array('order_cnt', true),
+      'order_qty' => array('order_qty', true),
+      'gross_revenue' => array('gross_revenue', true),
+      'commission' => array('commission', true),
+      'vat' => array('vat', true),
+      'net_payable' => array('net_payable', true),
+      'paid_amount' => array('paid_amount', true),
+      'balance_due' => array('balance_due', true),
     );
     return $sort_array;
   }

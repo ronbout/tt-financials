@@ -1,11 +1,29 @@
 /* tf-admin.css
 	 For the user pages and the venue/products/posts pages
 */
+body.woocommerce_page_view-venues .wp-list-table .column-products,
+body.woocommerce_page_view-venues .wp-list-table .column-redeemed_qty,
+body.woocommerce_page_view-venues .wp-list-table .column-order_cnt,
+body.woocommerce_page_view-venues .wp-list-table .column-order_qty,
+body.woocommerce_page_view-venues .wp-list-table .column-commission,
+body.woocommerce_page_view-venues .wp-list-table .column-vat,
 body.woocommerce_page_view-venues .wp-list-table .column-gross_revenue,
 body.woocommerce_page_view-venues .wp-list-table .column-net_payable,
 body.woocommerce_page_view-venues .wp-list-table .column-paid_amount,
 body.woocommerce_page_view-venues .wp-list-table .column-balance_due {
   text-align: right;
+}
+body.woocommerce_page_view-venues .wp-list-table .column-products a > span:first-child,
+body.woocommerce_page_view-venues .wp-list-table .column-redeemed_qty a > span:first-child,
+body.woocommerce_page_view-venues .wp-list-table .column-order_cnt a > span:first-child,
+body.woocommerce_page_view-venues .wp-list-table .column-order_qty a > span:first-child,
+body.woocommerce_page_view-venues .wp-list-table .column-commission a > span:first-child,
+body.woocommerce_page_view-venues .wp-list-table .column-vat a > span:first-child,
+body.woocommerce_page_view-venues .wp-list-table .column-gross_revenue a > span:first-child,
+body.woocommerce_page_view-venues .wp-list-table .column-net_payable a > span:first-child,
+body.woocommerce_page_view-venues .wp-list-table .column-paid_amount a > span:first-child,
+body.woocommerce_page_view-venues .wp-list-table .column-balance_due a > span:first-child {
+  width: 80%;
 }
 
 /*# sourceMappingURL=tf-admin.css.map */

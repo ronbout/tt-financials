@@ -3,10 +3,20 @@
 */
 
 body.woocommerce_page_view-venues .wp-list-table {
+  .column-products,
+  .column-redeemed_qty,
+  .column-order_cnt,
+  .column-order_qty,
+  .column-commission,
+  .column-vat,
   .column-gross_revenue,
   .column-net_payable,
   .column-paid_amount,
   .column-balance_due {
     text-align: right;
+
+    a > span:first-child {
+      width: 80%;
+    }
   }
 }
