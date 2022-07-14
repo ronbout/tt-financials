@@ -264,6 +264,7 @@ class TFTRans_list_table extends Taste_list_table {
 			'trans-type' => 'trans_type',
 			'order-id' => 'order_id',
 			'venue-selection' => 'venue_id',
+      's' => 'search',
 		);
 
 		$filters = array();
@@ -299,6 +300,7 @@ class TFTRans_list_table extends Taste_list_table {
     $venue_id = isset($filters['venue_id']) ? $filters['venue_id'] : false;
     $venue_id = -1 == $venue_id ? false : $venue_id;
     $order_id = isset($filters['order_id']) ? $filters['order_id'] : false;
+    $search_term = isset($filters['search']) ? $filters['search'] : false;
 		$filter_test = '';
 		$db_parms = array();
 	
@@ -327,6 +329,28 @@ class TFTRans_list_table extends Taste_list_table {
 			$filter_test .= "oit.order_id = %d";
 			$db_parms[] = $order_id;
 		}
+
+    if (false != $search_term) {
+      // if numeric, check order id, item id, product id, venue id
+      // if string, check cust name, venue name
+			$filter_test .= $filter_test ? " AND " : " WHERE ";
+      if (is_numeric($search_term)) {
+        $filter_test .= "
+          (oit.order_id = %d OR oit.order_item_id = %d OR oit.product_id = %d
+            OR oit.venue_id = %d
+          )
+        ";
+        $db_parms[] = $search_term; 
+        $db_parms[] = $search_term; 
+        $db_parms[] = $search_term; 
+        $db_parms[] = $search_term; 
+      } else {
+        $esc_search_term = "%" . $wpdb->esc_like($search_term) . "%";
+        $filter_test .= " (oit.customer_name LIKE %s OR oit.venue_name LIKE %s) ";
+        $db_parms[] = $esc_search_term; 
+        $db_parms[] = $esc_search_term; 
+      }
+    }
   
     $sql = "
       SELECT *
@@ -439,7 +463,10 @@ function tf_build_trans_admin_list_table() {
         <?php $tf_trans_table->views() ?>
 				<form id="tf-order-trans-form" method="get">	
 					<input type="hidden" name="page" value="<?php echo $_REQUEST['page'] ?>" />				
-					<?php $tf_trans_table->display(); ?>					
+					<?php 
+            $tf_trans_table->search_box("Search Transactions", 'tf-trans-search');
+            $tf_trans_table->display(); 
+          ?>					
 				</form>
 			</div>			
 		</div>
