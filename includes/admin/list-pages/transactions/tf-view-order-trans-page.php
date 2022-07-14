@@ -15,6 +15,8 @@ function tf_view_order_trans() {
  ******************************/
 class TFTRans_list_table extends Taste_list_table {
 
+  protected $years;
+
   public function __construct() {
     parent::__construct(
       array(
@@ -189,11 +191,66 @@ class TFTRans_list_table extends Taste_list_table {
         <select name="venue-selection" id="trans-list-venue-selection">
 					<?php echo $options_list ?>
         </select>
+        <?php $this->months_dropdown() ?>
+        <?php $this->years_dropdown() ?>
         <input type="submit" name="filter_action" id="trans-list_submit" class="button" value="Filter">
       </div>
-
       <?php
     }
+  }
+
+  protected function months_dropdown() {
+    global $wpdb, $wp_locale;
+
+    $m = isset( $_GET['m'] ) ? $_GET['m'] : '';
+
+    $sql = "
+        SELECT DISTINCT YEAR( transaction_date ) AS year, MONTH( transaction_date ) AS month
+        FROM {$wpdb->prefix}taste_order_transactions
+        ORDER BY transaction_date DESC
+    ";
+    
+    $year_months = $wpdb->get_results($sql, ARRAY_A);
+    $ym_options = "";
+    $this->years = array_unique(array_column($year_months, 'year'));
+
+    foreach ( $year_months as $ym ) {
+			if ( 0 == $ym['year'] ) {
+				continue;
+			}
+
+			$month = zeroise( $ym['month'], 2 );
+			$year  = $ym['year'];
+      $ym_value = $year . $month;
+
+			$ym_options .=	"<option " . ($ym_value == $m ? " selected " : "") . " value='" . esc_attr( $year . $month ) . "'>";
+      $ym_options .=  sprintf( __( '%1$s %2$d' ), $wp_locale->get_month( $month ), $year );
+      $ym_options .= "</option>";
+		}
+
+    echo '
+		<select name="m" id="filter-by-date">
+			<option value="0" ' . (0 == $m ? " selected " : ""). '>All Dates</option>
+      <option value="year" ' . ("year" == $m ? " selected " : ""). '>Year</option>
+      <option value="custom" ' . ("custom" == $m ? " selected " : ""). '>Custom Range</option>
+      ' . $ym_options . '
+    </select>
+    ';
+  }
+  
+  protected function years_dropdown() {
+    $yr = isset( $_GET['yr'] ) ? (int) $_GET['yr'] : 0;
+    $m = isset( $_GET['m'] ) ? $_GET['m'] : '';
+    $yr_options = array_reduce($this->years, function ($ret_options, $year) use ($yr) {
+      $ret_options .= "<option value='$year'" . ($year == $yr ? " selected " : "") .  ">$year</option>";
+      return $ret_options;
+    }, "");
+    $style = ("year" != $m) ? "style='display: none;'" : "";
+    ?>
+    <select name="yr" id="trans-year-select" <?php echo $style ?> >
+      <?php echo $yr_options ?>
+    </select>
+  <?php
   }
 
   protected function get_sortable_columns() {
@@ -265,6 +322,10 @@ class TFTRans_list_table extends Taste_list_table {
 			'order-id' => 'order_id',
 			'venue-selection' => 'venue_id',
       's' => 'search',
+      'm' => 'date_select',
+      'yr' => 'year',
+      'dt1' => "date1",
+      'dt2' => "date2",
 		);
 
 		$filters = array();
@@ -300,21 +361,47 @@ class TFTRans_list_table extends Taste_list_table {
     $venue_id = isset($filters['venue_id']) ? $filters['venue_id'] : false;
     $venue_id = -1 == $venue_id ? false : $venue_id;
     $order_id = isset($filters['order_id']) ? $filters['order_id'] : false;
+    $date_select = isset($filters['date_select']) ? $filters['date_select'] : false;
+    switch($date_select) {
+      case "year":
+        if (isset($filters['year']) && is_numeric($filters['year'])) {
+          $date_year = $filters['year'];
+        } else {
+          $date_select = false;
+        }
+        break;
+      case "custom":
+        if (isset($filters['date1']) && isset($filters['date2'])) {
+          $date_1 = $filters['date1'];
+          $date_2 = $filters['date2'];
+        } else {
+          $date_select = false;
+        }
+        break;
+      case "0":
+        $date_select = false;
+        break;
+      default:
+        $date_year = substr($date_select, 0, 4);
+        $date_month = substr($date_select, 4, 2);
+    }
     $search_term = isset($filters['search']) ? $filters['search'] : false;
 		$filter_test = '';
 		$db_parms = array();
 	
     if ($trans_type) {
+      echo "<h2>*", $trans_type, "*</h2>";
       $trans_types = array( 
         'order' => '"Order", "Order - From Credit"',
         'redemption' => '"Redemption", "Redemption - From Credit"',
-        'creditor_payment' => "Creditor Payment",
-        'refund' => "Refund",
-        'taste_credit' => "Taste Credit",
-        'order_from_credit' => "Order - From Credit",
-        'redemption_from_credit' => "Redemption - From Credit",
+        'payment' => '"Creditor Payment"',
+        'refund' => '"Refund"',
+        'taste_credit' => '"Taste Credit"',
+        'order_from_credit' => '"Order - From Credit"',
+        'redemption_from_credit' => '"Redemption - From Credit"',
       );
       $db_trans_type =  $trans_types[$trans_type];
+      echo "<h2>*", $db_trans_type, "*</h2>";
       $filter_test = "WHERE oit.trans_type IN ($db_trans_type)";
     }
 
@@ -350,7 +437,30 @@ class TFTRans_list_table extends Taste_list_table {
         $db_parms[] = $esc_search_term; 
         $db_parms[] = $esc_search_term; 
       }
-    }
+    } 
+
+		if (false !== $date_select) {
+			$filter_test .= $filter_test ? " AND " : " WHERE ";
+      switch($date_select) {
+        case "year":
+          $filter_test .= " YEAR(oit.transaction_date) = %d ";
+          $db_parms[] = $date_year;
+          break;
+        case "custom":
+          $tmp_dt = date_create($date2);
+          $tmp_dt = date_add($tmp_dt, date_interval_create_from_date_string("1 day"));
+          $end_date = date_format($tmp_dt, "Y-m-d");
+          $filter_test .= " oit.transaction_date >= %s ";
+          $filter_test .= " oit.transaction_date < %s ";
+          $db_parms[] = $date1;
+          $db_parms[] = $end_date;
+          break;
+        default:
+          $filter_test .= " YEAR(oit.transaction_date) = %d AND MONTH(oit.transaction_date) = %d";
+          $db_parms[] = $date_year;
+          $db_parms[] = $date_month;
+      }
+		}
   
     $sql = "
       SELECT *
@@ -364,7 +474,7 @@ class TFTRans_list_table extends Taste_list_table {
     if ($filter_test) {
       $sql = $wpdb->prepare($sql, $db_parms);
     }
-
+    
     $trans_rows = $wpdb->get_results($sql, ARRAY_A);
 
 		$sql = "
