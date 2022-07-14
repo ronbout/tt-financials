@@ -493,7 +493,6 @@ class TFTRans_list_table extends Taste_list_table {
       $sql = $wpdb->prepare($sql, $db_parms);
     }
     
-    echo "<h2>", $sql, "</h2>";
     $trans_rows = $wpdb->get_results($sql, ARRAY_A);
 
 		$sql = "
