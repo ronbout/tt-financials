@@ -193,6 +193,7 @@ class TFTRans_list_table extends Taste_list_table {
         </select>
         <?php $this->months_dropdown() ?>
         <?php $this->years_dropdown() ?>
+        <?php $this->custom_dates() ?>
         <input type="submit" name="filter_action" id="trans-list_submit" class="button" value="Filter">
       </div>
       <?php
@@ -202,7 +203,7 @@ class TFTRans_list_table extends Taste_list_table {
   protected function months_dropdown() {
     global $wpdb, $wp_locale;
 
-    $m = isset( $_GET['m'] ) ? $_GET['m'] : '';
+    $m = isset( $_REQUEST['m'] ) ? $_REQUEST['m'] : '';
 
     $sql = "
         SELECT DISTINCT YEAR( transaction_date ) AS year, MONTH( transaction_date ) AS month
@@ -239,8 +240,8 @@ class TFTRans_list_table extends Taste_list_table {
   }
   
   protected function years_dropdown() {
-    $yr = isset( $_GET['yr'] ) ? (int) $_GET['yr'] : 0;
-    $m = isset( $_GET['m'] ) ? $_GET['m'] : '';
+    $yr = isset( $_REQUEST['yr'] ) ? (int) $_REQUEST['yr'] : 0;
+    $m = isset( $_REQUEST['m'] ) ? $_REQUEST['m'] : '';
     $yr_options = array_reduce($this->years, function ($ret_options, $year) use ($yr) {
       $ret_options .= "<option value='$year'" . ($year == $yr ? " selected " : "") .  ">$year</option>";
       return $ret_options;
@@ -253,12 +254,30 @@ class TFTRans_list_table extends Taste_list_table {
   <?php
   }
 
+  protected function custom_dates() {
+    $tmp_dt = date_create();
+    $end_date = date_format($tmp_dt, "Y-m-d");
+    $tmp_dt = date_add($tmp_dt, date_interval_create_from_date_string("-1 month"));
+    $begin_date = date_format($tmp_dt, "Y-m-d");
+    $dt1 = isset( $_REQUEST['dt1'] ) ? $_REQUEST['dt1'] : $begin_date;
+    $dt2 = isset( $_REQUEST['dt2'] ) ? $_REQUEST['dt2'] : $end_date;
+    $m = isset( $_REQUEST['m'] ) ? $_REQUEST['m'] : '';
+    $style = ("custom" != $m) ? "style='display: none;'" : "";
+    ?>
+		<span id="trans-date-range-container" <?php echo $style ?>>
+      <input type="text" name="dt1" id="trans-date-start" value="<?php echo $dt1 ?>">
+      <span>to</span>
+      <input type="text" name="dt2" id="trans-date-end" value="<?php echo $dt2 ?>">
+    </span>
+    <?php
+  }
+
   protected function get_sortable_columns() {
     $sort_array = array(
       'order_id' => array('order_id', true),
       'venue_id' => array('venue_id', true),
       'transaction_date' => array('transaction_date', true),
-      'trans_type' => array('trans_type', true),
+      'trans_type' => array('trans_type', true), 
       'trans_amount' => array('trans_amount', true),
       'order_date' => array('order_date', true),
       'product_id' => array('product_id', true),
@@ -372,8 +391,8 @@ class TFTRans_list_table extends Taste_list_table {
         break;
       case "custom":
         if (isset($filters['date1']) && isset($filters['date2'])) {
-          $date_1 = $filters['date1'];
-          $date_2 = $filters['date2'];
+          $date1 = $filters['date1'];
+          $date2 = $filters['date2'];
         } else {
           $date_select = false;
         }
@@ -450,8 +469,7 @@ class TFTRans_list_table extends Taste_list_table {
           $tmp_dt = date_create($date2);
           $tmp_dt = date_add($tmp_dt, date_interval_create_from_date_string("1 day"));
           $end_date = date_format($tmp_dt, "Y-m-d");
-          $filter_test .= " oit.transaction_date >= %s ";
-          $filter_test .= " oit.transaction_date < %s ";
+          $filter_test .= " (oit.transaction_date >= %s AND oit.transaction_date < %s) ";
           $db_parms[] = $date1;
           $db_parms[] = $end_date;
           break;
@@ -475,6 +493,7 @@ class TFTRans_list_table extends Taste_list_table {
       $sql = $wpdb->prepare($sql, $db_parms);
     }
     
+    echo "<h2>", $sql, "</h2>";
     $trans_rows = $wpdb->get_results($sql, ARRAY_A);
 
 		$sql = "
