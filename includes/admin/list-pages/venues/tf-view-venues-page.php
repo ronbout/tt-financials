@@ -302,6 +302,7 @@ class TFVenues_list_table extends Taste_list_table {
 			'venue-type' => 'venue_type',
 			'venue-id' => 'venue_id',
       'balance-due' => 'balance_due',
+      's' => 'search',
 		);
 
 		$filters = array();
@@ -334,7 +335,7 @@ class TFVenues_list_table extends Taste_list_table {
 
     $offset = ($page_number - 1) * $per_page;
     $venue_type = isset($filters['venue_type']) ? $filters['venue_type'] : false;
-
+    $search_term = isset($filters['search']) ? $filters['search'] : false;
     $venue_id = isset($filters['venue_id']) ? $filters['venue_id'] : false;
     $venue_id = -1 == $venue_id ? false : $venue_id;
     $use_finance_test = false;
@@ -360,6 +361,21 @@ class TFVenues_list_table extends Taste_list_table {
         $use_finance_test = true;
       }
     }
+
+    if (false != $search_term) {
+      // if numeric, check venue id
+      // if string, check name, city
+			$filter_test .= $filter_test ? " AND " : " WHERE ";
+      if (is_numeric($search_term)) {
+        $filter_test .= " ven.venue_id = %d ";
+        $db_parms[] = $search_term; 
+      } else {
+        $esc_search_term = "%" . $wpdb->esc_like($search_term) . "%";
+        $filter_test .= " (ven.name LIKE %s OR ven.city LIKE %s) ";
+        $db_parms[] = $esc_search_term; 
+        $db_parms[] = $esc_search_term; 
+      }
+    } 
     
     if ($use_finance_test) {
       $sql = "
@@ -544,7 +560,10 @@ function tf_build_venues_admin_list_table() {
         <?php $tf_venues_table->views() ?>
 				<form id="tf-venues-form" method="get">	
 					<input type="hidden" name="page" value="<?php echo $_REQUEST['page'] ?>" />				
-					<?php $tf_venues_table->display(); ?>					
+					<?php 
+            $tf_venues_table->search_box("Search Venues", 'tf-venues-search');
+            $tf_venues_table->display(); 
+          ?>					
 				</form>
 			</div>			
 		</div>
