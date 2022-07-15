@@ -5,7 +5,7 @@
  */
  
 defined('ABSPATH') or die('Direct script access disallowed.');
-global $tf_trans_table, $tf_venues_table;
+global $tf_trans_table, $tf_venues_table, $tf_payments_table;
 
  function tf_submenu_options() {
 
@@ -31,16 +31,16 @@ global $tf_trans_table, $tf_venues_table;
 
 	 add_action("load-$venues_list_page", 'tf_add_venues_page_options');
 	 
-	 $payments_list_page = add_submenu_page(
-		'woocommerce',
-		__('Payments'),
-		__('Payments'),
-		'manage_options',
-		'view-payments',
-		'tf_view_payments'
-	 );
+	//  $payments_list_page = add_submenu_page(
+	// 	'woocommerce',
+	// 	__('Payments'),
+	// 	__('Payments'),
+	// 	'manage_options',
+	// 	'view-payments',
+	// 	'tf_view_payments'
+	//  );
 
-	 add_action("load-$payments_list_page", 'tf_add_payments_page_options');
+	//  add_action("load-$payments_list_page", 'tf_add_payments_page_options');
  }
 
 add_action('admin_menu', 'tf_submenu_options', 99);

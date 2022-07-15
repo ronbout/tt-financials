@@ -288,6 +288,7 @@ class TFTRans_list_table extends Taste_list_table {
       'venue_name' => array('venue_name', true),
       'net_cost' => array('net_cost', true),
       'gross_income' => array('gross_income', true),
+      'payment_id' => array('payment_id', true),
     );
     return $sort_array;
   }
@@ -339,6 +340,7 @@ class TFTRans_list_table extends Taste_list_table {
 		$filters_list_to_check = array(
 			'trans-type' => 'trans_type',
 			'order-id' => 'order_id',
+			'payment-id' => 'payment_id',
 			'venue-selection' => 'venue_id',
       's' => 'search',
       'm' => 'date_select',
@@ -380,6 +382,7 @@ class TFTRans_list_table extends Taste_list_table {
     $venue_id = isset($filters['venue_id']) ? $filters['venue_id'] : false;
     $venue_id = -1 == $venue_id ? false : $venue_id;
     $order_id = isset($filters['order_id']) ? $filters['order_id'] : false;
+    $payment_id = isset($filters['payment_id']) ? $filters['payment_id'] : false;
     $date_select = isset($filters['date_select']) ? $filters['date_select'] : false;
     switch($date_select) {
       case "year":
@@ -433,17 +436,25 @@ class TFTRans_list_table extends Taste_list_table {
 			$filter_test .= "oit.order_id = %d";
 			$db_parms[] = $order_id;
 		}
+ 
+		if (false !== $payment_id) {
+			$filter_test .= $filter_test ? " AND " : " WHERE ";
+			$filter_test .= "oit.payment_id = %d";
+			$db_parms[] = $payment_id;
+		}
 
     if (false != $search_term) {
       // if numeric, check order id, item id, product id, venue id
+      // or payment_id
       // if string, check cust name, venue name
 			$filter_test .= $filter_test ? " AND " : " WHERE ";
       if (is_numeric($search_term)) {
         $filter_test .= "
           (oit.order_id = %d OR oit.order_item_id = %d OR oit.product_id = %d
-            OR oit.venue_id = %d
+            OR oit.venue_id = %d OR OR oit.payment_id = %d
           )
         ";
+        $db_parms[] = $search_term; 
         $db_parms[] = $search_term; 
         $db_parms[] = $search_term; 
         $db_parms[] = $search_term; 
