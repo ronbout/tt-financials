@@ -1,19 +1,19 @@
 <?php
 /**
- *  tf-view-order-trans-page.php 
- *  Sets up the order transactions admin page
+ *  tf-view-payments-page.php 
+ *  Sets up the Payments admin page
  *  using Taste_List_Table Class from WP_list_class
  */
  
 defined('ABSPATH') or die('Direct script access disallowed.');
 
-function tf_view_order_trans() {
-  tf_build_trans_admin_list_table();
+function tf_view_payments() {
+  tf_build_payments_admin_list_table();
 }
 /******************************
- * TFTRans_list_table Class
+ * TFPayments_list_table Class
  ******************************/
-class TFTRans_list_table extends Taste_list_table {
+class TFPayments_list_table extends Taste_list_table {
 
   protected $years;
 
@@ -30,37 +30,16 @@ class TFTRans_list_table extends Taste_list_table {
   public function get_columns() {
     $ret_array =  array(
 			'cb' => '<input type="checkbox" >',
-      'order_id' => "Order ID",
-      'order_item_id' => "Order Item<br> ID",
-			'transaction_date' => "Transaction Date",
-      'trans_type' => "Transaction Type",
-      'trans_amount' => "Amount",
-			'trans_entry_timestamp' => "Transaction Record<br> Creation Date",
-			'batch_id' => "Batch ID",
-			'batch_timestamp' => "Batch Date",
-			'order_date' => "Order Date",
-			'product_id' => "Product<br> ID",
-			'product_price' => "Product Price",
-			'quantity' => "Item Quantity",
-			'gross_revenue' => "Gross Revenue",
-      'customer_id' => "Customer<br> ID",
-      'customer_name' => "Customer<br >Name",
-      'customer_email' => "Customer<br >Email",
+      'id' => "Payment ID",
+			'payment_date' => "Payment Date",
 			'venue_id' => "Venue ID",
 			'venue_name' => "Venue Name",
-			'taste_credit_coupon_id' => "Taste Credit<br> Coupon ID",
-      'refund_id' => "Refund ID",
-      'coupon_id' => "Applied<br> Coupon  ID",
-      'coupon_value' => "Applied<br> Coupon Value",
-      'net_cost' => "Net Cost",
-      'commission' => "Commission",
-      'vat' => "VAT",
-      'gross_income' => "Gross Income",
-      'venue_due' => "Venue Due",
-      'payment_id' => "Payment<br> ID",
       'payment_status' => "Payment Status",
-      'payment_date' => "Payment Date",
-      'redemption_date' => "Redemption Date",
+			'pay_gross' => "Gross Revenue",
+      'comm_val' => "Commission %",
+      'pay_comm' => "Commission<br> Amount",
+      'vat_val' => "VAT %",
+      'pay_vat' => "VAT <br>Amount",
     );
 
     return $ret_array;
@@ -409,6 +388,7 @@ class TFTRans_list_table extends Taste_list_table {
 		$db_parms = array();
 	
     if ($trans_type) {
+      echo "<h2>*", $trans_type, "*</h2>";
       $trans_types = array( 
         'order' => '"Order", "Order - From Credit"',
         'redemption' => '"Redemption", "Redemption - From Credit"',
@@ -419,6 +399,7 @@ class TFTRans_list_table extends Taste_list_table {
         'redemption_from_credit' => '"Redemption - From Credit"',
       );
       $db_trans_type =  $trans_types[$trans_type];
+      echo "<h2>*", $db_trans_type, "*</h2>";
       $filter_test = "WHERE oit.trans_type IN ($db_trans_type)";
     }
 
@@ -571,26 +552,26 @@ class TFTRans_list_table extends Taste_list_table {
  * End of TFTRans_list_table Class
  ***********************************/
 
-function tf_build_trans_admin_list_table() {
-	global $tf_trans_table;
+function tf_build_payments_admin_list_table() {
+	global $tf_payments_table;
 	if ( ! empty( $_REQUEST['_wp_http_referer'] ) ) {
 		wp_redirect( remove_query_arg( array( '_wp_http_referer', '_wpnonce' ), wp_unslash( $_SERVER['REQUEST_URI'] ) ) );
 		exit;
 	}
 
-  $tf_trans_table->get_columns();
-  $tf_trans_table->prepare_items();
+  $tf_payments_table->get_columns();
+  $tf_payments_table->prepare_items();
   ?>
 	<div class="wrap">    
-		<h2>Order Transactions</h2>
-		<div id="tf_order_trans">			
+		<h2>Creditor Payments</h2>
+		<div id="tf_payments">			
 			<div id="tf_post_body">	
-        <?php $tf_trans_table->views() ?>
-				<form id="tf-order-trans-form" method="get">	
+        <?php $tf_payments_table->views() ?>
+				<form id="tf-payments-form" method="get">	
 					<input type="hidden" name="page" value="<?php echo $_REQUEST['page'] ?>" />				
 					<?php 
-            $tf_trans_table->search_box("Search Transactions", 'tf-trans-search');
-            $tf_trans_table->display(); 
+            $tf_payments_table->search_box("Search Payments", 'tf-payments-search');
+            $tf_payments_table->display(); 
           ?>					
 				</form>
 			</div>			
