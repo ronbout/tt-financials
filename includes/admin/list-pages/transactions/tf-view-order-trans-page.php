@@ -409,7 +409,6 @@ class TFTRans_list_table extends Taste_list_table {
 		$db_parms = array();
 	
     if ($trans_type) {
-      echo "<h2>*", $trans_type, "*</h2>";
       $trans_types = array( 
         'order' => '"Order", "Order - From Credit"',
         'redemption' => '"Redemption", "Redemption - From Credit"',
@@ -420,7 +419,6 @@ class TFTRans_list_table extends Taste_list_table {
         'redemption_from_credit' => '"Redemption - From Credit"',
       );
       $db_trans_type =  $trans_types[$trans_type];
-      echo "<h2>*", $db_trans_type, "*</h2>";
       $filter_test = "WHERE oit.trans_type IN ($db_trans_type)";
     }
 
