@@ -35,6 +35,7 @@ class TFPayments_list_table extends Taste_list_table {
       'amount' => "Payment<br> Amount",
 			'venue_id' => "Venue ID",
 			'venue_name' => "Venue Name",
+      'product_ids' => "Product IDs",
       'comment' => "Comment",
       'comment_visible_venues' => "Comment Visible<br> to Venues",
       'attach_vat_invoice' => "Attach Invoice",
@@ -99,6 +100,7 @@ class TFPayments_list_table extends Taste_list_table {
       case 'amount':
       case 'venue_id':
       case 'venue_name':
+      case 'product_ids':
       case 'comment':
         return $item[$column_name] ? $item[$column_name] : "N/A";
       default:
@@ -368,7 +370,6 @@ class TFPayments_list_table extends Taste_list_table {
     $payment_id = isset($filters['payment_id']) ? $filters['payment_id'] : false;
     $product_id = isset($filters['product_id']) ? $filters['product_id'] : false;
     $date_select = isset($filters['date_select']) ? $filters['date_select'] : false;
-    $use_finance_test = false;
 
     switch($date_select) {
       case "year":
@@ -395,6 +396,7 @@ class TFPayments_list_table extends Taste_list_table {
     }
     $search_term = isset($filters['search']) ? $filters['search'] : false;
 		$filter_test = '';
+    $having_test = '';
 		$db_parms = array();
 	
     if (false != $payment_status) {
@@ -410,21 +412,17 @@ class TFPayments_list_table extends Taste_list_table {
 		}
 
 		if (false !== $product_id) {
-			$filter_test .= $filter_test ? " AND " : " WHERE ";
-			$filter_test .= "pprods.product_id = %d";
-			$db_parms[] = $product_id;
+      $esc_search_term = "%" . $wpdb->esc_like($product_id) . "%";
+			$having_test .= $having_test ? " AND " : " HAVING ";
+			$having_test .= "product_ids LIKE %s";
+			$db_parms[] = $esc_search_term;
 		}
  
 		if (false !== $payment_id) {
 			$filter_test .= $filter_test ? " AND " : " WHERE ";
-			$filter_test .= "pay.payment_id = %d";
+			$filter_test .= "pay.id = %d";
 			$db_parms[] = $payment_id;
-		} else {
-      $financial_columns = $this->get_financial_columns();
-      if (in_array($order_by, $financial_columns)) {
-        $use_finance_test = true;
-      }
-    }
+		} 
 
     if (false != $search_term) {
       // if numeric, check payment_id, product id, venue id
@@ -466,53 +464,41 @@ class TFPayments_list_table extends Taste_list_table {
 
     $from_where_sql = "
       FROM {$wpdb->prefix}taste_venue_payment_products pprods
-      JOIN {$wpdb->prefix}taste_venue_payment pay ON pay.id = pprods.payment_id
-      JOIN {$wpdb->prefix}taste_venue ven ON ven.venue_id = pay.venue_id
-      JOIN {$wpdb->prefix}taste_venue_products vp ON vp.product_id = pprods.product_id
-      LEFT JOIN {$wpdb->prefix}taste_venue_payment_order_item_xref pox ON pox.payment_id = pay.id
-      LEFT JOIN {$wpdb->prefix}wc_order_product_lookup plook ON plook.order_item_id = pox.order_item_id
-        AND plook.product_id = pprods.product_id
-      $filter_test
-    ";
+        LEFT JOIN {$wpdb->prefix}taste_venue_payment pay ON pay.id = pprods.payment_id
+        LEFT JOIN {$wpdb->prefix}taste_venue ven ON ven.venue_id = pay.venue_id
+        LEFT JOIN {$wpdb->prefix}taste_venue_products vp ON vp.product_id = pprods.product_id
+        $filter_test";
   
     $sql = "
       SELECT pay.id AS payment_id, pay.payment_date, pay.amount, 
         pay.venue_id, ven.name as venue_name, pay.comment, pay.comment_visible_venues, 
-        pay.attach_vat_invoice, pay.status AS payment_status, pprods.product_id, 
-        pprods.amount as product_amount, 
-        GROUP_CONCAT(plook.order_item_id) as order_item_ids,
-        GROUP_CONCAT(plook.product_qty) as order_item_qty,
-        GROUP_CONCAT(plook.order_id) as order_ids
+        pay.attach_vat_invoice, pay.status AS payment_status, 
+        GROUP_CONCAT(pprods.product_id) as product_ids,
+        GROUP_CONCAT(pprods.amount) as product_amounts
       $from_where_sql
-      GROUP BY pprods.product_id";
-
-    if (!$use_finance_test) {
-      $sql .= "
+      GROUP BY pay.id     
+      $having_test
       ORDER BY $order_by $order
       LIMIT $per_page
       OFFSET $offset";
-    }
 
     if (count($db_parms)) {
       $sql = $wpdb->prepare($sql, $db_parms);
-    }
+    }         
 
     // echo "<pre>", $sql, "</pre>";
     
     $payment_rows = $wpdb->get_results($sql, ARRAY_A);
-    $payment_rows_w_financials = $this->add_payment_financials($payment_rows);
-
-    
-    // if ($use_finance_test) {
-    //   $venue_rows_w_financials = $this->sort_select_payments_by_financials($venue_rows_w_financials, $order_by, $order, $per_page, $page_number, $balance_filter);
-    //   return $venue_rows_w_financials;
-    // }
-
+    // $payment_rows_w_financials = $this->add_payment_financials($payment_rows);
 
 		$sql = "
-		SELECT COUNT(pay.id)
-    $from_where_sql
-    GROUP BY pay.id
+      SELECT count(distinct_id) AS payments_count
+        FROM (	
+          SELECT COUNT( DISTINCT pay.id) AS distinct_id
+          $from_where_sql
+          GROUP BY pay.id
+          $having_test
+        ) payrows
 		";
 
     if (count($db_parms)) {
@@ -522,7 +508,7 @@ class TFPayments_list_table extends Taste_list_table {
 		$payments_count = $wpdb->get_var($sql);
     
     return array( 
-			'rows' => $payment_rows_w_financials,
+			'rows' => $payment_rows,
 			'cnt' => $payments_count,
 		);
   }
