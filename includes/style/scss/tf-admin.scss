@@ -44,3 +44,9 @@ body.woocommerce_page_view-payments .wp-list-table {
     }
   }
 }
+
+body.woocommerce_page_view-payments
+  .wp-list-table
+  .dashicons.dashicons-media-document.print-invoice-btn {
+  font-size: 30px;
+}

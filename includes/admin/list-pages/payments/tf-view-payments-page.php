@@ -63,9 +63,12 @@ class TFPayments_list_table extends Taste_list_table {
     return "<a href='$cm_link' target='_blank'>$venue_id</a>";
    }
       
-   protected function column_id($item) {
+   protected function column_payment_id($item) {
+    if (TASTE_PAYMENT_STATUS_ADJ == $item['payment_status']) {
+      return $item['payment_id'];
+    }
     $payment_id = $item['payment_id'];
-    $cm_link = get_admin_url( null, "?page=view-order-transactions&payment-id=$payment_id");
+    $cm_link = get_admin_url( null, "admin.php?page=view-order-transactions&payment-id=$payment_id");
     return "<a href='$cm_link' >$payment_id</a>";
    }
 
@@ -104,7 +107,9 @@ class TFPayments_list_table extends Taste_list_table {
   }
 
   protected function get_hidden_columns() {
-    $hidden_cols = array();
+    $hidden_cols = array(
+      'attach_vat_invoice',
+    );
     
     return $hidden_cols;
   }
