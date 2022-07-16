@@ -75,16 +75,7 @@ ORDER BY vp.venue_id, pprods.product_id DESC, pay.payment_date ASC ";
 $sql = $wpdb->prepare($sql, $product_id_list);
 $venue_payment_rows = $wpdb->get_results($sql, ARRAY_A);
 
-/****
- * 
- *  need to break this out by venue and run the following for each venue
- * 
- * looop through the venues and then run filter for only the payments of that venue
- * 
- * 
- */
-
- $venues_financials = array();
+$venues_financials = array();
 foreach($venue_id_list as $venue_id) {
 	$product_rows = array_filter($venue_product_rows, function ($vprod_row) use ($venue_id) {
 		return $venue_id == $vprod_row['venue_id'];
@@ -103,7 +94,7 @@ foreach($venue_id_list as $venue_id) {
 
 }
 
-$return_rows = array_map(function ($v_row) use ($venues_financials) {
+$venue_return_rows = array_map(function ($v_row) use ($venues_financials) {
 	$venue_id = $v_row['venue_id'];
 	$totals = $venues_financials[$venue_id];
 	$v_row['products'] = $totals['offers'];
@@ -118,6 +109,10 @@ $return_rows = array_map(function ($v_row) use ($venues_financials) {
 	$v_row['balance_due'] = $totals['balance_due'];
 	return $v_row;
 }, $venue_rows);
+
+/************************
+ * start of functions
+ ************************/
 
 function calc_payments_by_product($payment_rows) {
 	$payment_totals_by_product = array();

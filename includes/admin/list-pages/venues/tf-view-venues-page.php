@@ -344,11 +344,12 @@ class TFVenues_list_table extends Taste_list_table {
     $db_parms = array();
   
     if ($venue_type) {
+			$filter_test .= $filter_test ? " AND " : " WHERE ";
       $db_venue_type =  ucfirst($venue_type);
       if ("None" == $db_venue_type) {
-        $filter_test = "WHERE ven.venue_type IS NULL";
+        $filter_test = " ven.venue_type IS NULL";
       } else {
-        $filter_test = "WHERE ven.venue_type = %s";
+        $filter_test = " ven.venue_type = %s";
         $db_parms[] = $db_venue_type;
       }
     }
@@ -499,7 +500,7 @@ class TFVenues_list_table extends Taste_list_table {
 
   protected function add_venue_financials($venue_rows) {
     require_once TFINANCIAL_PLUGIN_INCLUDES.'/admin/list-pages/venues/calc_venue_financials.php';
-    return $return_rows;
+    return $venue_return_rows;
   }
 
   protected function sort_select_venues_by_financials($venue_rows_w_financials, $order_by, $order, $per_page, $page_number, $balance_filter) {

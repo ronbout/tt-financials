@@ -20,3 +20,27 @@ body.woocommerce_page_view-venues .wp-list-table {
     }
   }
 }
+
+body.woocommerce_page_view-order-transactions .wp-list-table {
+  .column-net_cost,
+  .column-commission,
+  .column-vat,
+  .column-gross_income,
+  .column-venue_due {
+    text-align: right;
+
+    a > span:first-child {
+      width: 80%;
+    }
+  }
+}
+
+body.woocommerce_page_view-payments .wp-list-table {
+  .column-amount {
+    text-align: right;
+
+    a > span:first-child {
+      width: 80%;
+    }
+  }
+}

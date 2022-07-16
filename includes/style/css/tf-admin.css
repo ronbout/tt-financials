@@ -26,4 +26,26 @@ body.woocommerce_page_view-venues .wp-list-table .column-balance_due a > span:fi
   width: 80%;
 }
 
+body.woocommerce_page_view-order-transactions .wp-list-table .column-net_cost,
+body.woocommerce_page_view-order-transactions .wp-list-table .column-commission,
+body.woocommerce_page_view-order-transactions .wp-list-table .column-vat,
+body.woocommerce_page_view-order-transactions .wp-list-table .column-gross_income,
+body.woocommerce_page_view-order-transactions .wp-list-table .column-venue_due {
+  text-align: right;
+}
+body.woocommerce_page_view-order-transactions .wp-list-table .column-net_cost a > span:first-child,
+body.woocommerce_page_view-order-transactions .wp-list-table .column-commission a > span:first-child,
+body.woocommerce_page_view-order-transactions .wp-list-table .column-vat a > span:first-child,
+body.woocommerce_page_view-order-transactions .wp-list-table .column-gross_income a > span:first-child,
+body.woocommerce_page_view-order-transactions .wp-list-table .column-venue_due a > span:first-child {
+  width: 80%;
+}
+
+body.woocommerce_page_view-payments .wp-list-table .column-amount {
+  text-align: right;
+}
+body.woocommerce_page_view-payments .wp-list-table .column-amount a > span:first-child {
+  width: 80%;
+}
+
 /*# sourceMappingURL=tf-admin.css.map */

@@ -35,6 +35,7 @@ if (is_admin()) {
 	require_once TFINANCIAL_PLUGIN_INCLUDES.'/admin/list-pages/Taste_list_table.php';
 	require_once TFINANCIAL_PLUGIN_INCLUDES.'/admin/list-pages/transactions/tf-view-order-trans-page.php';
 	require_once TFINANCIAL_PLUGIN_INCLUDES.'/admin/list-pages/venues/tf-view-venues-page.php';
+	require_once TFINANCIAL_PLUGIN_INCLUDES.'/admin/list-pages/payments/tf-view-payments-page.php';
 	require_once TFINANCIAL_PLUGIN_INCLUDES.'/admin/tf-admin-menus.php';
 }
 

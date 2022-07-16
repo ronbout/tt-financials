@@ -86,3 +86,22 @@ function tf_comm_vat_per_payment($payment, $commission_val, $payment_date) {
 		'vat_val' => $vat_val
 	);
 }
+
+function tf_payment_status_to_string($p_status) {
+	switch($p_status) {
+		case 1:
+			return "Paid";
+			break;
+		case 2:
+			return "Historical";
+			break;
+		case 3:
+			return "Pending";
+			break;
+		case 4:
+			return "Processing";
+			break;
+		default:
+			return "Invalid Status";
+	}
+}
