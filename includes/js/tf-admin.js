@@ -46,7 +46,7 @@
       .click(function (e) {
         e.preventDefault();
         let paymentId = $(this).data("id");
-        $(`#payment-details-${paymentId}`).toggle();
+        $(`#payment-details-${paymentId}`).toggle(600);
       });
   };
 })(jQuery);

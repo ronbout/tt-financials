@@ -272,7 +272,7 @@ class TFPayments_list_table extends Taste_list_table {
 
   protected function get_sortable_columns() {
     $sort_array = array(
-      'payemnt_id' => array('payemnt_id', true),
+      'payment_id' => array('payment_id', true),
       'venue_id' => array('venue_id', true),
       'payment_date' => array('payment_date', true),
       'amount' => array('amount', true), 
@@ -587,6 +587,7 @@ class TFPayments_list_table extends Taste_list_table {
 	}
 
   protected function add_payment_details($payment_rows) {
+		$col_count = $this->get_column_count();
     require_once TFINANCIAL_PLUGIN_INCLUDES.'/admin/list-pages/payments/calc_payment_details.php';
     return $payment_rows_w_details;
   }
