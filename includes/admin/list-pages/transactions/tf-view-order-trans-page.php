@@ -248,7 +248,7 @@ class TFTRans_list_table extends Taste_list_table {
     }, "");
     $style = ("year" != $m) ? "style='display: none;'" : "";
     ?>
-    <select name="yr" id="trans-year-select" <?php echo $style ?> >
+    <select name="yr" id="list-year-select" <?php echo $style ?> >
       <?php echo $yr_options ?>
     </select>
   <?php
@@ -264,10 +264,10 @@ class TFTRans_list_table extends Taste_list_table {
     $m = isset( $_REQUEST['m'] ) ? $_REQUEST['m'] : '';
     $style = ("custom" != $m) ? "style='display: none;'" : "";
     ?>
-		<span id="trans-date-range-container" <?php echo $style ?>>
-      <input type="text" name="dt1" id="trans-date-start" value="<?php echo $dt1 ?>">
+		<span id="list-date-range-container" <?php echo $style ?>>
+      <input type="date" name="dt1" id="list-date-start" value="<?php echo $dt1 ?>">
       <span>to</span>
-      <input type="text" name="dt2" id="trans-date-end" value="<?php echo $dt2 ?>">
+      <input type="date" name="dt2" id="list-date-end" value="<?php echo $dt2 ?>">
     </span>
     <?php
   }

@@ -1399,6 +1399,11 @@ class Taste_list_table {
 		echo '<tr>';
 		$this->single_row_columns( $item );
 		echo '</tr>';
+		if (isset($item['details']) && $item['details']) {
+			echo '<tr id="payment-details-' . $item['payment_id'] . '" class="payment-details" style="display: none">';
+			echo $item['details'];
+			echo '</tr>';
+		}
 	}
 
 	/**

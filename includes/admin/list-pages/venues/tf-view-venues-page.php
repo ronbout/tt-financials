@@ -347,9 +347,9 @@ class TFVenues_list_table extends Taste_list_table {
 			$filter_test .= $filter_test ? " AND " : " WHERE ";
       $db_venue_type =  ucfirst($venue_type);
       if ("None" == $db_venue_type) {
-        $filter_test = " ven.venue_type IS NULL";
+        $filter_test .= " ven.venue_type IS NULL";
       } else {
-        $filter_test = " ven.venue_type = %s";
+        $filter_test .= " ven.venue_type = %s";
         $db_parms[] = $db_venue_type;
       }
     }

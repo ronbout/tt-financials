@@ -105,3 +105,22 @@ function tf_payment_status_to_string($p_status) {
 			return "Invalid Status";
 	}
 }
+
+function tf_payment_status_string_to_db($p_status) {
+	switch($p_status) {
+		case "Paid":
+			return 1;
+			break;
+		case 'Historical':
+			return 2;
+			break;
+		case "Pending":
+			return 3;
+			break;
+		case "Processing":
+			return 4;
+			break;
+		default:
+			return "Invalid Status";
+	}
+}

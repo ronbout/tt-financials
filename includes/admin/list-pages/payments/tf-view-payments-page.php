@@ -41,57 +41,66 @@ class TFPayments_list_table extends Taste_list_table {
       'attach_vat_invoice' => "Attach Invoice",
       'payment_status' => "Payment Status",
       'invoice' => "View <br>Invoice",
+      'actions' => "View Details",
     );
 
     return $ret_array;
    }
 
       
-   protected function get_financial_columns() {
-    $financial_columns = array(
-      'pay_gross',
-      'comm_val',
-      'pay_comm',
-      'vat_val',
-      'pay_vat',
-    );
-    return $financial_columns;
-   }
-   
-   protected function column_venue_id($item) {
-    $venue_id = $item['venue_id'];
-    $cm_link = get_site_url(null, "/campaign-manager/?venue-id={$venue_id}");
-    return "<a href='$cm_link' target='_blank'>$venue_id</a>";
-   }
+	protected function get_financial_columns() {
+		$financial_columns = array(
+			'pay_gross',
+			'comm_val',
+			'pay_comm',
+			'vat_val',
+			'pay_vat',
+		);
+		return $financial_columns;
+	}
+		
+  protected function column_venue_id($item) {
+		$venue_id = $item['venue_id'];
+		$cm_link = get_site_url(null, "/campaign-manager/?venue-id={$venue_id}");
+		return "<a href='$cm_link' target='_blank'>$venue_id</a>";
+	}
       
-   protected function column_payment_id($item) {
-    if (TASTE_PAYMENT_STATUS_ADJ == $item['payment_status']) {
-      return $item['payment_id'];
-    }
-    $payment_id = $item['payment_id'];
-    $cm_link = get_admin_url( null, "admin.php?page=view-order-transactions&payment-id=$payment_id");
-    return "<a href='$cm_link' >$payment_id</a>";
-   }
+	protected function column_payment_id($item) {
+		if (TASTE_PAYMENT_STATUS_ADJ == $item['payment_status']) {
+			return $item['payment_id'];
+		}
+		$payment_id = $item['payment_id'];
+		$cm_link = get_admin_url( null, "admin.php?page=view-order-transactions&payment-id=$payment_id");
+		return "<a href='$cm_link' >$payment_id</a>";
+	}
+   
+  protected function column_invoice($item) {
+		if ($item['attach_vat_invoice']) {
+			$payment_id = $item['payment_id'];
+			$inv_url = plugins_url( "thetaste-venue/pdfs/invoice.php?pay_id=$payment_id" );
+			return "
+				<a href='$inv_url' target='_blank'>
+					<span class='dashicons dashicons-media-document print-invoice-btn'></span>
+				</a>
+			";
+		} else {
+			return "N/A";
+		}
+  }
+      
+	protected function column_actions($item) {
+		$payment_id = $item['payment_id'];
+		return "
+			<span data-id='$payment_id' class='dashicons dashicons-editor-table display-details-btn'></span>
+		";
+	}
 
   protected function column_default($item, $column_name) {
     switch($column_name) {
       case 'comment_visible_venues':
           return $item[$column_name] ? "Yes" : 'no';
       case 'attach_vat_invoice':
-          return $item[$column_name] ? "Yes" : 'no'; 
-      case 'invoice':
-        if ($item['attach_vat_invoice']) {
-          $payment_id = $item['payment_id'];
-          $inv_url = plugins_url( "thetaste-venue/pdfs/invoice.php?pay_id=$payment_id" );
-          return "
-            <a href='$inv_url' target='_blank'>
-              <span class='dashicons dashicons-media-document print-invoice-btn'></span>
-            </a>
-          ";
-        } else {
-          return "N/A";
-        }
-        break;
+          return $item[$column_name] ? "Yes" : 'no';
       case 'payment_status':
         return tf_payment_status_to_string($item[$column_name]);
         break; 
@@ -111,48 +120,48 @@ class TFPayments_list_table extends Taste_list_table {
   protected function get_hidden_columns() {
     $hidden_cols = array(
       'attach_vat_invoice',
+      'details',
     );
     
     return $hidden_cols;
   }
 
-  /*
   protected function get_views() {
 		$get_string = tf_check_query(false);
-    $cur_trans_type = isset($_REQUEST['trans-type']) && $_REQUEST['trans-type'] ? $_REQUEST['trans-type'] : 'all';
-		$get_string = remove_query_arg( 'trans-type', $get_string ); 
+    $cur_status_type = isset($_REQUEST['pay-status']) && $_REQUEST['pay-status'] ? $_REQUEST['pay-status'] : 'all';
+		$get_string = remove_query_arg( 'pay-status', $get_string ); 
 
     $list_link = "admin.php?$get_string";
 
-    $payment_status_counts = $this->count_trans_types();
+    $payment_status_counts = $this->count_payment_status();
 
     $tot_cnt = 0;
     $tmp_views = array();
-    foreach ($payment_status_counts as $t_type => $t_cnt) {
-      $tot_cnt += (int) $t_cnt;
-      $trans_type = $this->convert_trans_type_to_slug( $t_type);
-      $t_cnt = number_format($t_cnt);
+    foreach ($payment_status_counts as $p_status => $s_cnt) {
+      $tot_cnt += (int) $s_cnt;
+      $pay_status = $this->convert_payment_status_to_slug( $p_status);
+      $s_cnt = number_format($s_cnt);
 
-      if ($cur_trans_type == $trans_type ) {
-        $tmp_views[$trans_type] = "<strong>{$t_type} ($t_cnt)</strong>";
+      if ($cur_status_type == $pay_status ) {
+        $tmp_views[$pay_status] = "<strong>{$p_status} ($s_cnt)</strong>";
       } else {
-        $tmp_views[$trans_type] = "<a href='${list_link}&trans-type=$trans_type'>{$t_type} ($t_cnt)</a>";
+        $tmp_views[$pay_status] = "<a href='${list_link}&pay-status=$pay_status'>{$p_status} ($s_cnt)</a>";
       }
     }
     $tot_cnt = number_format($tot_cnt);
-    if ("all" == $cur_trans_type) {
-      $trans_type_views = array(
+    if ("all" == $cur_status_type) {
+      $pay_status_views = array(
         'all' => "<strong>All ($tot_cnt)</strong>"
       );
     } else {
-      $trans_type_views = array(
+      $pay_status_views = array(
         'all' => "<a href='${list_link}'>All ($tot_cnt)</a>"
       );
     }
 
-    $trans_type_views = array_merge($trans_type_views, $tmp_views);
+    $pay_status_views = array_merge($pay_status_views, $tmp_views);
 
-    return $trans_type_views;
+    return $pay_status_views;
   }
 
   protected function extra_tablenav($which) {
@@ -177,18 +186,17 @@ class TFPayments_list_table extends Taste_list_table {
       }
       ?>
       <div class="alignleft actions">
-        <select name="venue-selection" id="trans-list-venue-selection">
+        <select name="venue-id" id="trans-list-venue-selection">
 					<?php echo $options_list ?>
         </select>
         <?php $this->months_dropdown() ?>
         <?php $this->years_dropdown() ?>
         <?php $this->custom_dates() ?>
-        <input type="submit" name="filter_action" id="trans-list_submit" class="button" value="Filter">
+        <input type="submit" name="filter_action" id="payments-list_submit" class="button" value="Filter">
       </div>
       <?php
     }
   }
-  */
 
   protected function months_dropdown() {
     global $wpdb, $wp_locale;
@@ -238,7 +246,7 @@ class TFPayments_list_table extends Taste_list_table {
     }, "");
     $style = ("year" != $m) ? "style='display: none;'" : "";
     ?>
-    <select name="yr" id="payment-year-select" <?php echo $style ?> >
+    <select name="yr" id="list-year-select" <?php echo $style ?> >
       <?php echo $yr_options ?>
     </select>
   <?php
@@ -254,11 +262,11 @@ class TFPayments_list_table extends Taste_list_table {
     $m = isset( $_REQUEST['m'] ) ? $_REQUEST['m'] : '';
     $style = ("custom" != $m) ? "style='display: none;'" : "";
     ?>
-		<span id="payment-date-range-container" <?php echo $style ?>>
-      <input type="text" name="dt1" id="payment-date-start" value="<?php echo $dt1 ?>">
+		<span id="list-date-range-container" <?php echo $style ?>>
+      <input type="date" name="dt1" id="list-date-start" value="<?php echo $dt1 ?>">
       <span>to</span>
-      <input type="text" name="dt2" id="payment-date-end" value="<?php echo $dt2 ?>">
-    </span>payment
+      <input type="date" name="dt2" id="list-date-end" value="<?php echo $dt2 ?>">
+    </span>
     <?php
   }
 
@@ -327,7 +335,7 @@ class TFPayments_list_table extends Taste_list_table {
 			'payment-id' => 'payment_id',
 			'venue-id' => 'venue_id',
       'product-id' => 'product_id',
-      'p-status' => 'payment_status',
+      'pay-status' => 'payment_status',
       's' => 'search',
       'm' => 'date_select',
       'yr' => 'year',
@@ -400,9 +408,10 @@ class TFPayments_list_table extends Taste_list_table {
 		$db_parms = array();
 	
     if (false != $payment_status) {
+      $db_payment_status =  tf_payment_status_string_to_db($payment_status);
 			$filter_test .= $filter_test ? " AND " : " WHERE ";
-      $filter_test = " pay.status = %d)";
-      $db_parms[] = $payment_status;
+      $filter_test .= " pay.status = %d";
+      $db_parms[] = $db_payment_status;
     }
 
 		if (false !== $venue_id) {
@@ -426,15 +435,24 @@ class TFPayments_list_table extends Taste_list_table {
 
     if (false != $search_term) {
       // if numeric, check payment_id, product id, venue id
+      // because product id requires having clause and cannot be
+      // combined w/ payment/venue id's check if product id first
       // if string, check venue name
-			$filter_test .= $filter_test ? " AND " : " WHERE ";
       if (is_numeric($search_term)) {
-        $filter_test .= " (pay.payment_id = %d OR pay.venue_id = %d OR pprods.product_id = %d) ";
-        $db_parms[] = $search_term; 
-        $db_parms[] = $search_term;
-        $db_parms[] = $search_term;
+        if ($this->is_payment_product_id($search_term)) {
+          $esc_search_term = "%" . $wpdb->esc_like($search_term) . "%";
+          $having_test .= $having_test ? " AND " : " HAVING ";
+          $having_test .= "product_ids LIKE %s";
+          $db_parms[] = $esc_search_term;
+        } else {
+          $filter_test .= $filter_test ? " AND " : " WHERE ";
+          $filter_test .= " (pay.id = %d OR pay.venue_id = %d) ";
+          $db_parms[] = $search_term; 
+          $db_parms[] = $search_term;
+        }
       } else {
         $esc_search_term = "%" . $wpdb->esc_like($search_term) . "%";
+        $filter_test .= $filter_test ? " AND " : " WHERE ";
         $filter_test .= " (ven.name LIKE %s) ";
         $db_parms[] = $esc_search_term;
       }
@@ -489,12 +507,13 @@ class TFPayments_list_table extends Taste_list_table {
     // echo "<pre>", $sql, "</pre>";
     
     $payment_rows = $wpdb->get_results($sql, ARRAY_A);
-    // $payment_rows_w_financials = $this->add_payment_financials($payment_rows);
+    $payment_rows_w_details = $this->add_payment_details($payment_rows);
 
 		$sql = "
       SELECT count(distinct_id) AS payments_count
         FROM (	
-          SELECT COUNT( DISTINCT pay.id) AS distinct_id
+          SELECT COUNT( DISTINCT pay.id) AS distinct_id,
+          GROUP_CONCAT(pprods.product_id) as product_ids     
           $from_where_sql
           GROUP BY pay.id
           $having_test
@@ -504,11 +523,14 @@ class TFPayments_list_table extends Taste_list_table {
     if (count($db_parms)) {
       $sql = $wpdb->prepare($sql, $db_parms);
     }
+    
+    // echo "<pre>", $sql, "</pre>";
+    // echo "<pre>", print_r($payment_rows_w_details), "</pre>";
 
 		$payments_count = $wpdb->get_var($sql);
     
     return array( 
-			'rows' => $payment_rows,
+			'rows' => $payment_rows_w_details,
 			'cnt' => $payments_count,
 		);
   }
@@ -531,7 +553,7 @@ class TFPayments_list_table extends Taste_list_table {
 
     $sql = "
       SELECT pay.status, COUNT(*) AS payments_count
-      FROM {$wpdb->prefix}taste_venue_payment
+      FROM {$wpdb->prefix}taste_venue_payment pay
       GROUP BY pay.status
       ";
   
@@ -539,10 +561,10 @@ class TFPayments_list_table extends Taste_list_table {
 	  $payments_count_by_type = array_column($payment_status_count, 'payments_count', 'status');
 
     $ret_counts = array(
-      'Paid' => $payments_count_by_type[1],
-      'Historical' => $payments_count_by_type[2],
-      'Pending' => $payments_count_by_type[3],
-      'Processing' => $payments_count_by_type[4],
+      'Paid' => isset($payments_count_by_type[1]) ? $payments_count_by_type[1] : 0,
+      'Historical' => isset($payments_count_by_type[2]) ? $payments_count_by_type[2] : 0,
+      'Pending' => isset($payments_count_by_type[3]) ? $payments_count_by_type[3] : 0,
+      'Processing' => isset($payments_count_by_type[4]) ? $payments_count_by_type[4] : 0,
     );
     
     return $ret_counts;
@@ -564,9 +586,20 @@ class TFPayments_list_table extends Taste_list_table {
 		return $p_status;
 	}
 
-  protected function add_payment_financials($payment_rows) {
-    require_once TFINANCIAL_PLUGIN_INCLUDES.'/admin/list-pages/payments/calc_payment_financials.php';
-    return $unique_payment_rows;
+  protected function add_payment_details($payment_rows) {
+    require_once TFINANCIAL_PLUGIN_INCLUDES.'/admin/list-pages/payments/calc_payment_details.php';
+    return $payment_rows_w_details;
+  }
+
+  protected function is_payment_product_id($id) {
+    global $wpdb;
+
+    $sql = "
+      SELECT COUNT(pprods.payment_id) 
+      FROM wp_taste_venue_payment_products pprods
+      WHERE pprods.product_id = %d";
+
+    return $wpdb->get_var($wpdb->prepare($sql, $id));
   }
 
 }

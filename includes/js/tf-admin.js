@@ -1,26 +1,30 @@
 (function ($) {
   $(document).ready(function () {
     let $documentBody = $("body");
-    if ($documentBody.hasClass("woocommerce_page_view-order-transactions")) {
-      let $datepickers = jQuery("#trans-date-start, #trans-date-end");
-      let transStartDateDefault = jQuery("#trans-date-start").val();
-      let transEndDateDefault = jQuery("#trans-date-end").val();
-      $datepickers.datepicker();
-      $datepickers.datepicker("option", {
-        showAnim: "slideDown",
-        dateFormat: "yy-mm-dd",
-        changeMonth: true,
-        changeYear: true,
-      });
-      jQuery("#trans-date-start").datepicker("setDate", transStartDateDefault);
-      jQuery("#trans-date-end").datepicker("setDate", transEndDateDefault);
+    if (
+      $documentBody.hasClass("woocommerce_page_view-order-transactions") ||
+      $documentBody.hasClass("woocommerce_page_view-payments")
+    ) {
+      // let $datepickers = jQuery("#list-date-start, #list-date-end");
+      // let listStartDateDefault = jQuery("#list-date-start").val();
+      // let listEndDateDefault = jQuery("#list-date-end").val();
+      // $datepickers.datepicker();
+      // $datepickers.datepicker("option", {
+      //   showAnim: "slideDown",
+      //   dateFormat: "yy-mm-dd",
+      //   changeMonth: true,
+      //   changeYear: true,
+      // });
+      // jQuery("#list-date-start").datepicker("setDate", listStartDateDefault);
+      // jQuery("#list-date-end").datepicker("setDate", listEndDateDefault);
       loadDateSelect();
+      loadDetailToggle();
     }
   });
 
   const loadDateSelect = () => {
-    let $yearSelect = jQuery("#trans-year-select");
-    let $dtRangeSelect = jQuery("#trans-date-range-container");
+    let $yearSelect = jQuery("#list-year-select");
+    let $dtRangeSelect = jQuery("#list-date-range-container");
     $("#filter-by-date").change(function () {
       let dtSelectType = jQuery(this).val();
       if ("year" === dtSelectType) {
@@ -34,5 +38,15 @@
         $dtRangeSelect.hide(300);
       }
     });
+  };
+
+  const loadDetailToggle = () => {
+    $(".display-details-btn")
+      .off("click")
+      .click(function (e) {
+        e.preventDefault();
+        let paymentId = $(this).data("id");
+        $(`#payment-details-${paymentId}`).toggle();
+      });
   };
 })(jQuery);

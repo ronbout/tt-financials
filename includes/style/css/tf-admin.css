@@ -48,8 +48,10 @@ body.woocommerce_page_view-payments .wp-list-table .column-amount a > span:first
   width: 80%;
 }
 
-body.woocommerce_page_view-payments .wp-list-table .dashicons.dashicons-media-document.print-invoice-btn {
+body.woocommerce_page_view-payments .dashicons.print-invoice-btn,
+body.woocommerce_page_view-payments .dashicons.display-details-btn {
   font-size: 30px;
+  cursor: pointer;
 }
 
 /*# sourceMappingURL=tf-admin.css.map */
