@@ -518,7 +518,7 @@ class TFPayments_list_table extends Taste_list_table {
       $sql = $wpdb->prepare($sql, $db_parms);
     }         
 
-    echo "<pre>", $sql, "</pre>";
+    // echo "<pre>", $sql, "</pre>";
     
     $payment_rows = $wpdb->get_results($sql, ARRAY_A);
     $payment_rows_w_details = $this->add_payment_details($payment_rows);

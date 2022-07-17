@@ -66,19 +66,19 @@ $payment_rows_w_details = array_map(function ($payment_row) use ($col_count, $pa
 function build_details_table($pay_prod_rows, $payment_date) {
 	ob_start();
 	?>
-		<div class="payment_details-container">
+		<div class="payment-details-container">
 			<table class="payment-details-table widefat fixed">
 				<thead>
 					<tr>
-						<th>Product ID</th>
-						<th>Staged Payment</th>
-						<th>Price</th>
-						<th>Quantity Sold</th>
-						<th>Gross Sales</th>
-						<th>Commission %</th>
-						<th>Commission Amount</th>
-						<th>VAT %</th>
-						<th>VAT Amount</th>
+						<th class="tf-aligncenter">Product ID</th>
+						<th class="tf-aligncenter">Staged Payment</th>
+						<th class="tf-aligncenter">Price</th>
+						<th class="tf-aligncenter">Quantity Sold</th>
+						<th class="tf-aligncenter">Gross Sales</th>
+						<th class="tf-aligncenter">Commission %</th>
+						<th class="tf-aligncenter">Commission Amount</th>
+						<th class="tf-aligncenter">VAT %</th>
+						<th class="tf-aligncenter">VAT Amount</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -95,7 +95,13 @@ function build_details_table($pay_prod_rows, $payment_date) {
 						$pay_gross = $inv_calcs['pay_gross'];
 						$pay_vat = $inv_calcs['pay_vat'];
 						$pay_comm = $inv_calcs['pay_comm'];
-						$qty = $pay_gross / $price;
+						$qty = round( $pay_gross / $price);
+
+						$price = number_format($price,2);
+						$payment_amount = number_format($payment_amount,2);
+						$pay_gross = number_format($pay_gross,2);
+						$pay_vat = number_format($pay_vat,2);
+						$pay_comm = number_format($pay_comm,2);
 
 						$trans_linkable = (TASTE_PAYMENT_STATUS_ADJ != $pay_prod_row['payment_status'] && $pbo_flag);
 
@@ -109,14 +115,14 @@ function build_details_table($pay_prod_rows, $payment_date) {
 						echo "
 						<tr>
 							<td>$product_id_disp</td>
-							<td>$payment_amount</td>
-							<td>$price</td>
-							<td>$qty</td>
-							<td>$pay_gross</td>
-							<td>$comm_rate</td>
-							<td>$pay_comm</td>
-							<td>$vat_rate</td>
-							<td>$pay_vat</td>
+							<td class='tf-alignright'>$payment_amount</td>
+							<td class='tf-alignright'>$price</td>
+							<td class='tf-alignright'>$qty</td>
+							<td class='tf-alignright'>$pay_gross</td>
+							<td class='tf-alignright'>$comm_rate</td>
+							<td class='tf-alignright'>$pay_comm</td>
+							<td class='tf-alignright'>$vat_rate</td>
+							<td class='tf-alignright'>$pay_vat</td>
 						</tr>";
 					}
 					?>

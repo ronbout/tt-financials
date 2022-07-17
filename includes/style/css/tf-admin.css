@@ -26,6 +26,18 @@ body.woocommerce_page_view-venues .wp-list-table .column-balance_due a > span:fi
   width: 80%;
 }
 
+.tf-alignright {
+  text-align: right !important;
+}
+
+.tf-aligncenter {
+  text-align: center !important;
+}
+
+.tf-alignleft {
+  text-align: left !important;
+}
+
 body.woocommerce_page_view-order-transactions .wp-list-table .column-net_cost,
 body.woocommerce_page_view-order-transactions .wp-list-table .column-commission,
 body.woocommerce_page_view-order-transactions .wp-list-table .column-vat,
@@ -52,6 +64,16 @@ body.woocommerce_page_view-payments .dashicons.print-invoice-btn,
 body.woocommerce_page_view-payments .dashicons.display-details-btn {
   font-size: 30px;
   cursor: pointer;
+}
+body.woocommerce_page_view-payments .payment-details-container {
+  border: 2px solid lightblue;
+  border-radius: 12px;
+  width: 80%;
+  margin: 0 8% 0 6%;
+  padding: 8px 20px;
+}
+body.woocommerce_page_view-payments table.widefat {
+  border: none;
 }
 
 /*# sourceMappingURL=tf-admin.css.map */

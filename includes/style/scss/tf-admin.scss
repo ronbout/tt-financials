@@ -21,6 +21,18 @@ body.woocommerce_page_view-venues .wp-list-table {
   }
 }
 
+.tf-alignright {
+  text-align: right !important;
+}
+
+.tf-aligncenter {
+  text-align: center !important;
+}
+
+.tf-alignleft {
+  text-align: left !important;
+}
+
 body.woocommerce_page_view-order-transactions .wp-list-table {
   .column-net_cost,
   .column-commission,
@@ -50,5 +62,17 @@ body.woocommerce_page_view-payments {
   .dashicons.display-details-btn {
     font-size: 30px;
     cursor: pointer;
+  }
+
+  .payment-details-container {
+    border: 2px solid lightblue;
+    border-radius: 12px;
+    width: 80%;
+    margin: 0 8% 0 6%;
+    padding: 8px 20px;
+  }
+
+  table.widefat {
+    border: none;
   }
 }
