@@ -341,6 +341,7 @@ class TFTRans_list_table extends Taste_list_table {
 			'trans-type' => 'trans_type',
 			'order-id' => 'order_id',
 			'payment-id' => 'payment_id',
+      'product-id' => 'product_id',
 			'venue-selection' => 'venue_id',
       's' => 'search',
       'm' => 'date_select',
@@ -383,6 +384,7 @@ class TFTRans_list_table extends Taste_list_table {
     $venue_id = -1 == $venue_id ? false : $venue_id;
     $order_id = isset($filters['order_id']) ? $filters['order_id'] : false;
     $payment_id = isset($filters['payment_id']) ? $filters['payment_id'] : false;
+    $product_id = isset($filters['product_id']) ? $filters['product_id'] : false;
     $date_select = isset($filters['date_select']) ? $filters['date_select'] : false;
     switch($date_select) {
       case "year":
@@ -442,6 +444,12 @@ class TFTRans_list_table extends Taste_list_table {
 			$filter_test .= "oit.payment_id = %d";
 			$db_parms[] = $payment_id;
 		}
+ 
+		if (false !== $product_id) {
+			$filter_test .= $filter_test ? " AND " : " WHERE ";
+			$filter_test .= "oit.product_id = %d";
+			$db_parms[] = $product_id;
+		}
 
     if (false != $search_term) {
       // if numeric, check order id, item id, product id, venue id
@@ -498,9 +506,12 @@ class TFTRans_list_table extends Taste_list_table {
       OFFSET $offset;
       ";
 
-    if ($filter_test) {
+    if (count($db_parms)) {
       $sql = $wpdb->prepare($sql, $db_parms);
     }
+
+    
+    echo "<pre>", $sql, "</pre>";
     
     $trans_rows = $wpdb->get_results($sql, ARRAY_A);
 
@@ -510,7 +521,7 @@ class TFTRans_list_table extends Taste_list_table {
 		$filter_test
 		";
 
-    if ($filter_test) {
+    if (count($db_parms)) {
       $sql = $wpdb->prepare($sql, $db_parms);
     }
 

@@ -38,6 +38,7 @@ class TFPayments_list_table extends Taste_list_table {
       'product_ids' => "Product IDs",
       'comment' => "Comment",
       'comment_visible_venues' => "Comment Visible<br> to Venues",
+			'pbo_flag' => "PBO",
       'attach_vat_invoice' => "Attach Invoice",
       'payment_status' => "Payment Status",
       'invoice' => "View <br>Invoice",
@@ -66,12 +67,16 @@ class TFPayments_list_table extends Taste_list_table {
 	}
       
 	protected function column_payment_id($item) {
-		if (TASTE_PAYMENT_STATUS_ADJ == $item['payment_status']) {
+		$pbo_flag = $item['pbo_flag'];
+		$trans_linkable = (TASTE_PAYMENT_STATUS_ADJ != $item['payment_status'] && $pbo_flag);
+
+		if ($trans_linkable) {
+			$payment_id = $item['payment_id'];
+			$cm_link = get_admin_url( null, "admin.php?page=view-order-transactions&payment-id=$payment_id");
+			return "<a href='$cm_link' >$payment_id</a>";
+		} else {
 			return $item['payment_id'];
 		}
-		$payment_id = $item['payment_id'];
-		$cm_link = get_admin_url( null, "admin.php?page=view-order-transactions&payment-id=$payment_id");
-		return "<a href='$cm_link' >$payment_id</a>";
 	}
    
   protected function column_invoice($item) {
@@ -87,6 +92,14 @@ class TFPayments_list_table extends Taste_list_table {
 			return "N/A";
 		}
   }
+
+	protected function column_product_ids($item) {
+		$prods = $item['product_ids'];
+		$prods_array = explode(',', $prods);
+		$prods_array = array_unique($prods_array);
+		$prods =  trim(implode(', ', $prods_array), ', ');
+		return $prods;
+	}
       
 	protected function column_actions($item) {
 		$payment_id = $item['payment_id'];
@@ -98,6 +111,7 @@ class TFPayments_list_table extends Taste_list_table {
   protected function column_default($item, $column_name) {
     switch($column_name) {
       case 'comment_visible_venues':
+      case 'pbo_flag':
           return $item[$column_name] ? "Yes" : 'no';
       case 'attach_vat_invoice':
           return $item[$column_name] ? "Yes" : 'no';
@@ -109,7 +123,6 @@ class TFPayments_list_table extends Taste_list_table {
       case 'amount':
       case 'venue_id':
       case 'venue_name':
-      case 'product_ids':
       case 'comment':
         return $item[$column_name] ? $item[$column_name] : "N/A";
       default:
@@ -485,12 +498,13 @@ class TFPayments_list_table extends Taste_list_table {
         LEFT JOIN {$wpdb->prefix}taste_venue_payment pay ON pay.id = pprods.payment_id
         LEFT JOIN {$wpdb->prefix}taste_venue ven ON ven.venue_id = pay.venue_id
         LEFT JOIN {$wpdb->prefix}taste_venue_products vp ON vp.product_id = pprods.product_id
+				LEFT JOIN {$wpdb->prefix}taste_venue_payment_order_item_xref oix ON oix.payment_id = pprods.payment_id
         $filter_test";
   
     $sql = "
       SELECT pay.id AS payment_id, pay.payment_date, pay.amount, 
         pay.venue_id, ven.name as venue_name, pay.comment, pay.comment_visible_venues, 
-        pay.attach_vat_invoice, pay.status AS payment_status, 
+        pay.attach_vat_invoice, pay.status AS payment_status,  oix.order_item_id AS pbo_flag,
         GROUP_CONCAT(pprods.product_id) as product_ids,
         GROUP_CONCAT(pprods.amount) as product_amounts
       $from_where_sql
@@ -504,7 +518,7 @@ class TFPayments_list_table extends Taste_list_table {
       $sql = $wpdb->prepare($sql, $db_parms);
     }         
 
-    // echo "<pre>", $sql, "</pre>";
+    echo "<pre>", $sql, "</pre>";
     
     $payment_rows = $wpdb->get_results($sql, ARRAY_A);
     $payment_rows_w_details = $this->add_payment_details($payment_rows);
