@@ -70,7 +70,7 @@ class TFTRans_list_table extends Taste_list_table {
     $venue_id = $item['venue_id'];
     $cm_link = get_site_url(null, "/campaign-manager/?venue-id={$venue_id}");
       return "
-        <a href='$cm_link' target='_blank'>$venue_id</a>
+        <a href='$cm_link'>$venue_id</a>
         ";
    }
 
@@ -81,7 +81,7 @@ class TFTRans_list_table extends Taste_list_table {
         $col_id = $item[$column_name];
         $col_link = get_edit_post_link($col_id);
           return "
-            <a href='$col_link' target='_blank'>$col_id</a>
+            <a href='$col_link'>$col_id</a>
             ";
         break;
       case 'id':

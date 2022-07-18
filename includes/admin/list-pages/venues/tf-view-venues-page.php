@@ -83,7 +83,7 @@ class TFVenues_list_table extends Taste_list_table {
     $venue_id = $item['venue_id'];
     $cm_link = get_site_url(null, "/campaign-manager/?venue-id={$venue_id}");
       return "
-        <a href='$cm_link' target='_blank'>$venue_id</a>
+        <a href='$cm_link'>$venue_id</a>
         ";
    }
 

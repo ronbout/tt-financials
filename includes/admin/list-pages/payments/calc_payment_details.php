@@ -37,14 +37,6 @@ $sql = "
 $sql = $wpdb->prepare($sql, $payment_ids);
 $pay_prod_info_rows = $wpdb->get_results($sql, ARRAY_A);
 
-// echo "<pre>";
-// print_r($pay_prod_info_rows);
-// echo "</pre>";
-
-
-// build table row of that info
-
-
 $payment_rows_w_details = array_map(function ($payment_row) use ($col_count, $pay_prod_info_rows) {
 	$tmp_row = $payment_row;
 	$payment_id = $tmp_row['payment_id'];

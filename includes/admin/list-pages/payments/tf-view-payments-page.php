@@ -63,7 +63,7 @@ class TFPayments_list_table extends Taste_list_table {
   protected function column_venue_id($item) {
 		$venue_id = $item['venue_id'];
 		$cm_link = get_site_url(null, "/campaign-manager/?venue-id={$venue_id}");
-		return "<a href='$cm_link' target='_blank'>$venue_id</a>";
+		return "<a href='$cm_link'>$venue_id</a>";
 	}
       
 	protected function column_payment_id($item) {
