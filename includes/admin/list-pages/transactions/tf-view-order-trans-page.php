@@ -84,7 +84,7 @@ class TFTRans_list_table extends Taste_list_table {
    protected function column_venue_name($item) {
     $venue_id = $item['venue_id'];
     $venue_name = $item['venue_name'];
-    $link = esc_url(add_query_arg('venue-selection', $venue_id));
+    $link = esc_url(add_query_arg('venue-id', $venue_id));
       return "
         <a href='$link'>$venue_name</a>
         ";
@@ -120,15 +120,6 @@ class TFTRans_list_table extends Taste_list_table {
       default:
       return $item[$column_name] ? $item[$column_name] : "N/A";
     }
-  }
-
-  protected function add_filter_by_action($item, $column_name, $col_display, $other_actions=array()) {
-    $filter_link = remove_query_arg( $column_name);
-    $filter_link = add_query_arg(str_replace('_', '-', $column_name), $item[$column_name]);
-    $actions = array_merge($other_actions, array(
-      'filter' => "<a href='$filter_link'>Filter By</a>"
-    ));
-    return $col_display . $this->row_actions($actions);
   }
 
   protected function get_hidden_columns() {
@@ -215,7 +206,7 @@ class TFTRans_list_table extends Taste_list_table {
       }
       ?>
       <div class="alignleft actions">
-        <select name="venue-selection" id="trans-list-venue-selection">
+        <select name="venue-id" id="trans-list-venue-selection">
 					<?php echo $options_list ?>
         </select>
         <?php $this->months_dropdown() ?>
@@ -370,7 +361,7 @@ class TFTRans_list_table extends Taste_list_table {
 			'order-item-id' => 'order_item_id',
 			'payment-id' => 'payment_id',
       'product-id' => 'product_id',
-			'venue-selection' => 'venue_id',
+			'venue-id' => 'venue_id',
       's' => 'search',
       'm' => 'date_select',
       'yr' => 'year',

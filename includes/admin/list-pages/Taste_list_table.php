@@ -323,6 +323,23 @@ class Taste_list_table {
 		}
 	}
 
+		/**
+	 * Add a Filter By action to a field
+	 *
+	 * new to Taste_list_table
+	 * 7/19/2022  Ron Boutilier
+	 *
+	 * @return string
+	 */
+  protected function add_filter_by_action($item, $column_name, $col_display, $other_actions=array()) {
+    $filter_link = remove_query_arg( $column_name);
+    $filter_link = add_query_arg(str_replace('_', '-', $column_name), $item[$column_name]);
+    $actions = array_merge($other_actions, array(
+      'filter' => "<a href='$filter_link'>Filter By</a>"
+    ));
+    return $col_display . $this->row_actions($actions);
+  }
+
 	/**
 	 * Whether the table has items to display or not
 	 *
