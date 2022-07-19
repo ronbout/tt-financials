@@ -66,12 +66,33 @@ class TFTRans_list_table extends Taste_list_table {
     return $ret_array;
    }
    
+   protected function column_payment_id($item) {
+    $payment_id = $item['payment_id'];
+    $link = get_admin_url( null, "admin.php?page=view-payments&payment-id=$payment_id");
+    $display = "<a href='$cm_link' >$payment_id</a>";
+    return $this->add_filter_by_action($item, 'payment_id', $display);
+   }
+
    protected function column_venue_id($item) {
     $venue_id = $item['venue_id'];
     $cm_link = get_site_url(null, "/campaign-manager/?venue-id={$venue_id}");
       return "
         <a href='$cm_link'>$venue_id</a>
         ";
+   }
+   
+   protected function column_venue_name($item) {
+    $venue_id = $item['venue_id'];
+    $venue_name = $item['venue_name'];
+    $link = esc_url(add_query_arg('venue-selection', $venue_id));
+      return "
+        <a href='$link'>$venue_name</a>
+        ";
+   }
+
+   protected function column_order_item_id($item) {
+    $display = $item['order_item_id'];
+    return $this->add_filter_by_action($item, 'order_item_id', $display);
    }
 
   protected function column_default($item, $column_name) {
@@ -80,12 +101,10 @@ class TFTRans_list_table extends Taste_list_table {
       case 'product_id':
         $col_id = $item[$column_name];
         $col_link = get_edit_post_link($col_id);
-          return "
-            <a href='$col_link'>$col_id</a>
-            ";
+        $display = "<a href='$col_link'>$col_id</a>";
+        return $this->add_filter_by_action($item, $column_name, $display);
         break;
       case 'id':
-      case 'order_item_id':
       case 'trans_type':
       case 'transaction_date':
       case 'trans_amount':
@@ -97,11 +116,19 @@ class TFTRans_list_table extends Taste_list_table {
       case 'customer_name':
       case 'customer_email':
       case 'venue_due':
-      case 'payment_id':
         return $item[$column_name] ? $item[$column_name] : "N/A";
       default:
       return $item[$column_name] ? $item[$column_name] : "N/A";
     }
+  }
+
+  protected function add_filter_by_action($item, $column_name, $col_display, $other_actions=array()) {
+    $filter_link = remove_query_arg( $column_name);
+    $filter_link = add_query_arg(str_replace('_', '-', $column_name), $item[$column_name]);
+    $actions = array_merge($other_actions, array(
+      'filter' => "<a href='$filter_link'>Filter By</a>"
+    ));
+    return $col_display . $this->row_actions($actions);
   }
 
   protected function get_hidden_columns() {
@@ -276,7 +303,7 @@ class TFTRans_list_table extends Taste_list_table {
     $sort_array = array(
       'order_id' => array('order_id', true),
       'venue_id' => array('venue_id', true),
-      'transaction_date' => array('transaction_date', true),
+      'transaction_date' => array('transaction_date', false),
       'trans_type' => array('trans_type', true), 
       'trans_amount' => array('trans_amount', true),
       'order_date' => array('order_date', true),
@@ -340,6 +367,7 @@ class TFTRans_list_table extends Taste_list_table {
 		$filters_list_to_check = array(
 			'trans-type' => 'trans_type',
 			'order-id' => 'order_id',
+			'order-item-id' => 'order_item_id',
 			'payment-id' => 'payment_id',
       'product-id' => 'product_id',
 			'venue-selection' => 'venue_id',
@@ -383,6 +411,7 @@ class TFTRans_list_table extends Taste_list_table {
     $venue_id = isset($filters['venue_id']) ? $filters['venue_id'] : false;
     $venue_id = -1 == $venue_id ? false : $venue_id;
     $order_id = isset($filters['order_id']) ? $filters['order_id'] : false;
+    $order_item_id = isset($filters['order_item_id']) ? $filters['order_item_id'] : false;
     $payment_id = isset($filters['payment_id']) ? $filters['payment_id'] : false;
     $product_id = isset($filters['product_id']) ? $filters['product_id'] : false;
     $date_select = isset($filters['date_select']) ? $filters['date_select'] : false;
@@ -437,6 +466,12 @@ class TFTRans_list_table extends Taste_list_table {
 			$filter_test .= $filter_test ? " AND " : " WHERE ";
 			$filter_test .= "oit.order_id = %d";
 			$db_parms[] = $order_id;
+		}
+ 
+		if (false !== $order_item_id) {
+			$filter_test .= $filter_test ? " AND " : " WHERE ";
+			$filter_test .= "oit.order_item_id = %d";
+			$db_parms[] = $order_item_id;
 		}
  
 		if (false !== $payment_id) {
