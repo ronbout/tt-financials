@@ -47,7 +47,7 @@ $payment_rows_w_details = array_map(function ($payment_row) use ($col_count, $pa
 	});
 
 	$details = "<td colspan='$col_count'>";
-	$details .= build_details_table($pay_prod_rows, $tmp_row['payment_date']);
+	$details .= build_details_table($pay_prod_rows, $tmp_row);
 	$details .= "</td>";
 	$tmp_row['details'] = $details;
 	$tmp_row['actions'] = $payment_row['payment_id'];
@@ -55,7 +55,9 @@ $payment_rows_w_details = array_map(function ($payment_row) use ($col_count, $pa
 }, $payment_rows);
 
 
-function build_details_table($pay_prod_rows, $payment_date) {
+function build_details_table($pay_prod_rows, $payment_row) {
+	$payment_date = $payment_row['payment_date'];
+	$payment_status = $payment_row['payment_status'];
 	ob_start();
 	?>
 		<div class="payment-details-container">
@@ -95,7 +97,7 @@ function build_details_table($pay_prod_rows, $payment_date) {
 						$pay_vat = number_format($pay_vat,2);
 						$pay_comm = number_format($pay_comm,2);
 
-						$trans_linkable = (TASTE_PAYMENT_STATUS_ADJ != $pay_prod_row['payment_status'] && $pbo_flag);
+						$trans_linkable = (TASTE_PAYMENT_STATUS_ADJ != $payment_status && $pbo_flag);
 
 						if (!$trans_linkable) {
 							$product_id_disp = $product_id;
