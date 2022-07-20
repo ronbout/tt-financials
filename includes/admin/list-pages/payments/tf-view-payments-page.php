@@ -65,6 +65,15 @@ class TFPayments_list_table extends Taste_list_table {
 		$cm_link = get_site_url(null, "/campaign-manager/?venue-id={$venue_id}");
 		return "<a href='$cm_link'>$venue_id</a>";
 	}
+    
+  protected function column_venue_name($item) {
+    $venue_id = $item['venue_id'];
+    $venue_name = $item['venue_name'];
+    $link = esc_url(add_query_arg('venue-id', $venue_id));
+      return "
+        <a href='$link'>$venue_name</a>
+        ";
+   }
       
 	protected function column_payment_id($item) {
 		$pbo_flag = $item['pbo_flag'];
@@ -121,8 +130,6 @@ class TFPayments_list_table extends Taste_list_table {
       case 'payment_date':
         return explode(' ', $item[$column_name])[0];
       case 'amount':
-      case 'venue_id':
-      case 'venue_name':
       case 'comment':
         return $item[$column_name] ? $item[$column_name] : "N/A";
       default:
@@ -597,7 +604,6 @@ class TFPayments_list_table extends Taste_list_table {
 	}
 
   protected function add_payment_details($payment_rows) {
-		$col_count = $this->get_column_count();
     require_once TFINANCIAL_PLUGIN_INCLUDES.'/admin/list-pages/payments/calc_payment_details.php';
     return $payment_rows_w_details;
   }

@@ -67,10 +67,14 @@ class TFTRans_list_table extends Taste_list_table {
    }
    
    protected function column_payment_id($item) {
+
     $payment_id = $item['payment_id'];
-    $link = get_admin_url( null, "admin.php?page=view-payments&payment-id=$payment_id");
-    $display = "<a href='$cm_link' >$payment_id</a>";
-    return $this->add_filter_by_action($item, 'payment_id', $display);
+    if ($payment_id) {
+      $link = get_admin_url( null, "admin.php?page=view-payments&payment-id=$payment_id");
+      $display = "<a href='$cm_link' >$payment_id</a>";
+      return $this->add_filter_by_action($payment_id, 'payment_id', $display);
+    }
+    return $payment_id;
    }
 
    protected function column_venue_id($item) {
@@ -92,7 +96,7 @@ class TFTRans_list_table extends Taste_list_table {
 
    protected function column_order_item_id($item) {
     $display = $item['order_item_id'];
-    return $this->add_filter_by_action($item, 'order_item_id', $display);
+    return $this->add_filter_by_action($display, 'order_item_id', $display);
    }
 
   protected function column_default($item, $column_name) {
@@ -102,14 +106,13 @@ class TFTRans_list_table extends Taste_list_table {
         $col_id = $item[$column_name];
         $col_link = get_edit_post_link($col_id);
         $display = "<a href='$col_link'>$col_id</a>";
-        return $this->add_filter_by_action($item, $column_name, $display);
+        return $this->add_filter_by_action($col_id, $column_name, $display);
         break;
       case 'id':
       case 'trans_type':
       case 'transaction_date':
       case 'trans_amount':
       case 'order_date':
-      case 'venue_name':
       case 'net_cost':
       case 'gross_income':
       case 'customer_id':

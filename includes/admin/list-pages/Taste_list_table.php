@@ -331,9 +331,10 @@ class Taste_list_table {
 	 *
 	 * @return string
 	 */
-  protected function add_filter_by_action($item, $column_name, $col_display, $other_actions=array()) {
-    $filter_link = remove_query_arg( $column_name);
-    $filter_link = add_query_arg(str_replace('_', '-', $column_name), $item[$column_name]);
+  public function add_filter_by_action($col_value, $column_name, $col_display, $other_actions=array()) {
+		$filter_name = str_replace('_', '-', $column_name);
+    $filter_link = remove_query_arg( $filter_name);
+    $filter_link = add_query_arg($filter_name, $col_value);
     $actions = array_merge($other_actions, array(
       'filter' => "<a href='$filter_link'>Filter By</a>"
     ));

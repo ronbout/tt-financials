@@ -37,7 +37,8 @@ $sql = "
 $sql = $wpdb->prepare($sql, $payment_ids);
 $pay_prod_info_rows = $wpdb->get_results($sql, ARRAY_A);
 
-$payment_rows_w_details = array_map(function ($payment_row) use ($col_count, $pay_prod_info_rows) {
+$payment_rows_w_details = array_map(function ($payment_row) use ($pay_prod_info_rows) {
+	$col_count = $this->get_column_count();
 	$tmp_row = $payment_row;
 	$payment_id = $tmp_row['payment_id'];
 
@@ -47,7 +48,7 @@ $payment_rows_w_details = array_map(function ($payment_row) use ($col_count, $pa
 	});
 
 	$details = "<td colspan='$col_count'>";
-	$details .= build_details_table($pay_prod_rows, $tmp_row);
+	$details .= build_details_table($pay_prod_rows, $tmp_row, $this);
 	$details .= "</td>";
 	$tmp_row['details'] = $details;
 	$tmp_row['actions'] = $payment_row['payment_id'];
@@ -55,7 +56,7 @@ $payment_rows_w_details = array_map(function ($payment_row) use ($col_count, $pa
 }, $payment_rows);
 
 
-function build_details_table($pay_prod_rows, $payment_row) {
+function build_details_table($pay_prod_rows, $payment_row, $this_ref) {
 	$payment_date = $payment_row['payment_date'];
 	$payment_status = $payment_row['payment_status'];
 	ob_start();
@@ -105,6 +106,7 @@ function build_details_table($pay_prod_rows, $payment_row) {
 							$pay_prod_link =get_admin_url( null, "admin.php?page=view-order-transactions&payment-id=$payment_id&product-id=$product_id");
 							$product_id_disp = "<a href='$pay_prod_link'>$product_id</a>";
 						}
+						$product_id_disp = $this_ref->add_filter_by_action($product_id, 'product_id', $product_id_disp);
 						
 						echo "
 						<tr>
