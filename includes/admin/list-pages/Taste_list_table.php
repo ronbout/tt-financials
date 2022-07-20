@@ -1144,7 +1144,7 @@ class Taste_list_table {
 	 *
 	 * @return array
 	 */
-	protected function get_column_info() {
+	public function get_column_info() {
 		// $_column_headers is already set / cached.
 		if ( isset( $this->_column_headers ) && is_array( $this->_column_headers ) ) {
 			/*

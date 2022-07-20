@@ -93,17 +93,14 @@ foreach($venue_id_list as $venue_id) {
 	$venue_totals = $totals_calcs['totals'];
 
 	$col_count = $this->get_column_count();
-	$details = "<td colspan='$col_count'>";
+	$hidden_cols = $this->get_hidden_columns();
+	$display_col_cnt = $col_count - count($hidden_cols);
+
+	$details = "<td colspan='$display_col_cnt'>";
 	$details .= build_venue_details_table($product_calcs, $venue_id);
 	$details .= "</td>";
 	$venue_details[$venue_id] = $details;
 	$venues_financials[$venue_id] = $venue_totals;
-
-	// echo "<pre>";
-	// print_r($venue_details);
-	// echo "</pre>";
-	// die;
-
 }
 
 $venue_return_rows = array_map(function ($v_row) use ($venues_financials, $venue_details) {

@@ -125,7 +125,7 @@ class TFVenues_list_table extends Taste_list_table {
     }
   }
 
-  protected function get_hidden_columns() {
+  public function get_hidden_columns() {
     $hidden_cols = array(
       'description',
       'address1',

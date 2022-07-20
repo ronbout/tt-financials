@@ -39,6 +39,9 @@ $pay_prod_info_rows = $wpdb->get_results($sql, ARRAY_A);
 
 $payment_rows_w_details = array_map(function ($payment_row) use ($pay_prod_info_rows) {
 	$col_count = $this->get_column_count();
+	$hidden_cols = $this->get_hidden_columns();
+	$display_col_cnt = $col_count - count($hidden_cols);
+
 	$tmp_row = $payment_row;
 	$payment_id = $tmp_row['payment_id'];
 
@@ -47,7 +50,7 @@ $payment_rows_w_details = array_map(function ($payment_row) use ($pay_prod_info_
 		return $payment_id == $row['payment_id'];
 	});
 
-	$details = "<td colspan='$col_count'>";
+	$details = "<td colspan='$display_col_cnt'>";
 	$details .= build_details_table($pay_prod_rows, $tmp_row, $this);
 	$details .= "</td>";
 	$tmp_row['details'] = $details;
@@ -103,7 +106,7 @@ function build_details_table($pay_prod_rows, $payment_row, $this_ref) {
 						if (!$trans_linkable) {
 							$product_id_disp = $product_id;
 						} else {
-							$pay_prod_link =get_admin_url( null, "admin.php?page=view-order-transactions&payment-id=$payment_id&product-id=$product_id");
+							$pay_prod_link = get_admin_url( null, "admin.php?page=view-order-transactions&payment-id=$payment_id&product-id=$product_id");
 							$product_id_disp = "<a href='$pay_prod_link'>$product_id</a>";
 						}
 						$product_id_disp = $this_ref->add_filter_by_action($product_id, 'product_id', $product_id_disp);
