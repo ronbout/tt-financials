@@ -57,14 +57,16 @@ body.woocommerce_page_view-payments .wp-list-table {
   }
 }
 
-body.woocommerce_page_view-payments {
+body.woocommerce_page_view-payments,
+body.woocommerce_page_view-venues {
   .dashicons.print-invoice-btn,
   .dashicons.display-details-btn {
     font-size: 30px;
     cursor: pointer;
   }
 
-  .payment-details-container {
+  .payment-details-container,
+  .venue-details-container {
     border: 2px solid lightblue;
     border-radius: 12px;
     width: 80%;

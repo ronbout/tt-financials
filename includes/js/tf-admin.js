@@ -3,7 +3,8 @@
     let $documentBody = $("body");
     if (
       $documentBody.hasClass("woocommerce_page_view-order-transactions") ||
-      $documentBody.hasClass("woocommerce_page_view-payments")
+      $documentBody.hasClass("woocommerce_page_view-payments") ||
+      $documentBody.hasClass("woocommerce_page_view-venues")
     ) {
       // let $datepickers = jQuery("#list-date-start, #list-date-end");
       // let listStartDateDefault = jQuery("#list-date-start").val();
@@ -17,8 +18,8 @@
       // });
       // jQuery("#list-date-start").datepicker("setDate", listStartDateDefault);
       // jQuery("#list-date-end").datepicker("setDate", listEndDateDefault);
-      loadDateSelect();
-      loadDetailToggle();
+      $("#filter-by-date").length && loadDateSelect();
+      $(".display-details-btn").length && loadDetailToggle();
     }
   });
 
@@ -45,8 +46,8 @@
       .off("click")
       .click(function (e) {
         e.preventDefault();
-        let paymentId = $(this).data("id");
-        $(`#payment-details-${paymentId}`).toggle(600);
+        let id = $(this).data("id");
+        $(`#list-details-${id}`).toggle(600);
       });
   };
 })(jQuery);

@@ -23,9 +23,8 @@ class TFVenues_list_table extends Taste_list_table {
         'ajax' => true,
       )
     );
+    $this->set_details_id('venue_id');
   }
-
-  
 
   public function get_columns() {
     $ret_array =  array(
@@ -58,6 +57,7 @@ class TFVenues_list_table extends Taste_list_table {
       'net_payable' => "Net Payable",
       'paid_amount' => "Paid Amount",
       'balance_due' => "Balance Due",
+      'actions' => "View Details",
     );
 
     return $ret_array;
@@ -79,13 +79,20 @@ class TFVenues_list_table extends Taste_list_table {
     return $financial_columns;
    }
 
-   protected function column_venue_id($item) {
+  protected function column_venue_id($item) {
     $venue_id = $item['venue_id'];
     $cm_link = get_site_url(null, "/campaign-manager/?venue-id={$venue_id}");
       return "
         <a href='$cm_link'>$venue_id</a>
         ";
    }
+         
+	protected function column_actions($item) {
+		$venue_id = $item['venue_id'];
+		return "
+			<span data-id='$venue_id' class='dashicons dashicons-editor-table display-details-btn'></span>
+		";
+	}
 
   protected function column_default($item, $column_name) {
     switch($column_name) {
@@ -138,6 +145,7 @@ class TFVenues_list_table extends Taste_list_table {
       'order_qty',
       'commission',
       'vat',
+      'details',
     );
     
     return $hidden_cols;

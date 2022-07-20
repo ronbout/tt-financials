@@ -25,6 +25,7 @@ class TFPayments_list_table extends Taste_list_table {
         'ajax' => true,
       )
     );
+    $this->set_details_id('payment_id');
   }
 
   public function get_columns() {
@@ -47,7 +48,6 @@ class TFPayments_list_table extends Taste_list_table {
 
     return $ret_array;
    }
-
       
 	protected function get_financial_columns() {
 		$financial_columns = array(

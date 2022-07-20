@@ -61,18 +61,24 @@ body.woocommerce_page_view-payments .wp-list-table .column-amount a > span:first
 }
 
 body.woocommerce_page_view-payments .dashicons.print-invoice-btn,
-body.woocommerce_page_view-payments .dashicons.display-details-btn {
+body.woocommerce_page_view-payments .dashicons.display-details-btn,
+body.woocommerce_page_view-venues .dashicons.print-invoice-btn,
+body.woocommerce_page_view-venues .dashicons.display-details-btn {
   font-size: 30px;
   cursor: pointer;
 }
-body.woocommerce_page_view-payments .payment-details-container {
+body.woocommerce_page_view-payments .payment-details-container,
+body.woocommerce_page_view-payments .venue-details-container,
+body.woocommerce_page_view-venues .payment-details-container,
+body.woocommerce_page_view-venues .venue-details-container {
   border: 2px solid lightblue;
   border-radius: 12px;
   width: 80%;
   margin: 0 8% 0 6%;
   padding: 8px 20px;
 }
-body.woocommerce_page_view-payments table.widefat {
+body.woocommerce_page_view-payments table.widefat,
+body.woocommerce_page_view-venues table.widefat {
   border: none;
 }
 

@@ -87,6 +87,12 @@ class Taste_list_table {
 	 */
 	protected $_column_headers;
 
+
+	/**
+	 * for the details section, must know the controlling id
+	 */
+	protected $details_id;
+
 	/**
 	 * {@internal Missing Summary}
 	 *
@@ -207,6 +213,10 @@ class Taste_list_table {
 		if ( in_array( $name, $this->compat_fields, true ) ) {
 			return $this->$name = $value;
 		}
+	}
+
+	protected function set_details_id($id) {
+		$this->details_id = $id;
 	}
 
 	/**
@@ -1418,7 +1428,7 @@ class Taste_list_table {
 		$this->single_row_columns( $item );
 		echo '</tr>';
 		if (isset($item['details']) && $item['details']) {
-			echo '<tr id="payment-details-' . $item['payment_id'] . '" class="payment-details" style="display: none">';
+			echo '<tr id="list-details-' . $item[$this->details_id] . '" class="list-table-details" style="display: none">';
 			echo $item['details'];
 			echo '</tr>';
 		}
