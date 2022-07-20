@@ -20,6 +20,7 @@
       // jQuery("#list-date-end").datepicker("setDate", listEndDateDefault);
       $("#filter-by-date").length && loadDateSelect();
       $(".display-details-btn").length && loadDetailToggle();
+      $(".check-venue-product-payment").length && loadPaymentCheckboxes();
     }
   });
 
@@ -49,5 +50,20 @@
         let id = $(this).data("id");
         $(`#list-details-${id}`).toggle(600);
       });
+  };
+
+  const loadPaymentCheckboxes = () => {
+    console.log("loadPaymentCheckboxes");
+    $("#cb-select-all-1").change(function (e) {
+      let $cb = $(this);
+      let checkboxChecked = $cb.prop("checked");
+      $(".check-venue-product-payment").prop("checked", checkboxChecked);
+    });
+    $(".venues-list-bulk-cb").change(function (e) {
+      let $cb = $(this);
+      let venueId = $cb.val();
+      let checkboxChecked = $cb.prop("checked");
+      $(`.venue-payment-${venueId}`).prop("checked", checkboxChecked);
+    });
   };
 })(jQuery);

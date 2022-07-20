@@ -213,6 +213,7 @@ function build_venue_details_table($product_rows, $venue_id) {
 			<table class="venue-details-table widefat fixed">
 				<thead>
 					<tr>
+						<th>Pay</th>
 						<th class="tf-aligncenter">Product ID</th>
 						<th class="tf-aligncenter">Status</th>
 						<th class="tf-aligncenter">Quantity Sold</th>
@@ -252,11 +253,13 @@ function build_venue_details_table($product_rows, $venue_id) {
 						$paid_amount = number_format($paid_amount,2);
 						$net_payable = number_format($net_payable,2);
 						$balance_due = number_format($balance_due,2);
-
-						$trans_linkable = (TASTE_PAYMENT_STATUS_ADJ != $payment_status && $pbo_flag);
 						
 						echo "
 						<tr title='$prod_title'>
+							<th scope='row' >
+								<input type='checkbox' class='check-venue-product-payment venue-payment-$venue_id'
+												name='venue-product-payment-cb' value='$venue_id-$product_id' >
+							</th>
 							<td>$product_id</td>
 							<td>$status</td>
 							<td class='tf-alignright'>$qty_sold</td>

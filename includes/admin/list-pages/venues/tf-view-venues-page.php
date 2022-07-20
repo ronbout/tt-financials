@@ -263,13 +263,13 @@ class TFVenues_list_table extends Taste_list_table {
 
   protected function get_bulk_actions() {
     $bulk_actions = array(
-      'bulk-export' => "Email",
+      'bulk-export' => "Make Payment",
     );
     return $bulk_actions;
   }
  
 	protected function column_cb($item) {
-		return "<input type='checkbox' name='venues-list-cb' value='{$item['venue_id']}'";
+		return "<input type='checkbox' name='venues-list-cb' class='venues-list-bulk-cb'  value='{$item['venue_id']}'>";
 	}
   
   public function no_items() {
