@@ -432,8 +432,13 @@ class TFVenues_list_table extends Taste_list_table {
 
     if ($use_finance_test) {
       $venue_rows_w_financials = $this->sort_select_venues_by_financials($venue_rows_w_financials, $order_by, $order, $per_page, $page_number, $balance_filter);
-      $venue_rows_w_financials_details = $this->add_venue_details($venue_rows_w_financials);
-      return $venue_rows_w_financials_details;
+      $rows = venue_rows_w_financials['rows'];
+      $cnt = venue_rows_w_financials['cnt'];
+      $venue_rows_w_financials_details = $this->add_venue_details($venue_rows_w_financials['rows']);
+      return array(
+        'rows' => $venue_rows_w_financials_details,
+        'cnt' => $cnt,
+      );
     }
     
     $venue_rows_w_financials_details = $this->add_venue_details($venue_rows_w_financials);
@@ -538,8 +543,15 @@ class TFVenues_list_table extends Taste_list_table {
             return round($tmp_row['balance_due'], 2) == 0;
           } );
           break;
+          break;
+        case 'non-zero':
+          $tmp_rows = array_filter($tmp_rows, function ($tmp_row)  {
+            return round($tmp_row['balance_due'], 2) <> 0;
+          } );
+          break;
       }
     }
+    
     $cnt = count($tmp_rows);
     if ($order_by) {
       $sort_dir = "desc" == strtolower($order) ? SORT_DESC : SORT_ASC;
@@ -547,8 +559,16 @@ class TFVenues_list_table extends Taste_list_table {
       array_multisort($sort_column, $sort_dir, $tmp_rows);
     }
     
+echo "<pre>";
+print_r(array_keys($tmp_rows));
+    
     $offset = ($page_number - 1) * $per_page;
     $tmp_rows = array_slice($tmp_rows, $offset, $per_page);
+
+print_r(array_keys($tmp_rows));
+echo "</pre>";
+// die;
+
     return array(
 			'rows' => $tmp_rows,
 			'cnt' => $cnt,
