@@ -214,6 +214,7 @@ class TFVenues_list_table extends Taste_list_table {
         </option>
         <option value='positive' " . ('positive' == $balance_select ? " selected " : "") . ">Positive Balance Due</option>
         <option value='zero' " . ('zero' == $balance_select ? " selected " : "") . ">Zero Balance Due</option>
+        <option value='non-zero' " . ('non-zero' == $balance_select ? " selected " : "") . ">Non Zero Balance Due</option>
         <option value='negative' " . ('negative' == $balance_select ? " selected " : "") . ">Negative Balance Due</option>
       ";
       ?>
@@ -432,8 +433,8 @@ class TFVenues_list_table extends Taste_list_table {
 
     if ($use_finance_test) {
       $venue_rows_w_financials = $this->sort_select_venues_by_financials($venue_rows_w_financials, $order_by, $order, $per_page, $page_number, $balance_filter);
-      $rows = venue_rows_w_financials['rows'];
-      $cnt = venue_rows_w_financials['cnt'];
+      $rows = $venue_rows_w_financials['rows'];
+      $cnt = $venue_rows_w_financials['cnt'];
       $venue_rows_w_financials_details = $this->add_venue_details($venue_rows_w_financials['rows']);
       return array(
         'rows' => $venue_rows_w_financials_details,
@@ -559,15 +560,8 @@ class TFVenues_list_table extends Taste_list_table {
       array_multisort($sort_column, $sort_dir, $tmp_rows);
     }
     
-echo "<pre>";
-print_r(array_keys($tmp_rows));
-    
     $offset = ($page_number - 1) * $per_page;
     $tmp_rows = array_slice($tmp_rows, $offset, $per_page);
-
-print_r(array_keys($tmp_rows));
-echo "</pre>";
-// die;
 
     return array(
 			'rows' => $tmp_rows,
