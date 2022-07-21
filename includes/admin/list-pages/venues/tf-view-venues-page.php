@@ -432,8 +432,11 @@ class TFVenues_list_table extends Taste_list_table {
 
     if ($use_finance_test) {
       $venue_rows_w_financials = $this->sort_select_venues_by_financials($venue_rows_w_financials, $order_by, $order, $per_page, $page_number, $balance_filter);
-      return $venue_rows_w_financials;
+      $venue_rows_w_financials_details = $this->add_venue_details($venue_rows_w_financials);
+      return $venue_rows_w_financials_details;
     }
+    
+    $venue_rows_w_financials_details = $this->add_venue_details($venue_rows_w_financials);
 
 		$sql = "
 		SELECT COUNT(ven.venue_id)
@@ -448,7 +451,7 @@ class TFVenues_list_table extends Taste_list_table {
 		$venues_count = $wpdb->get_var($sql);
     
     return array( 
-			'rows' => $venue_rows_w_financials,
+			'rows' => $venue_rows_w_financials_details,
 			'cnt' => $venues_count,
 		);
   }
@@ -509,6 +512,11 @@ class TFVenues_list_table extends Taste_list_table {
   protected function add_venue_financials($venue_rows) {
     require_once TFINANCIAL_PLUGIN_INCLUDES.'/admin/list-pages/venues/calc_venue_financials.php';
     return $venue_return_rows;
+  }
+  
+  protected function add_venue_details($venue_rows) {
+    require_once TFINANCIAL_PLUGIN_INCLUDES.'/admin/list-pages/venues/calc_venue_details.php';
+    return $venue_rows;
   }
 
   protected function sort_select_venues_by_financials($venue_rows_w_financials, $order_by, $order, $per_page, $page_number, $balance_filter) {

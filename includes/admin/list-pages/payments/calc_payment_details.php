@@ -38,9 +38,11 @@ $sql = $wpdb->prepare($sql, $payment_ids);
 $pay_prod_info_rows = $wpdb->get_results($sql, ARRAY_A);
 
 $payment_rows_w_details = array_map(function ($payment_row) use ($pay_prod_info_rows) {
-	$col_count = $this->get_column_count();
-	$hidden_cols = $this->get_hidden_columns();
-	$display_col_cnt = $col_count - count($hidden_cols);
+
+	$col_count = count($this->get_columns());
+	// $col_count2 = $this->get_column_count();
+	$hidden_col_cnt = count($this->get_hidden_columns());
+	$display_col_cnt = $col_count - $hidden_col_cnt;
 
 	$tmp_row = $payment_row;
 	$payment_id = $tmp_row['payment_id'];
