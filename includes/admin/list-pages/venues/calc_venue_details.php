@@ -5,8 +5,8 @@
  *	of the venues admin list page
  *	
  *	This code will just be inserted into that method
- *	It has $venue_rows as the parameter that will
- *	be available in this file
+ *	It has $venue_rows and balance filter as the parameters
+ *	that will	be available in this file
  *	
  *	This routine is responsible for setting up the make payment code
  * 
@@ -31,7 +31,7 @@ foreach($venue_rows as &$venue_row) {
 	$product_calcs = $venue_row['prod_calcs'];
 		
 	$details = "<td colspan='$display_col_cnt'>";
-	$details .= build_venue_details_table($product_calcs, $venue_id);
+	$details .= build_venue_details_table($product_calcs, $venue_id, $balance_filter, $this);
 	$details .= "</td>";
 	$venue_row['details'] = $details;
 	unset($venue_row['prod_calcs']);
@@ -42,7 +42,8 @@ foreach($venue_rows as &$venue_row) {
  * start of functions
  ************************/
 
-function build_venue_details_table($product_rows, $venue_id) {
+function build_venue_details_table($product_rows, $venue_id, $balance_filter='', $this_obj) {
+	$product_rows = $this_obj->filter_by_balance_due($product_rows, $balance_filter);
 	$payment_date = $payment_row['payment_date'];
 	$payment_status = $payment_row['payment_status'];
 	ob_start();

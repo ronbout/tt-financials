@@ -435,7 +435,7 @@ class TFVenues_list_table extends Taste_list_table {
       $venue_rows_w_financials = $this->sort_select_venues_by_financials($venue_rows_w_financials, $order_by, $order, $per_page, $page_number, $balance_filter);
       $rows = $venue_rows_w_financials['rows'];
       $cnt = $venue_rows_w_financials['cnt'];
-      $venue_rows_w_financials_details = $this->add_venue_details($venue_rows_w_financials['rows']);
+      $venue_rows_w_financials_details = $this->add_venue_details($venue_rows_w_financials['rows'], $balance_filter);
       return array(
         'rows' => $venue_rows_w_financials_details,
         'cnt' => $cnt,
@@ -520,13 +520,33 @@ class TFVenues_list_table extends Taste_list_table {
     return $venue_return_rows;
   }
   
-  protected function add_venue_details($venue_rows) {
+  protected function add_venue_details($venue_rows, $balance_filter='') {
     require_once TFINANCIAL_PLUGIN_INCLUDES.'/admin/list-pages/venues/calc_venue_details.php';
     return $venue_rows;
   }
 
   protected function sort_select_venues_by_financials($venue_rows_w_financials, $order_by, $order, $per_page, $page_number, $balance_filter) {
     $tmp_rows = $venue_rows_w_financials;
+
+    $tmp_rows = $this->filter_by_balance_due($tmp_rows, $balance_filter);
+    
+    $cnt = count($tmp_rows);
+    if ($order_by) {
+      $sort_dir = "desc" == strtolower($order) ? SORT_DESC : SORT_ASC;
+      $sort_column = array_column($tmp_rows, $order_by);
+      array_multisort($sort_column, $sort_dir, $tmp_rows);
+    }
+    
+    $offset = ($page_number - 1) * $per_page;
+    $tmp_rows = array_slice($tmp_rows, $offset, $per_page);
+
+    return array(
+			'rows' => $tmp_rows,
+			'cnt' => $cnt,
+    );
+  }
+
+  public function filter_by_balance_due($tmp_rows, $balance_filter) {
     if ($balance_filter) {
       switch($balance_filter) {
         case 'positive':
@@ -552,21 +572,7 @@ class TFVenues_list_table extends Taste_list_table {
           break;
       }
     }
-    
-    $cnt = count($tmp_rows);
-    if ($order_by) {
-      $sort_dir = "desc" == strtolower($order) ? SORT_DESC : SORT_ASC;
-      $sort_column = array_column($tmp_rows, $order_by);
-      array_multisort($sort_column, $sort_dir, $tmp_rows);
-    }
-    
-    $offset = ($page_number - 1) * $per_page;
-    $tmp_rows = array_slice($tmp_rows, $offset, $per_page);
-
-    return array(
-			'rows' => $tmp_rows,
-			'cnt' => $cnt,
-    );
+    return $tmp_rows;
   }
 
 }
