@@ -128,14 +128,12 @@
     let bulkAction = $("#bulk-action-selector-top").val();
     if ("make_payment" === bulkAction) {
       e.preventDefault();
-      console.log($(this).attr("id"));
       makePayments();
     }
   });
 
   const makePayments = () => {
     // select all checked products and put into array of objects by venue id
-    console.log(tf_ajax_data);
     let paymentObj = {};
     $(".check-venue-product-payment:checked").each((ndx, chckbox) => {
       let $rowData = $(chckbox).closest("tr");
@@ -143,6 +141,7 @@
       let productId = $rowData.data("product-id");
       let paymentAmt = $rowData.data("amt");
       let orderInfo = $rowData.data("order-info");
+      if (!orderInfo.length) return;
       let paymentInfo = {
         productId,
         paymentAmt,
@@ -155,7 +154,6 @@
       }
     });
 
-    console.log(paymentObj);
     jQuery.ajax({
       url: tf_ajax_data.ajaxurl,
       type: "POST",
@@ -167,7 +165,17 @@
       },
       success: function (responseText) {
         console.log(responseText);
-        //const parseResponse = JSON.parse(responseText);
+        const parseResponse = JSON.parse(responseText);
+        if (parseResponse.hasOwnProperty("success")) {
+          window.location.reload(true);
+        } else {
+          if (parseResponse.hasOwnProperty("error")) {
+            console.log(parseResponse.error);
+            alert(parseResponse.error);
+          } else {
+            alert("Unknown response from server");
+          }
+        }
       },
       error: function (xhr, status, errorThrown) {
         console.log(errorThrown);

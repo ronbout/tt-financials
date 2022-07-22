@@ -103,6 +103,7 @@ function payment_trans_rows_cm($payment_id, $payment_info) {
 
 }
 add_action('taste_payment_update', 'payment_trans_rows_cm', 10, 2);
+add_action('tf_venue_page_payment_insert', 'payment_trans_rows_cm', 10, 2);
 
 function retrieve_paid_order_info($order_item_list) {
 	global $wpdb;

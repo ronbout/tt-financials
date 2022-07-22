@@ -5,6 +5,7 @@ defined('ABSPATH') or die('Direct script access disallowed.');
 function make_payment($payment_info) {
 	global $wpdb;
 	$payment_date = date("Y-m-d H:i:s");
+	$payment_status = TASTE_PAYMENT_STATUS_PENDING;
 
 	foreach($payment_info as $venue_id => $venue_prods) {
 		$total_amount = array_reduce($venue_prods, function ($tot, $prod_info) {
@@ -23,7 +24,7 @@ function make_payment($payment_info) {
 			'payment_amount' => $total_amount,
 			'payment_date' => $payment_date,
 			'product_order_info' => $product_order_info,
-			'payment_status' => TASTE_PAYMENT_STATUS_PENDING
+			'payment_status' => $payment_status,
 		);
 
 		$db_insert_result = insert_payment($payment_fields);
@@ -32,6 +33,15 @@ function make_payment($payment_info) {
 			return;
 		}
 		$payment_id =$db_insert_result['payment_id'];
+
+		$hook_payment_info = array(
+			'payment_date' => $payment_date,
+			'payment_status' => $payment_status,
+			'edit_mode' => 'INSERT',
+			'order_item_ids' => $prod_info['orderInfo'],
+		);
+	
+		do_action('tf_venue_page_payment_insert', $payment_id, $hook_payment_info);
 		
 		/*****  AUDIT TABLE UPDATE ******/
 		$payment_audit_table = $wpdb->prefix ."taste_venue_payment_audit";
