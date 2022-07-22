@@ -128,11 +128,53 @@
     let bulkAction = $("#bulk-action-selector-top").val();
     if ("make_payment" === bulkAction) {
       e.preventDefault();
+      console.log($(this).attr("id"));
       makePayments();
     }
   });
 
   const makePayments = () => {
     // select all checked products and put into array of objects by venue id
+    console.log(tf_ajax_data);
+    let paymentObj = {};
+    $(".check-venue-product-payment:checked").each((ndx, chckbox) => {
+      let $rowData = $(chckbox).closest("tr");
+      let venueId = $rowData.data("venue-id");
+      let productId = $rowData.data("product-id");
+      let paymentAmt = $rowData.data("amt");
+      let orderInfo = $rowData.data("order-info");
+      let paymentInfo = {
+        productId,
+        paymentAmt,
+        orderInfo,
+      };
+      if (paymentObj.hasOwnProperty(venueId)) {
+        paymentObj[venueId].push(paymentInfo);
+      } else {
+        paymentObj[venueId] = [paymentInfo];
+      }
+    });
+
+    console.log(paymentObj);
+    jQuery.ajax({
+      url: tf_ajax_data.ajaxurl,
+      type: "POST",
+      datatype: "JSON",
+      data: {
+        action: "venues_page_make_payment",
+        security: tf_ajax_data.security,
+        payment_info: paymentObj,
+      },
+      success: function (responseText) {
+        console.log(responseText);
+        //const parseResponse = JSON.parse(responseText);
+      },
+      error: function (xhr, status, errorThrown) {
+        console.log(errorThrown);
+        alert(
+          "Error making payment. Your login may have timed out. Please refresh the page and try again."
+        );
+      },
+    });
   };
 })(jQuery);

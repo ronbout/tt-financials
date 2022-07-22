@@ -91,7 +91,7 @@ function build_venue_details_table($product_rows, $venue_id, $balance_filter='',
 							$potential_order_amount = $unpaid_order_info['netPayable'];
 							$selected_order_qty = 0;
 							$selected_order_amount = 0;
-							$payment_data = serialize($unpaid_order_info['orderItemList']);
+							$payment_data = json_encode($unpaid_order_info['orderItemList']);
 						} else {
 							$potential_order_qty = 0;
 							$potential_order_amount = 0;
@@ -111,7 +111,8 @@ function build_venue_details_table($product_rows, $venue_id, $balance_filter='',
 						
 						echo "
 						<tr  id='details-row-$venue_id-$product_id' class='details-row-$venue_id' title='$prod_title' 
-																		data-order-info='$payment_data'>
+												data-amt='$potential_order_amount' data-order-info='$payment_data' data-venue-id='$venue_id'
+												data-product-id='$product_id'>
 							<th scope='row' >
 								<input type='checkbox' class='check-venue-product-payment venue-payment-$venue_id'
 												name='venue-product-payment-cb' value='$venue_id-$product_id' >
@@ -213,11 +214,7 @@ function build_payment_with_orders($prod_id, $needed_order_qty, $price, $vat_rat
 			break;
 		} 
 		$prod_qty += $ord_qty;
-		$tmp_order_array[] = array(
-			'orderItemId' => $order_info['itemid'],
-			'orderId' => $order_info['order_id'],
-			'orderQty' => $ord_qty,
-		);
+		$tmp_order_array[] = $order_info['itemid'];
 	}
 
 	$prod_net_payable = tf_calc_net_payable($price, $vat_rate , $comm_rate, $prod_qty, true)['net_payable'];
