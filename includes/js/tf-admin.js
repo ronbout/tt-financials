@@ -53,17 +53,86 @@
   };
 
   const loadPaymentCheckboxes = () => {
-    console.log("loadPaymentCheckboxes");
     $("#cb-select-all-1").change(function (e) {
       let $cb = $(this);
       let checkboxChecked = $cb.prop("checked");
       $(".check-venue-product-payment").prop("checked", checkboxChecked);
+      let $selectOrdQty = $(".select-order-qty");
+      let $selectOrdAmt = $(".select-order-amt");
+      if (checkboxChecked) {
+        $selectOrdQty.each(function () {
+          $(this).text($(this).data("qty"));
+        });
+        $selectOrdAmt.each(function () {
+          $(this).text($(this).data("amt"));
+        });
+      } else {
+        $selectOrdQty.each(function () {
+          $(this).text("0");
+        });
+        $selectOrdAmt.each(function () {
+          $(this).text("0.00");
+        });
+      }
     });
+
     $(".venues-list-bulk-cb").change(function (e) {
       let $cb = $(this);
       let venueId = $cb.val();
       let checkboxChecked = $cb.prop("checked");
       $(`.venue-payment-${venueId}`).prop("checked", checkboxChecked);
+      let $selectOrdQty = $(`.details-row-${venueId} .select-order-qty`);
+      let $selectOrdAmt = $(`.details-row-${venueId} .select-order-amt`);
+      if (checkboxChecked) {
+        $selectOrdQty.each(function () {
+          $(this).text($(this).data("qty"));
+        });
+        $selectOrdAmt.each(function () {
+          $(this).text($(this).data("amt"));
+        });
+      } else {
+        $selectOrdQty.each(function () {
+          $(this).text("0");
+        });
+        $selectOrdAmt.each(function () {
+          $(this).text("0.00");
+        });
+      }
     });
+
+    $(".check-venue-product-payment").change(function (e) {
+      let $cb = $(this);
+      let checkboxChecked = $cb.prop("checked");
+      let venueProd = $cb.val();
+      let $selectOrdQty = $(`#oq-${venueProd}`);
+      let $selectOrdAmt = $(`#oa-${venueProd}`);
+      if (checkboxChecked) {
+        $selectOrdQty.each(function () {
+          $(this).text($(this).data("qty"));
+        });
+        $selectOrdAmt.each(function () {
+          $(this).text($(this).data("amt"));
+        });
+      } else {
+        $selectOrdQty.each(function () {
+          $(this).text("0");
+        });
+        $selectOrdAmt.each(function () {
+          $(this).text("0.00");
+        });
+      }
+    });
+  };
+
+  $("#doaction").click(function (e) {
+    let bulkAction = $("#bulk-action-selector-top").val();
+    if ("make_payment" === bulkAction) {
+      e.preventDefault();
+      makePayments();
+    }
+  });
+
+  const makePayments = () => {
+    // select all checked products and put into array of objects by venue id
   };
 })(jQuery);
