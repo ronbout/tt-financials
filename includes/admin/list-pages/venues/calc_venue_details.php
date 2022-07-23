@@ -155,7 +155,7 @@ function get_unpaid_order_info($product_id, $balance_due, $price, $comm_rate, $v
 	$net_payable_per_order = tf_calc_net_payable($price, $vat_rate , $comm_rate, 1, false)['net_payable'];
 
 	// calc how many orders it would take to fill that amount
-	$needed_order_qty = (int) floor(($balance_due / $net_payable_per_order) + 0.005);
+	$needed_order_qty = (int) ceil((($balance_due + TASTE_PBO_NET_PAYABLE_THRESHOLD) / $net_payable_per_order) + 0.005);
 	if (!$needed_order_qty) {
 		return  array(
 			'netPayable' => '0.00',
@@ -164,11 +164,11 @@ function get_unpaid_order_info($product_id, $balance_due, $price, $comm_rate, $v
 			'orderItemList' => array()
 		);
 	}
-	$selected_order_info = build_payment_with_orders($product_id, $needed_order_qty, $price, $vat_rate, $comm_rate);
+	$selected_order_info = build_payment_with_orders($product_id, $balance_due, $needed_order_qty, $price, $vat_rate, $comm_rate);
 	return $selected_order_info;
 }
 
-function build_payment_with_orders($prod_id, $needed_order_qty, $price, $vat_rate, $comm_rate) {
+function build_payment_with_orders($prod_id, $balance_due, $needed_order_qty, $price, $vat_rate, $comm_rate) {
 	global $wpdb;
 
 	$sql = "
@@ -195,7 +195,6 @@ function build_payment_with_orders($prod_id, $needed_order_qty, $price, $vat_rat
 	
 	$total_qty = 0;
 	$product_list = array();
-	$trouble_product_list = array();
 
 	$targeted_orders = $wpdb->get_results($wpdb->prepare($sql . $limit_clause, $prod_id, $needed_order_qty), ARRAY_A);
 	if (!count($targeted_orders)) {
@@ -210,14 +209,28 @@ function build_payment_with_orders($prod_id, $needed_order_qty, $price, $vat_rat
 	$tmp_order_array = array();
 	foreach ($targeted_orders as $order_info) {
 		$ord_qty = $order_info['quan'];
-		if ($prod_qty + $ord_qty > $needed_order_qty ){
+		$tmp_total_qty = $prod_qty + $ord_qty;
+		$tmp_total_pay = tf_calc_net_payable($price, $vat_rate , $comm_rate, $tmp_total_qty, true)['net_payable'];
+		if ($tmp_total_pay > $balance_due + TASTE_PBO_NET_PAYABLE_THRESHOLD ){
 			break;
 		} 
 		$prod_qty += $ord_qty;
 		$tmp_order_array[] = $order_info['itemid'];
 	}
+	
+	if (!$prod_qty) {
+		return  array(
+			'netPayable' => 0.00,
+			'orderQty' => 0,
+			'neededOrderQty' => 0,
+			'orderItemList' => array()
+		);
+	}
 
 	$prod_net_payable = tf_calc_net_payable($price, $vat_rate , $comm_rate, $prod_qty, true)['net_payable'];
+	if (abs($prod_net_payable - $balance_due) <= TASTE_PBO_NET_PAYABLE_THRESHOLD) {
+		$prod_net_payable = $balance_due;
+	}
 
 	$ret_array = array(
 		'netPayable' => $prod_net_payable,

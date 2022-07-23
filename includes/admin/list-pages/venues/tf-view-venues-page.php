@@ -551,23 +551,23 @@ class TFVenues_list_table extends Taste_list_table {
       switch($balance_filter) {
         case 'positive':
           $tmp_rows = array_filter($tmp_rows, function ($tmp_row)  {
-            return round($tmp_row['balance_due'], 2) > 0;
+            return round($tmp_row['balance_due'], 2) - TASTE_PBO_BALANCE_FILTER_THRESHOLD > 0;
           } );
           break;
         case 'negative':
           $tmp_rows = array_filter($tmp_rows, function ($tmp_row)  {
-            return round($tmp_row['balance_due'], 2) < 0;
+            return round($tmp_row['balance_due'], 2) + TASTE_PBO_BALANCE_FILTER_THRESHOLD < 0;
           } );
           break;
         case 'zero':
           $tmp_rows = array_filter($tmp_rows, function ($tmp_row)  {
-            return round($tmp_row['balance_due'], 2) == 0;
+            return abs(round($tmp_row['balance_due'], 2)) < TASTE_PBO_BALANCE_FILTER_THRESHOLD;
           } );
           break;
           break;
         case 'non-zero':
           $tmp_rows = array_filter($tmp_rows, function ($tmp_row)  {
-            return round($tmp_row['balance_due'], 2) <> 0;
+            return abs(round($tmp_row['balance_due'], 2)) > TASTE_PBO_BALANCE_FILTER_THRESHOLD;
           } );
           break;
       }

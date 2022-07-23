@@ -53,27 +53,30 @@
   };
 
   const loadPaymentCheckboxes = () => {
-    $("#cb-select-all-1").change(function (e) {
-      let $cb = $(this);
-      let checkboxChecked = $cb.prop("checked");
-      $(".check-venue-product-payment").prop("checked", checkboxChecked);
-      let $selectOrdQty = $(".select-order-qty");
-      let $selectOrdAmt = $(".select-order-amt");
-      if (checkboxChecked) {
-        $selectOrdQty.each(function () {
-          $(this).text($(this).data("qty"));
-        });
-        $selectOrdAmt.each(function () {
-          $(this).text($(this).data("amt"));
-        });
-      } else {
-        $selectOrdQty.each(function () {
-          $(this).text("0");
-        });
-        $selectOrdAmt.each(function () {
-          $(this).text("0.00");
-        });
-      }
+    $("[id^=cb-select-all-]").each(function () {
+      $(this).change(function () {
+        let $cb = $(this);
+        let checkboxChecked = $cb.prop("checked");
+        $(".check-venue-product-payment").prop("checked", checkboxChecked);
+        let $selectOrdQty = $(".select-order-qty");
+        let $selectOrdAmt = $(".select-order-amt");
+        if (checkboxChecked) {
+          $selectOrdQty.each(function () {
+            $(this).text($(this).data("qty"));
+          });
+          $selectOrdAmt.each(function () {
+            $(this).text($(this).data("amt"));
+          });
+        } else {
+          $selectOrdQty.each(function () {
+            $(this).text("0");
+          });
+          $selectOrdAmt.each(function () {
+            $(this).text("0.00");
+          });
+        }
+        checkMakePaymentDisabled();
+      });
     });
 
     $(".venues-list-bulk-cb").change(function (e) {
@@ -98,14 +101,16 @@
           $(this).text("0.00");
         });
       }
+      checkMakePaymentDisabled();
     });
 
     $(".check-venue-product-payment").change(function (e) {
-      let $cb = $(this);
-      let checkboxChecked = $cb.prop("checked");
-      let venueProd = $cb.val();
-      let $selectOrdQty = $(`#oq-${venueProd}`);
-      let $selectOrdAmt = $(`#oa-${venueProd}`);
+      const $cb = $(this);
+      const checkboxChecked = $cb.prop("checked");
+      const venueProd = $cb.val();
+      const venueId = venueProd.split("-")[0];
+      const $selectOrdQty = $(`#oq-${venueProd}`);
+      const $selectOrdAmt = $(`#oa-${venueProd}`);
       if (checkboxChecked) {
         $selectOrdQty.each(function () {
           $(this).text($(this).data("qty"));
@@ -121,7 +126,11 @@
           $(this).text("0.00");
         });
       }
+      checkMakePaymentDisabled();
+      checkVenueCheckbox(venueId);
+      checkVenueCheckAll();
     });
+    checkMakePaymentDisabled();
   };
 
   $("#doaction").click(function (e) {
@@ -154,6 +163,13 @@
       }
     });
 
+    if (!Object.keys(paymentObj).length) {
+      alert(
+        "No valid products were selected for payment.  Balance due amounts may have been too small for a single order of that product."
+      );
+      return;
+    }
+
     jQuery.ajax({
       url: tf_ajax_data.ajaxurl,
       type: "POST",
@@ -184,5 +200,46 @@
         );
       },
     });
+  };
+
+  const checkMakePaymentDisabled = () => {
+    let $bulkSelector = $("[id^=bulk-action-selector-]");
+    let $makePaymentOption = $bulkSelector.children(
+      "option[value='make_payment']"
+    );
+    if ($(".check-venue-product-payment:checked").length) {
+      $makePaymentOption.prop("disabled", false);
+    } else {
+      $makePaymentOption.attr("disabled", true);
+      $bulkSelector.each(function () {
+        if ("make_payment" === $(this).val() || null === $(this).val()) {
+          $(this).val(-1).change();
+        }
+      });
+    }
+  };
+
+  const checkVenueCheckbox = (venueId) => {
+    const $venueCbs = $(`.venue-payment-${venueId}`);
+    const venueCbCount = $venueCbs.length;
+    const venueCbCheckedCount = $(`.venue-payment-${venueId}:checked`).length;
+    const venueChckBox = $(`.venues-list-bulk-cb[value='${venueId}']`);
+    if (venueCbCheckedCount === venueCbCount) {
+      $(`.venues-list-bulk-cb[value='${venueId}']`).prop("checked", true);
+    } else {
+      $(`.venues-list-bulk-cb[value='${venueId}']`).prop("checked", false);
+    }
+  };
+
+  const checkVenueCheckAll = () => {
+    const $venueRowCbs = $(".venues-list-bulk-cb");
+    const venueRowCount = $venueRowCbs.length;
+    const venueRowCheckedCount = $(".venues-list-bulk-cb:checked").length;
+    const $venueAllChckBox = $("[id^=cb-select-all-]");
+    if (venueRowCheckedCount === venueRowCount) {
+      $venueAllChckBox.prop("checked", true);
+    } else {
+      $venueAllChckBox.prop("checked", false);
+    }
   };
 })(jQuery);
