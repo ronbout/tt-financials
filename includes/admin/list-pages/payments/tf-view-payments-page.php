@@ -62,16 +62,18 @@ class TFPayments_list_table extends Taste_list_table {
 		
   protected function column_venue_id($item) {
 		$venue_id = $item['venue_id'];
-		$cm_link = get_site_url(null, "/campaign-manager/?venue-id={$venue_id}");
-		return "<a href='$cm_link'>$venue_id</a>";
+		$cm_link = esc_url(get_site_url(null, "/campaign-manager/?venue-id={$venue_id}"));
+    $title = "Campaign Manager Page for {$item['venue_name']}";
+		return "<a title='$title' href='$cm_link'>$venue_id</a>";
 	}
     
   protected function column_venue_name($item) {
     $venue_id = $item['venue_id'];
     $venue_name = $item['venue_name'];
     $link = esc_url(add_query_arg('venue-id', $venue_id));
+    $title = "Filter this page by $venue_name";
       return "
-        <a href='$link'>$venue_name</a>
+        <a title='$title' href='$link'>$venue_name</a>
         ";
    }
       
@@ -81,8 +83,9 @@ class TFPayments_list_table extends Taste_list_table {
 
 		if ($trans_linkable) {
 			$payment_id = $item['payment_id'];
-			$cm_link = get_admin_url( null, "admin.php?page=view-order-transactions&payment-id=$payment_id");
-			return "<a href='$cm_link' >$payment_id</a>";
+			$trans_link = esc_url(get_admin_url( null, "admin.php?page=view-order-transactions&payment-id=$payment_id"));
+      $title = "View payment $payment_id in the Order Transactions Page";
+			return "<a title='$title' href='$trans_link' >$payment_id</a>";
 		} else {
 			return $item['payment_id'];
 		}
@@ -148,7 +151,7 @@ class TFPayments_list_table extends Taste_list_table {
 
   protected function get_views() {
 		$get_string = tf_check_query(false);
-    $cur_status_type = isset($_REQUEST['pay-status']) && $_REQUEST['pay-status'] ? $_REQUEST['pay-status'] : 'all';
+    $cur_status_type = isset($_REQUEST['pay-status']) && $_REQUEST['pay-status'] ? wp_unslash( $_REQUEST['pay-status']) : 'all';
 		$get_string = remove_query_arg( 'pay-status', $get_string ); 
 
     $list_link = "admin.php?$get_string";
@@ -221,7 +224,7 @@ class TFPayments_list_table extends Taste_list_table {
   protected function months_dropdown() {
     global $wpdb, $wp_locale;
 
-    $m = isset( $_REQUEST['m'] ) ? $_REQUEST['m'] : '';
+    $m = isset( $_REQUEST['m'] ) ? wp_unslash( $_REQUEST['m']) : '';
 
     $sql = "
         SELECT DISTINCT YEAR( payment_date ) AS year, MONTH( payment_date ) AS month
@@ -258,8 +261,8 @@ class TFPayments_list_table extends Taste_list_table {
   }
   
   protected function years_dropdown() {
-    $yr = isset( $_REQUEST['yr'] ) ? (int) $_REQUEST['yr'] : 0;
-    $m = isset( $_REQUEST['m'] ) ? $_REQUEST['m'] : '';
+    $yr = isset( $_REQUEST['yr'] ) ? (int) wp_unslash( $_REQUEST['yr']) : 0;
+    $m = isset( $_REQUEST['m'] ) ? wp_unslash( $_REQUEST['m']) : '';
     $yr_options = array_reduce($this->years, function ($ret_options, $year) use ($yr) {
       $ret_options .= "<option value='$year'" . ($year == $yr ? " selected " : "") .  ">$year</option>";
       return $ret_options;
@@ -277,9 +280,9 @@ class TFPayments_list_table extends Taste_list_table {
     $end_date = date_format($tmp_dt, "Y-m-d");
     $tmp_dt = date_add($tmp_dt, date_interval_create_from_date_string("-1 month"));
     $begin_date = date_format($tmp_dt, "Y-m-d");
-    $dt1 = isset( $_REQUEST['dt1'] ) ? $_REQUEST['dt1'] : $begin_date;
-    $dt2 = isset( $_REQUEST['dt2'] ) ? $_REQUEST['dt2'] : $end_date;
-    $m = isset( $_REQUEST['m'] ) ? $_REQUEST['m'] : '';
+    $dt1 = isset( $_REQUEST['dt1'] ) ? wp_unslash( $_REQUEST['dt1']) : $begin_date;
+    $dt2 = isset( $_REQUEST['dt2'] ) ? wp_unslash( $_REQUEST['dt2']) : $end_date;
+    $m = isset( $_REQUEST['m'] ) ? wp_unslash( $_REQUEST['m']) : '';
     $style = ("custom" != $m) ? "style='display: none;'" : "";
     ?>
 		<span id="list-date-range-container" <?php echo $style ?>>
@@ -344,8 +347,8 @@ class TFPayments_list_table extends Taste_list_table {
   }
 
   protected function check_list_get_vars() {
-    $order_by = isset($_REQUEST['orderby']) ? $_REQUEST['orderby'] : '';
-    $order = isset($_REQUEST['order']) ? $_REQUEST['order'] : '';
+    $order_by = isset($_REQUEST['orderby']) ? wp_unslash( $_REQUEST['orderby']) : '';
+    $order = isset($_REQUEST['order']) ? wp_unslash( $_REQUEST['order']) : '';
 
 		$filters_list_to_check = array(
 			'payment-id' => 'payment_id',
@@ -362,7 +365,7 @@ class TFPayments_list_table extends Taste_list_table {
 		$filters = array();
 		foreach($filters_list_to_check as $get_name => $arr_name) {
 			if (isset($_REQUEST[$get_name]) &&  !is_null($_REQUEST[$get_name])) {
-				$filters[$arr_name] = $_REQUEST[$get_name];
+				$filters[$arr_name] = wp_unslash( $_REQUEST[$get_name]);
 			}
 		}
 
@@ -636,7 +639,7 @@ function tf_build_payments_admin_list_table() {
 			<div id="tf_post_body">	
         <?php $tf_payments_table->views() ?>
 				<form id="tf-payments-form" method="get">	
-					<input type="hidden" name="page" value="<?php echo $_REQUEST['page'] ?>" />				
+					<input type="hidden" name="page" value="<?php echo wp_unslash( $_REQUEST['page']) ?>" />				
 					<?php 
             $tf_payments_table->search_box("Search Payments", 'tf-payments-search');
             $tf_payments_table->display(); 

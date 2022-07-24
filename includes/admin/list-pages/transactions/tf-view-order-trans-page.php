@@ -70,8 +70,9 @@ class TFTRans_list_table extends Taste_list_table {
 
     $payment_id = $item['payment_id'];
     if ($payment_id) {
-      $link = get_admin_url( null, "admin.php?page=view-payments&payment-id=$payment_id");
-      $display = "<a href='$cm_link' >$payment_id</a>";
+      $link = esc_url(get_admin_url( null, "admin.php?page=view-payments&payment-id=$payment_id"));
+      $title = "View Payment $payment_id in the Payments Page";
+      $display = "<a title='$title' href='$link' >$payment_id</a>";
       return $this->add_filter_by_action($payment_id, 'payment_id', $display);
     }
     return $payment_id;
@@ -79,9 +80,10 @@ class TFTRans_list_table extends Taste_list_table {
 
    protected function column_venue_id($item) {
     $venue_id = $item['venue_id'];
-    $cm_link = get_site_url(null, "/campaign-manager/?venue-id={$venue_id}");
+    $cm_link = esc_url(get_site_url(null, "/campaign-manager/?venue-id={$venue_id}"));
+    $title = "Campaign Manager Page for {$item['venue_name']}";
       return "
-        <a href='$cm_link'>$venue_id</a>
+        <a title='$title' href='$cm_link'>$venue_id</a>
         ";
    }
    
@@ -89,8 +91,9 @@ class TFTRans_list_table extends Taste_list_table {
     $venue_id = $item['venue_id'];
     $venue_name = $item['venue_name'];
     $link = esc_url(add_query_arg('venue-id', $venue_id));
+    $title = "Filter this page by $venue_name";
       return "
-        <a href='$link'>$venue_name</a>
+        <a title='$title' href='$link'>$venue_name</a>
         ";
    }
 
@@ -104,8 +107,10 @@ class TFTRans_list_table extends Taste_list_table {
       case 'order_id':
       case 'product_id':
         $col_id = $item[$column_name];
-        $col_link = get_edit_post_link($col_id);
-        $display = "<a href='$col_link'>$col_id</a>";
+        $col_display_name = str_replace('_', ' ', $column_name);
+        $col_link = esc_url(get_edit_post_link($col_id));
+        $title = "View $col_display_name $col_id in Admin Edit Page";
+        $display = "<a title='$title' href='$col_link'>$col_id</a>";
         return $this->add_filter_by_action($col_id, $column_name, $display);
         break;
       case 'id':
@@ -151,7 +156,7 @@ class TFTRans_list_table extends Taste_list_table {
 
   protected function get_views() {
 		$get_string = tf_check_query(false);
-    $cur_trans_type = isset($_REQUEST['trans-type']) && $_REQUEST['trans-type'] ? $_REQUEST['trans-type'] : 'all';
+    $cur_trans_type = isset($_REQUEST['trans-type']) && $_REQUEST['trans-type'] ? wp_unslash( $_REQUEST['trans-type']) : 'all';
 		$get_string = remove_query_arg( 'trans-type', $get_string ); 
 
     $list_link = "admin.php?$get_string";
@@ -224,7 +229,7 @@ class TFTRans_list_table extends Taste_list_table {
   protected function months_dropdown() {
     global $wpdb, $wp_locale;
 
-    $m = isset( $_REQUEST['m'] ) ? $_REQUEST['m'] : '';
+    $m = isset( $_REQUEST['m'] ) ? wp_unslash( $_REQUEST['m'] ) : '';
 
     $sql = "
         SELECT DISTINCT YEAR( transaction_date ) AS year, MONTH( transaction_date ) AS month
@@ -261,8 +266,8 @@ class TFTRans_list_table extends Taste_list_table {
   }
   
   protected function years_dropdown() {
-    $yr = isset( $_REQUEST['yr'] ) ? (int) $_REQUEST['yr'] : 0;
-    $m = isset( $_REQUEST['m'] ) ? $_REQUEST['m'] : '';
+    $yr = isset( $_REQUEST['yr'] ) ? (int) wp_unslash( $_REQUEST['yr'] ): 0;
+    $m = isset( $_REQUEST['m'] ) ? wp_unslash( $_REQUEST['m']) : '';
     $yr_options = array_reduce($this->years, function ($ret_options, $year) use ($yr) {
       $ret_options .= "<option value='$year'" . ($year == $yr ? " selected " : "") .  ">$year</option>";
       return $ret_options;
@@ -280,9 +285,9 @@ class TFTRans_list_table extends Taste_list_table {
     $end_date = date_format($tmp_dt, "Y-m-d");
     $tmp_dt = date_add($tmp_dt, date_interval_create_from_date_string("-1 month"));
     $begin_date = date_format($tmp_dt, "Y-m-d");
-    $dt1 = isset( $_REQUEST['dt1'] ) ? $_REQUEST['dt1'] : $begin_date;
-    $dt2 = isset( $_REQUEST['dt2'] ) ? $_REQUEST['dt2'] : $end_date;
-    $m = isset( $_REQUEST['m'] ) ? $_REQUEST['m'] : '';
+    $dt1 = isset( $_REQUEST['dt1'] ) ? wp_unslash( $_REQUEST['dt1']) : $begin_date;
+    $dt2 = isset( $_REQUEST['dt2'] ) ? wp_unslash( $_REQUEST['dt2']) : $end_date;
+    $m = isset( $_REQUEST['m'] ) ? wp_unslash( $_REQUEST['m']) : '';
     $style = ("custom" != $m) ? "style='display: none;'" : "";
     ?>
 		<span id="list-date-range-container" <?php echo $style ?>>
@@ -351,8 +356,8 @@ class TFTRans_list_table extends Taste_list_table {
   }
 
   protected function check_list_get_vars() {
-    $order_by = isset($_REQUEST['orderby']) ? $_REQUEST['orderby'] : '';
-    $order = isset($_REQUEST['order']) ? $_REQUEST['order'] : '';
+    $order_by = isset($_REQUEST['orderby']) ? wp_unslash( $_REQUEST['orderby']) : '';
+    $order = isset($_REQUEST['order']) ? wp_unslash( $_REQUEST['order']) : '';
 
 		$filters_list_to_check = array(
 			'trans-type' => 'trans_type',
@@ -371,7 +376,7 @@ class TFTRans_list_table extends Taste_list_table {
 		$filters = array();
 		foreach($filters_list_to_check as $get_name => $arr_name) {
 			if (isset($_REQUEST[$get_name]) &&  !is_null($_REQUEST[$get_name])) {
-				$filters[$arr_name] = $_REQUEST[$get_name];
+				$filters[$arr_name] = wp_unslash( $_REQUEST[$get_name]);
 			}
 		}
 
@@ -631,7 +636,7 @@ function tf_build_trans_admin_list_table() {
 			<div id="tf_post_body">	
         <?php $tf_trans_table->views() ?>
 				<form id="tf-order-trans-form" method="get">	
-					<input type="hidden" name="page" value="<?php echo $_REQUEST['page'] ?>" />				
+					<input type="hidden" name="page" value="<?php echo wp_unslash( $_REQUEST['page']) ?>" />				
 					<?php 
             $tf_trans_table->search_box("Search Transactions", 'tf-trans-search');
             $tf_trans_table->display(); 

@@ -103,8 +103,9 @@ function build_details_table($pay_prod_rows, $payment_row, $this_ref) {
 						if (!$trans_linkable) {
 							$product_id_disp = $product_id;
 						} else {
-							$pay_prod_link = get_admin_url( null, "admin.php?page=view-order-transactions&payment-id=$payment_id&product-id=$product_id");
-							$product_id_disp = "<a href='$pay_prod_link'>$product_id</a>";
+							$pay_prod_link = esc_url(get_admin_url( null, "admin.php?page=view-order-transactions&payment-id=$payment_id&product-id=$product_id"));
+							$title = "View Product $product_id of Payment {$payment_row['payment_id']} in the Order Transactions Page";
+							$product_id_disp = "<a title='$title' href='$pay_prod_link'>$product_id</a>";
 						}
 						$product_id_disp = $this_ref->add_filter_by_action($product_id, 'product_id', $product_id_disp);
 						

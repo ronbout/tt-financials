@@ -81,9 +81,10 @@ class TFVenues_list_table extends Taste_list_table {
 
   protected function column_venue_id($item) {
     $venue_id = $item['venue_id'];
-    $cm_link = get_site_url(null, "/campaign-manager/?venue-id={$venue_id}");
+    $cm_link = esc_url(get_site_url(null, "/campaign-manager/?venue-id={$venue_id}"));
+    $title = "Campaign Manager Page for {$item['name']}";
       return "
-        <a href='$cm_link'>$venue_id</a>
+        <a title='$title' href='$cm_link'>$venue_id</a>
         ";
    }
          
@@ -153,7 +154,7 @@ class TFVenues_list_table extends Taste_list_table {
 
   protected function get_views() {
 		$get_string = tf_check_query(false);
-    $cur_venue_type = isset($_REQUEST['venue-type']) && $_REQUEST['venue-type'] ? $_REQUEST['venue-type'] : 'all';
+    $cur_venue_type = isset($_REQUEST['venue-type']) && $_REQUEST['venue-type'] ? wp_unslash( $_REQUEST['venue-type'] ): 'all';
 		$get_string = remove_query_arg( 'venue-type', $get_string ); 
 
     $list_link = "admin.php?$get_string";
@@ -300,8 +301,8 @@ class TFVenues_list_table extends Taste_list_table {
   }
 
   protected function check_list_get_vars() {
-    $order_by = isset($_REQUEST['orderby']) ? $_REQUEST['orderby'] : '';
-    $order = isset($_REQUEST['order']) ? $_REQUEST['order'] : '';
+    $order_by = isset($_REQUEST['orderby']) ? wp_unslash( $_REQUEST['orderby']) : '';
+    $order = isset($_REQUEST['order']) ? wp_unslash( $_REQUEST['order']) : '';
 
 		$filters_list_to_check = array(
 			'venue-type' => 'venue_type',
@@ -313,7 +314,7 @@ class TFVenues_list_table extends Taste_list_table {
 		$filters = array();
 		foreach($filters_list_to_check as $get_name => $arr_name) {
 			if (isset($_REQUEST[$get_name]) &&  !is_null($_REQUEST[$get_name])) {
-				$filters[$arr_name] = $_REQUEST[$get_name];
+				$filters[$arr_name] = wp_unslash( $_REQUEST[$get_name]);
 			}
 		}
 
@@ -592,7 +593,7 @@ function tf_build_venues_admin_list_table() {
 			<div id="tf_post_body">	
         <?php $tf_venues_table->views() ?>
 				<form id="tf-venues-form" method="get">	
-					<input type="hidden" name="page" value="<?php echo $_REQUEST['page'] ?>" />				
+					<input type="hidden" name="page" value="<?php echo wp_unslash( $_REQUEST['page']) ?>" />				
 					<?php 
             $tf_venues_table->search_box("Search Venues", 'tf-venues-search');
             $tf_venues_table->display(); 

@@ -1166,7 +1166,7 @@ class Taste_list_table {
 		
 		$hidden = get_user_option( 'manage' . $this->screen->id . 'columnshidden' );
 		if (!$hidden || !is_array($hidden) || !count($hidden) ) {
-			$hidden  = get_hidden_columns( $this->screen );
+			$hidden  = $this->get_hidden_columns( );
 		}
 
 		$sortable_columns = $this->get_sortable_columns();
