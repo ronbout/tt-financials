@@ -19,14 +19,11 @@ $venue_id_list = array_column($venue_rows, 'venue_id');
 
 foreach($venue_rows as &$venue_row) {
 	$venue_id = $venue_row['venue_id'];
-	$col_count = count($this->get_columns());
-	// $col_count2 = $this->get_column_count();
-	$hidden_col_cnt = count($this->get_hidden_columns());
-	$display_col_cnt = $col_count - $hidden_col_cnt;
+	$col_count = $this->get_column_count();	
 
 	$product_calcs = $venue_row['prod_calcs'];
 		
-	$details = "<td colspan='$display_col_cnt'>";
+	$details = "<td colspan='$col_count'>";
 	$details .= build_venue_details_table($product_calcs, $venue_id, $balance_filter, $this);
 	$details .= "</td>";
 	$venue_row['details'] = $details;

@@ -74,7 +74,7 @@ body.woocommerce_page_view-venues .venue-details-container {
   border: 2px solid lightblue;
   border-radius: 12px;
   width: 90%;
-  margin: 0 8% 0 6%;
+  margin: auto;
   padding: 8px 20px;
 }
 body.woocommerce_page_view-payments table.widefat,
@@ -85,6 +85,9 @@ body.woocommerce_page_view-venues table.widefat {
 #tf_post_body #reset-btn {
   background-color: darkorange;
   color: white;
+}
+#tf_post_body .clear-filter {
+  margin-right: 6px;
 }
 
 /*# sourceMappingURL=tf-admin.css.map */

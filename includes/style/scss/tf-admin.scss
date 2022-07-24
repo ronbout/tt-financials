@@ -70,7 +70,7 @@ body.woocommerce_page_view-venues {
     border: 2px solid lightblue;
     border-radius: 12px;
     width: 90%;
-    margin: 0 8% 0 6%;
+    margin: auto;
     padding: 8px 20px;
   }
 
@@ -79,7 +79,13 @@ body.woocommerce_page_view-venues {
   }
 }
 
-#tf_post_body #reset-btn {
-  background-color: darkorange;
-  color: white;
+#tf_post_body {
+  #reset-btn {
+    background-color: darkorange;
+    color: white;
+  }
+
+  .clear-filter {
+    margin-right: 6px;
+  }
 }

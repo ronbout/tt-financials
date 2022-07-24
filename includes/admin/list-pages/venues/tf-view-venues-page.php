@@ -296,11 +296,7 @@ class TFVenues_list_table extends Taste_list_table {
       'per_page' => $per_page,
     );
     $this->set_pagination_args($pagination_args);
-
-    $columns = $this->get_columns();
-    $hidden = $this->get_hidden_columns();
-    $sortable = $this->get_sortable_columns();
-    $this->_column_headers = array($columns, $hidden, $sortable);
+    $this->_column_headers = $this->get_column_info();
   }
 
   protected function check_list_get_vars() {

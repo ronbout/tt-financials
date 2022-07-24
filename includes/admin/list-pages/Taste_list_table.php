@@ -1163,7 +1163,11 @@ class Taste_list_table {
 		}
 
 		$columns = get_column_headers( $this->screen );
-		$hidden  = get_hidden_columns( $this->screen );
+		
+		$hidden = get_user_option( 'manage' . $this->screen->id . 'columnshidden' );
+		if (!$hidden || !is_array($hidden) || !count($hidden) ) {
+			$hidden  = get_hidden_columns( $this->screen );
+		}
 
 		$sortable_columns = $this->get_sortable_columns();
 		/**
@@ -1371,16 +1375,16 @@ class Taste_list_table {
 			<?php $this->bulk_actions( $which ); ?>
 		</div>
 			<?php
-		endif;
-		$this->extra_tablenav( $which );
+		endif;		
 		if ('top' === $which) {
 			$reload_link = admin_url('admin.php') . "?page={$_REQUEST['page']}";
 			?>
-			<a href="<?php echo $reload_link ?>">
+			<a class="alignleft clear-filter" href="<?php echo $reload_link ?>">
 				<button type="button" class="button" id="reset-btn">Clear Filters</button>
 			</a>
 			<?php
 		}
+		$this->extra_tablenav( $which );
 		$this->pagination( $which );
 		?>
 

@@ -38,12 +38,7 @@ $sql = $wpdb->prepare($sql, $payment_ids);
 $pay_prod_info_rows = $wpdb->get_results($sql, ARRAY_A);
 
 $payment_rows_w_details = array_map(function ($payment_row) use ($pay_prod_info_rows) {
-
-	$col_count = count($this->get_columns());
-	// $col_count2 = $this->get_column_count();
-	$hidden_col_cnt = count($this->get_hidden_columns());
-	$display_col_cnt = $col_count - $hidden_col_cnt;
-
+	$col_count = $this->get_column_count();
 	$tmp_row = $payment_row;
 	$payment_id = $tmp_row['payment_id'];
 
@@ -52,7 +47,7 @@ $payment_rows_w_details = array_map(function ($payment_row) use ($pay_prod_info_
 		return $payment_id == $row['payment_id'];
 	});
 
-	$details = "<td colspan='$display_col_cnt'>";
+	$details = "<td colspan='$col_count'>";
 	$details .= build_details_table($pay_prod_rows, $tmp_row, $this);
 	$details .= "</td>";
 	$tmp_row['details'] = $details;
@@ -72,13 +67,13 @@ function build_details_table($pay_prod_rows, $payment_row, $this_ref) {
 					<tr>
 						<th class="tf-aligncenter">Product ID</th>
 						<th class="tf-aligncenter">Staged Payment</th>
-						<th class="tf-aligncenter">Price</th>
-						<th class="tf-aligncenter">Quantity Sold</th>
-						<th class="tf-aligncenter">Gross Sales</th>
-						<th class="tf-aligncenter">Commission %</th>
-						<th class="tf-aligncenter">Commission Amount</th>
-						<th class="tf-aligncenter">VAT %</th>
-						<th class="tf-aligncenter">VAT Amount</th>
+						<th class="tf-alignright">Price</th>
+						<th class="tf-alignright">Quantity Sold</th>
+						<th class="tf-alignright">Gross Sales</th>
+						<th class="tf-alignright">Commission %</th>
+						<th class="tf-alignright">Commission Amount</th>
+						<th class="tf-alignright">VAT %</th>
+						<th class="tf-alignright">VAT Amount</th>
 					</tr>
 				</thead>
 				<tbody>
