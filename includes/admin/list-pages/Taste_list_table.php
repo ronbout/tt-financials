@@ -1373,6 +1373,14 @@ class Taste_list_table {
 			<?php
 		endif;
 		$this->extra_tablenav( $which );
+		if ('top' === $which) {
+			$reload_link = admin_url('admin.php') . "?page={$_REQUEST['page']}";
+			?>
+			<a href="<?php echo $reload_link ?>">
+				<button type="button" class="button" id="reset-btn">Clear Filters</button>
+			</a>
+			<?php
+		}
 		$this->pagination( $which );
 		?>
 

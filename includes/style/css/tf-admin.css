@@ -82,4 +82,9 @@ body.woocommerce_page_view-venues table.widefat {
   border: none;
 }
 
+#tf_post_body #reset-btn {
+  background-color: darkorange;
+  color: white;
+}
+
 /*# sourceMappingURL=tf-admin.css.map */
