@@ -161,15 +161,18 @@ class TFVenues_list_table extends Taste_list_table {
 
     $venue_types_counts = $this->count_venue_types();
 
+    // put in a hidden field so that trans type is preserved if filter selected
+    $hidden_input = "<input type='hidden' name='venue-type' value='$cur_venue_type' />	";
+
     $tot_cnt = 0;
-    $tmp_views = array();
+    $tmp_views = array();     
     foreach ($venue_types_counts as $v_type => $v_cnt) {
       $tot_cnt += (int) $v_cnt;
       $venue_type = $this->convert_venue_type_to_slug( $v_type);
       $v_cnt = number_format($v_cnt);
 
       if ($cur_venue_type == $venue_type ) {
-        $tmp_views[$venue_type] = "<strong>{$v_type} ($v_cnt)</strong>";
+        $tmp_views[$venue_type] = "<strong>{$v_type} ($v_cnt)</strong>$hidden_input";
       } else {
         $tmp_views[$venue_type] = "<a href='${list_link}&venue-type=$venue_type'>{$v_type} ($v_cnt)</a>";
       }
@@ -591,8 +594,8 @@ function tf_build_venues_admin_list_table() {
 		<h2>Venues</h2>
 		<div id="tf_venues">			
 			<div id="tf_post_body">	
-        <?php $tf_venues_table->views() ?>
 				<form id="tf-venues-form" method="get">	
+          <?php $tf_venues_table->views() ?>
 					<input type="hidden" name="page" value="<?php echo wp_unslash( $_REQUEST['page']) ?>" />				
 					<?php 
             $tf_venues_table->search_box("Search Venues", 'tf-venues-search');

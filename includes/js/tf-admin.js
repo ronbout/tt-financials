@@ -10,23 +10,31 @@
       $(".display-details-btn").length && loadDetailToggle();
       $(".check-venue-product-payment").length && loadPaymentCheckboxes();
       $("#run-build-trans").length && tfLoadRunTransButton();
+      $("#tf-order-trans-form").length && tfLoadOrderTransFormSubmit();
     }
   });
 
   const loadDateSelect = () => {
-    let $yearSelect = $("#list-year-select");
-    let $dtRangeSelect = $("#list-date-range-container");
+    const $yearSelect = $("#list-year-select");
+    const $dtRangeSelect = $("#list-date-range-container");
+    const $dtInputs = $("#list-date-start, #list-date-end");
     $("#filter-by-date").change(function () {
       let dtSelectType = $(this).val();
       if ("year" === dtSelectType) {
         $dtRangeSelect.hide(300);
+        $dtInputs.attr("disabled", true);
+        $yearSelect.attr("disabled", false);
         $yearSelect.show(300);
       } else if ("custom" === dtSelectType) {
         $yearSelect.hide(300);
+        $yearSelect.attr("disabled", true);
+        $dtInputs.attr("disabled", false);
         $dtRangeSelect.show(300);
       } else {
         $yearSelect.hide(300);
         $dtRangeSelect.hide(300);
+        $yearSelect.attr("disabled", true);
+        $dtInputs.attr("disabled", true);
       }
     });
   };
@@ -275,5 +283,25 @@
         const page = $(this).data("page");
         tfRunTransBuild(startDate, page);
       });
+  };
+
+  const tfLoadOrderTransFormSubmit = () => {
+    // turn off filters that are not used to clean up the url
+    // const formId = "#tf-order-trans-form";
+    // $(formId)
+    //   .off("submit")
+    //   .on("submit", function (e) {
+    //     const dropdowns = [
+    //       "bulk-action-selector-top",
+    //       "bulk-action-selector-bottom",
+    //       "trans-list-venue-selection",
+    //     ];
+    //     dropdowns.forEach((selectId) => {
+    //       let $select = $(`#${selectId}`);
+    //       if ("-1" == $select.val()) {
+    //         $select.val("");
+    //       }
+    //     });
+    //   });
   };
 })(jQuery);

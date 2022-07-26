@@ -162,6 +162,9 @@ class TFTRans_list_table extends Taste_list_table {
     $list_link = "admin.php?$get_string";
 
     $trans_types_counts = $this->count_trans_types();
+    
+    // put in a hidden field so that trans type is preserved if filter selected
+    $hidden_input = "<input type='hidden' name='trans-type' value='$cur_trans_type' />	";
 
     $tot_cnt = 0;
     $tmp_views = array();
@@ -170,8 +173,9 @@ class TFTRans_list_table extends Taste_list_table {
       $trans_type = $this->convert_trans_type_to_slug( $t_type);
       $t_cnt = number_format($t_cnt);
 
+
       if ($cur_trans_type == $trans_type ) {
-        $tmp_views[$trans_type] = "<strong>{$t_type} ($t_cnt)</strong>";
+        $tmp_views[$trans_type] = "<strong>{$t_type} ($t_cnt)</strong>$hidden_input";
       } else {
         $tmp_views[$trans_type] = "<a href='${list_link}&trans-type=$trans_type'>{$t_type} ($t_cnt)</a>";
       }
@@ -226,7 +230,7 @@ class TFTRans_list_table extends Taste_list_table {
     }
   }
 
-  protected function months_dropdown() {
+  protected function months_dropdown($post_type=null) {
     global $wpdb, $wp_locale;
 
     $m = isset( $_REQUEST['m'] ) ? wp_unslash( $_REQUEST['m'] ) : '';
@@ -272,7 +276,7 @@ class TFTRans_list_table extends Taste_list_table {
       $ret_options .= "<option value='$year'" . ($year == $yr ? " selected " : "") .  ">$year</option>";
       return $ret_options;
     }, "");
-    $style = ("year" != $m) ? "style='display: none;'" : "";
+    $style = ("year" != $m) ? "disabled style='display: none;'" : "";
     ?>
     <select name="yr" id="list-year-select" <?php echo $style ?> >
       <?php echo $yr_options ?>
@@ -289,11 +293,12 @@ class TFTRans_list_table extends Taste_list_table {
     $dt2 = isset( $_REQUEST['dt2'] ) ? wp_unslash( $_REQUEST['dt2']) : $end_date;
     $m = isset( $_REQUEST['m'] ) ? wp_unslash( $_REQUEST['m']) : '';
     $style = ("custom" != $m) ? "style='display: none;'" : "";
+    $disabled = ("custom" != $m) ? "disabled" : "";
     ?>
 		<span id="list-date-range-container" <?php echo $style ?>>
-      <input type="date" name="dt1" id="list-date-start" value="<?php echo $dt1 ?>">
+      <input type="date" name="dt1" id="list-date-start" <?php echo $disabled ?> value="<?php echo $dt1 ?>">
       <span>to</span>
-      <input type="date" name="dt2" id="list-date-end" value="<?php echo $dt2 ?>">
+      <input type="date" name="dt2" id="list-date-end" <?php echo $disabled ?> value="<?php echo $dt2 ?>">
     </span>
     <?php
   }
@@ -650,8 +655,8 @@ function tf_build_trans_admin_list_table() {
         Lorem ipsum dolor sit amet consectetur adipisicing elit. Perspiciatis nesciunt fugiat maiores architecto facilis voluptatem dolore sapiente unde eligendi accusantium!
       </div>
 			<div id="tf_post_body">	
-        <?php $tf_trans_table->views() ?>
 				<form id="tf-order-trans-form" method="get">	
+           <?php $tf_trans_table->views() ?>
 					<input type="hidden" name="page" value="<?php echo $cur_page ?>" />				
 					<?php 
             $tf_trans_table->search_box("Search Transactions", 'tf-trans-search');

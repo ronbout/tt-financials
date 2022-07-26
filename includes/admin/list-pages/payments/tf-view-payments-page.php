@@ -157,6 +157,9 @@ class TFPayments_list_table extends Taste_list_table {
     $list_link = "admin.php?$get_string";
 
     $payment_status_counts = $this->count_payment_status();
+    
+    // put in a hidden field so that trans type is preserved if filter selected
+    $hidden_input = "<input type='hidden' name='pay-status' value='$cur_status_type' />	";
 
     $tot_cnt = 0;
     $tmp_views = array();
@@ -166,7 +169,7 @@ class TFPayments_list_table extends Taste_list_table {
       $s_cnt = number_format($s_cnt);
 
       if ($cur_status_type == $pay_status ) {
-        $tmp_views[$pay_status] = "<strong>{$p_status} ($s_cnt)</strong>";
+        $tmp_views[$pay_status] = "<strong>{$p_status} ($s_cnt)</strong>$hidden_input";
       } else {
         $tmp_views[$pay_status] = "<a href='${list_link}&pay-status=$pay_status'>{$p_status} ($s_cnt)</a>";
       }
@@ -221,7 +224,7 @@ class TFPayments_list_table extends Taste_list_table {
     }
   }
 
-  protected function months_dropdown() {
+  protected function months_dropdown($post_type=null) {
     global $wpdb, $wp_locale;
 
     $m = isset( $_REQUEST['m'] ) ? wp_unslash( $_REQUEST['m']) : '';
@@ -284,9 +287,10 @@ class TFPayments_list_table extends Taste_list_table {
     $dt2 = isset( $_REQUEST['dt2'] ) ? wp_unslash( $_REQUEST['dt2']) : $end_date;
     $m = isset( $_REQUEST['m'] ) ? wp_unslash( $_REQUEST['m']) : '';
     $style = ("custom" != $m) ? "style='display: none;'" : "";
+    $disabled = ("custom" != $m) ? "disabled" : "";
     ?>
 		<span id="list-date-range-container" <?php echo $style ?>>
-      <input type="date" name="dt1" id="list-date-start" value="<?php echo $dt1 ?>">
+      <input type="date" name="dt1" id="list-date-start" <?php echo $disabled ?> value="<?php echo $dt1 ?>">
       <span>to</span>
       <input type="date" name="dt2" id="list-date-end" value="<?php echo $dt2 ?>">
     </span>
@@ -637,8 +641,8 @@ function tf_build_payments_admin_list_table() {
 		<h2>Creditor Payments</h2>
 		<div id="tf_payments">			
 			<div id="tf_post_body">	
-        <?php $tf_payments_table->views() ?>
 				<form id="tf-payments-form" method="get">	
+          <?php $tf_payments_table->views() ?>
 					<input type="hidden" name="page" value="<?php echo wp_unslash( $_REQUEST['page']) ?>" />				
 					<?php 
             $tf_payments_table->search_box("Search Payments", 'tf-payments-search');
