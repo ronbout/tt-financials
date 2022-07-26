@@ -631,9 +631,10 @@ function tf_build_trans_admin_list_table() {
   $tf_trans_table->get_columns();
   $tf_trans_table->prepare_items();
   
-  $tmp_dt = date_create();
-  $tmp_dt = date_sub($tmp_dt, date_interval_create_from_date_string("2 years"));
-  $refresh_date = date_format($tmp_dt, "Y-m-d");
+  // $ = date_create("2020-01-01");
+  // $tmp_dt = date_sub($tmp_dt, date_interval_create_from_date_string("2 years"));
+  // $refresh_date = date_format($tmp_dt, "Y-m-d");
+  $refresh_date = '2020-01-01';
   $cur_page = wp_unslash( $_REQUEST['page']);
   ?>
 	<div class="wrap">    
