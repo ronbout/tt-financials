@@ -1,6 +1,6 @@
 jQuery(document).ready(function () {
   // console.log("good");
-  tfLoadRunTransButton();
+  jQuery("#run-build-trans").length && tfLoadRunTransButton();
 });
 
 const tfRunTransBuild = (startDate) => {

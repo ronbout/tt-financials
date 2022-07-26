@@ -6,29 +6,18 @@
       $documentBody.hasClass("woocommerce_page_view-payments") ||
       $documentBody.hasClass("woocommerce_page_view-venues")
     ) {
-      // let $datepickers = jQuery("#list-date-start, #list-date-end");
-      // let listStartDateDefault = jQuery("#list-date-start").val();
-      // let listEndDateDefault = jQuery("#list-date-end").val();
-      // $datepickers.datepicker();
-      // $datepickers.datepicker("option", {
-      //   showAnim: "slideDown",
-      //   dateFormat: "yy-mm-dd",
-      //   changeMonth: true,
-      //   changeYear: true,
-      // });
-      // jQuery("#list-date-start").datepicker("setDate", listStartDateDefault);
-      // jQuery("#list-date-end").datepicker("setDate", listEndDateDefault);
       $("#filter-by-date").length && loadDateSelect();
       $(".display-details-btn").length && loadDetailToggle();
       $(".check-venue-product-payment").length && loadPaymentCheckboxes();
+      $("#run-build-trans").length && tfLoadRunTransButton();
     }
   });
 
   const loadDateSelect = () => {
-    let $yearSelect = jQuery("#list-year-select");
-    let $dtRangeSelect = jQuery("#list-date-range-container");
+    let $yearSelect = $("#list-year-select");
+    let $dtRangeSelect = $("#list-date-range-container");
     $("#filter-by-date").change(function () {
-      let dtSelectType = jQuery(this).val();
+      let dtSelectType = $(this).val();
       if ("year" === dtSelectType) {
         $dtRangeSelect.hide(300);
         $yearSelect.show(300);
@@ -170,13 +159,13 @@
       return;
     }
 
-    jQuery.ajax({
-      url: tf_ajax_data.ajaxurl,
+    $.ajax({
+      url: tasteFinancial.ajaxurl,
       type: "POST",
       datatype: "JSON",
       data: {
         action: "venues_page_make_payment",
-        security: tf_ajax_data.security,
+        security: tasteFinancial.security,
         payment_info: paymentObj,
       },
       success: function (responseText) {
@@ -241,5 +230,50 @@
     } else {
       $venueAllChckBox.prop("checked", false);
     }
+  };
+
+  const tfRunTransBuild = (startDate, page) => {
+    $("#trans-update-spinner").addClass("is-active");
+    $.ajax({
+      url: tasteFinancial.ajaxurl,
+      type: "POST",
+      datatype: "html",
+      data: {
+        action: "build_trans_bulk",
+        security: tasteFinancial.security,
+        start_date: startDate,
+      },
+      success: function (responseText) {
+        $("#trans-update-spinner").removeClass("is-active");
+        console.log(responseText);
+        if ("view-order-transactions" === page) {
+          const resultsId = "trans-refresh-results";
+          $(`#${resultsId}`).html(responseText);
+          const tbTitle = "Transactions Table Update Results";
+          const tbHRef = `#TB_inline?height=255&width=400&inlineId=${resultsId}`;
+          tb_show(tbTitle, tbHRef, false);
+        } else {
+          $("#results").html(responseText);
+        }
+      },
+      error: function (xhr, status, errorThrown) {
+        $("#trans-update-spinner").removeClass("is-active");
+        console.log(errorThrown);
+        alert(
+          "Error building trans table. Your login may have timed out. Please refresh the page and try again."
+        );
+      },
+    });
+  };
+
+  const tfLoadRunTransButton = () => {
+    $("#run-build-trans")
+      .off("click")
+      .click(function (e) {
+        e.preventDefault();
+        const startDate = $("#start-date").val();
+        const page = $(this).data("page");
+        tfRunTransBuild(startDate, page);
+      });
   };
 })(jQuery);

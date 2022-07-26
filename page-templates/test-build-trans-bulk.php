@@ -48,7 +48,7 @@ defined('ABSPATH') or die('Direct script access disallowed.');
 					<script>
 						let tasteFinancial = {}
 						tasteFinancial.ajaxurl = '". admin_url( 'admin-ajax.php' ) . "'
-						tasteFinancial.security = '" . wp_create_nonce('taste-financial-nonce') . "'
+						tasteFinancial.security = '" . wp_create_nonce('tf-admin-ajax-nonce') . "'
 					</script>
 				";
 		?>
@@ -57,7 +57,7 @@ defined('ABSPATH') or die('Direct script access disallowed.');
 	<main>
 		<div class="entry">
 			<div><input id="start-date" type="date" value="2020-01-01"></div>
-			<div><button id="run-build-trans" type="button">Run</button>	</div>
+			<div><button data-page="test-trans-bulk" id="run-build-trans" type="button">Run</button>	</div>
 		</div>
 		<div id="results">Results here</div>
 	</main>

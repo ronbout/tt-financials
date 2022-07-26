@@ -90,4 +90,32 @@ body.woocommerce_page_view-venues table.widefat {
   margin-right: 6px;
 }
 
+.tf_order_trans_update_entry {
+  padding: 6px;
+  display: flex;
+}
+.tf_order_trans_update_entry #trans_update_start_date,
+.tf_order_trans_update_entry #run-build-trans,
+.tf_order_trans_update_entry #update_trans_date_label {
+  margin: 8px;
+  padding: 8px;
+  height: 35px;
+  line-height: normal;
+  min-height: 0px;
+}
+.tf_order_trans_update_entry #update_trans_date_label {
+  font-size: 16px;
+}
+.tf_order_trans_update_entry #trans_update_start_date,
+.tf_order_trans_update_entry #run-build-trans {
+  border: 1px solid #8c8f94;
+  border-radius: 4px;
+  font-size: 13px;
+}
+.tf_order_trans_update_entry #run-build-trans {
+  background-color: #0073aa;
+  color: white;
+  cursor: pointer;
+}
+
 /*# sourceMappingURL=tf-admin.css.map */

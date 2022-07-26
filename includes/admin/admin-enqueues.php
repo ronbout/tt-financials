@@ -9,7 +9,7 @@
 
 			wp_enqueue_style( 'tf-admin-css', TFINANCIAL_PLUGIN_INCLUDES_URL."/style/css/tf-admin.css" );
 			wp_enqueue_script( 'tfinancial-admin-js', TFINANCIAL_PLUGIN_INCLUDES_URL . '/js/tf-admin.js', array('jquery', 'jquery-ui-datepicker'), false, true);
-			wp_localize_script('tfinancial-admin-js', 'tf_ajax_data', 
+			wp_localize_script('tfinancial-admin-js', 'tasteFinancial', 
 				array(
 					'ajaxurl' => admin_url('admin-ajax.php'),
 					'security' => wp_create_nonce( 'tf-admin-ajax-nonce' )
