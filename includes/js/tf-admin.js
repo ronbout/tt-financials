@@ -271,7 +271,7 @@
       .off("click")
       .click(function (e) {
         e.preventDefault();
-        const startDate = $("#start-date").val();
+        const startDate = $("#trans_update_start_date").val();
         const page = $(this).data("page");
         tfRunTransBuild(startDate, page);
       });
