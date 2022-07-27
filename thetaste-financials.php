@@ -37,6 +37,7 @@ if (is_admin()) {
 	require_once TFINANCIAL_PLUGIN_INCLUDES.'/admin/list-pages/venues/tf-view-venues-page.php';
 	require_once TFINANCIAL_PLUGIN_INCLUDES.'/admin/list-pages/payments/tf-view-payments-page.php';
 	require_once TFINANCIAL_PLUGIN_INCLUDES.'/admin/tf-admin-menus.php';
+	require_once TFINANCIAL_PLUGIN_INCLUDES.'/admin/wc-settings/wc-settings.php';
 }
 
 // enqueues 
