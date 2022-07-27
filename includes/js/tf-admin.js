@@ -10,7 +10,6 @@
       $(".display-details-btn").length && loadDetailToggle();
       $(".check-venue-product-payment").length && loadPaymentCheckboxes();
       $("#run-build-trans").length && tfLoadRunTransButton();
-      $("#tf-order-trans-form").length && tfLoadOrderTransFormSubmit();
     }
   });
 
@@ -280,28 +279,9 @@
       .click(function (e) {
         e.preventDefault();
         const startDate = $("#trans_update_start_date").val();
+        console.log("startDate: ", startDate);
         const page = $(this).data("page");
         tfRunTransBuild(startDate, page);
       });
-  };
-
-  const tfLoadOrderTransFormSubmit = () => {
-    // turn off filters that are not used to clean up the url
-    // const formId = "#tf-order-trans-form";
-    // $(formId)
-    //   .off("submit")
-    //   .on("submit", function (e) {
-    //     const dropdowns = [
-    //       "bulk-action-selector-top",
-    //       "bulk-action-selector-bottom",
-    //       "trans-list-venue-selection",
-    //     ];
-    //     dropdowns.forEach((selectId) => {
-    //       let $select = $(`#${selectId}`);
-    //       if ("-1" == $select.val()) {
-    //         $select.val("");
-    //       }
-    //     });
-    //   });
   };
 })(jQuery);

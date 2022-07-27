@@ -636,24 +636,11 @@ function tf_build_trans_admin_list_table() {
   $tf_trans_table->get_columns();
   $tf_trans_table->prepare_items();
   
-  // $ = date_create("2020-01-01");
-  // $tmp_dt = date_sub($tmp_dt, date_interval_create_from_date_string("2 years"));
-  // $refresh_date = date_format($tmp_dt, "Y-m-d");
-  $refresh_date = '2020-01-01';
-  $cur_page = wp_unslash( $_REQUEST['page']);
   ?>
 	<div class="wrap">    
 		<h2>Order Transactions</h2>
 		<div id="tf_order_trans">		
-      <div class="tf_order_trans_update_entry">
-        <div><button data-page="<?php echo $cur_page ?>" id="run-build-trans" type="button">Update Transactions Table</button>	</div>
-        <label id="update_trans_date_label" for="trans_update_start_date">Refresh Start Date:</label>
-        <div><input id="trans_update_start_date" type="date" value="<?php echo $refresh_date ?>"></div>
-        <div id="trans-update-spinner" class="spinner"></div>
-      </div>	
-      <div id="trans-refresh-results" style="display:none;">
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Perspiciatis nesciunt fugiat maiores architecto facilis voluptatem dolore sapiente unde eligendi accusantium!
-      </div>
+      <?php order_trans_update_entry() ?>
 			<div id="tf_post_body">	
 				<form id="tf-order-trans-form" method="get">	
            <?php $tf_trans_table->views() ?>
@@ -669,3 +656,15 @@ function tf_build_trans_admin_list_table() {
 	<?php
 }
 
+function order_trans_update_entry() {
+  $refresh_date = get_option('tf_financials_trans_start_date');
+  $cur_page = wp_unslash( $_REQUEST['page']);
+  ?>
+    <div class="tf_order_trans_update_entry">
+      <div><button data-page="<?php echo $cur_page ?>" id="run-build-trans" type="button">Update Transactions Table</button>	</div>
+        <div><input id="trans_update_start_date" type="hidden" value="<?php echo $refresh_date ?>"></div>
+        <div id="trans-update-spinner" class="spinner"></div>
+      </div>	
+    <div id="trans-refresh-results" style="display:none;"></div>
+  <?php
+}
