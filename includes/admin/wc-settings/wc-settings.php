@@ -41,7 +41,7 @@ function get_tf_wc_financials_settings() {
 		'transactions_default_start_date' => array( 
 				'id' => 'tf_financials_trans_start_date',
 				'desc' => 'Default order creation date for buidling the Order Transactions table',
-				'type' => 'text',
+				'type' => 'date',
 				'name' => 'Transaction Start Date',
 				'default' => '2020-01-01',
 		),
@@ -51,6 +51,10 @@ function get_tf_wc_financials_settings() {
 				'type' => 'number',
 				'name' => 'PBO Rounding Threshold',
 				'default' => '0.1',
+				'custom_attributes' => array(
+					'step' => '0.01',
+					'min' => '0'
+				),
 		),
 		'section_end' => array( 
 				'id' => 'tf_financials_section_end',
