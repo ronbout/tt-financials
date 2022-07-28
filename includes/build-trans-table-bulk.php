@@ -16,7 +16,16 @@
 
 defined('ABSPATH') or die('Direct script access disallowed.');
 
-function build_trans_table_bulk($start_date = "2020-01-01", $output_to_file=false) {
+function build_trans_table_bulk($start_date = "2020-01-01", $output_to_file=false, $delete_flag=false) {
+
+	if ($delete_flag) {
+		// delete the entire trans table
+		$delete_result = clear_trans_table();
+		if (false === $delete_result) {
+			echo "Could not delete order transaction rows";
+			die;
+		}
+	}
 
 	if ($output_to_file) {
 		define('COMMENT_START', ' | ');
@@ -1059,4 +1068,16 @@ function calc_order_credit($order_rows, $order_info, $order_id, $prod_data, $key
 	}
 
 	return $order_array;
+}
+
+function clear_trans_table() {
+	global $wpdb;
+
+	$sql = "
+		DELETE FROM {$wpdb->prefix}taste_order_transactions
+		WHERE id > 0
+	";
+
+	$results = $wpdb->query($sql);
+	return $results;
 }

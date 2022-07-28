@@ -632,6 +632,7 @@ function tf_build_trans_admin_list_table() {
 		wp_redirect( remove_query_arg( array( '_wp_http_referer', '_wpnonce' ), wp_unslash( $_SERVER['REQUEST_URI'] ) ) );
 		exit;
 	}
+  $cur_page = wp_unslash( $_REQUEST['page']);
 
   $tf_trans_table->get_columns();
   $tf_trans_table->prepare_items();
@@ -640,7 +641,7 @@ function tf_build_trans_admin_list_table() {
 	<div class="wrap">    
 		<h2>Order Transactions</h2>
 		<div id="tf_order_trans">		
-      <?php order_trans_update_entry() ?>
+      <?php order_trans_update_entry($cur_page) ?>
 			<div id="tf_post_body">	
 				<form id="tf-order-trans-form" method="get">	
            <?php $tf_trans_table->views() ?>
@@ -656,9 +657,8 @@ function tf_build_trans_admin_list_table() {
 	<?php
 }
 
-function order_trans_update_entry() {
+function order_trans_update_entry($cur_page) {
   $refresh_date = get_option('tf_financials_trans_start_date');
-  $cur_page = wp_unslash( $_REQUEST['page']);
   ?>
     <div class="tf_order_trans_update_entry">
       <div><button data-page="<?php echo $cur_page ?>" id="run-build-trans" type="button">Update Transactions Table</button>	</div>

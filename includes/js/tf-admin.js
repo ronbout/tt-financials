@@ -9,6 +9,9 @@
       $("#filter-by-date").length && loadDateSelect();
       $(".display-details-btn").length && loadDetailToggle();
       $(".check-venue-product-payment").length && loadPaymentCheckboxes();
+    }
+
+    if ($documentBody.hasClass("woocommerce_page_wc-settings")) {
       $("#run-build-trans").length && tfLoadRunTransButton();
     }
   });
@@ -239,8 +242,11 @@
     }
   };
 
-  const tfRunTransBuild = (startDate, page) => {
-    $("#trans-update-spinner").addClass("is-active");
+  const tfRunTransBuild = (startDate, page, deleteFlg = 0) => {
+    const spinnerId = deleteFlg
+      ? "trans-update-spinner-rebuild"
+      : "trans-update-spinner";
+    $(`#${spinnerId}`).addClass("is-active");
     $.ajax({
       url: tasteFinancial.ajaxurl,
       type: "POST",
@@ -249,11 +255,12 @@
         action: "build_trans_bulk",
         security: tasteFinancial.security,
         start_date: startDate,
+        delete_flag: deleteFlg,
       },
       success: function (responseText) {
-        $("#trans-update-spinner").removeClass("is-active");
+        $(`#${spinnerId}`).removeClass("is-active");
         console.log(responseText);
-        if ("view-order-transactions" === page) {
+        if (-1 !== ["view-order-transactions", "wc-settings"].indexOf(page)) {
           const resultsId = "trans-refresh-results";
           $(`#${resultsId}`).html(responseText);
           const tbTitle = "Transactions Table Update Results";
@@ -264,7 +271,7 @@
         }
       },
       error: function (xhr, status, errorThrown) {
-        $("#trans-update-spinner").removeClass("is-active");
+        $(`#${spinnerId}`).removeClass("is-active");
         console.log(errorThrown);
         alert(
           "Error building trans table. Your login may have timed out. Please refresh the page and try again."
@@ -274,14 +281,27 @@
   };
 
   const tfLoadRunTransButton = () => {
-    $("#run-build-trans")
-      .off("click")
-      .click(function (e) {
-        e.preventDefault();
-        const startDate = $("#trans_update_start_date").val();
-        console.log("startDate: ", startDate);
-        const page = $(this).data("page");
-        tfRunTransBuild(startDate, page);
+    $("#run-build-trans, #run-rebuild-trans").each(function () {
+      console.log("id: ", $(this).attr("id"));
+      $(this)
+        .off("click")
+        .click(function (e) {
+          e.preventDefault();
+          const startDate = $("#trans_update_start_date").val();
+          console.log("startDate: ", startDate);
+          const page = $(this).data("page");
+          const deleteFlg = "run-rebuild-trans" === $(this).attr("id") ? 1 : 0;
+          console.log("deleteFlg: ", deleteFlg);
+          console.log("id: ", $(this).attr("id"));
+          tfRunTransBuild(startDate, page, deleteFlg);
+        });
+    });
+
+    const $dateEntry = $("#tf_financials_trans_start_date");
+    if ($dateEntry.length) {
+      $dateEntry.change(function () {
+        $("#trans_update_start_date").val($(this).val());
       });
+    }
   };
 })(jQuery);

@@ -120,3 +120,17 @@ body.woocommerce_page_view-venues {
     cursor: pointer;
   }
 }
+body.woocommerce_page_wc-settings {
+  #run-rebuild-trans {
+    background-color: #e52b50;
+    color: white;
+  }
+  #run-rebuild-trans:hover {
+    background-color: #fd5c63;
+    color: white;
+  }
+
+  .spinner.tf-spinner {
+    float: none;
+  }
+}

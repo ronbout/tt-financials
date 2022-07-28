@@ -10,9 +10,10 @@ function tf_ajax_build_trans_bulk() {
 	}
 
 	$start_date = $_POST['start_date'];
+	$delete_flag = isset($_POST['delete_flag']) ? $_POST['delete_flag'] : 0;
 
 	require_once TFINANCIAL_PLUGIN_INCLUDES.'/build-trans-table-bulk.php';
-	build_trans_table_bulk($start_date, false);
+	build_trans_table_bulk($start_date, false, $delete_flag);
 
 	wp_die();
 }

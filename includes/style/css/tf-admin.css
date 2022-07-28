@@ -118,4 +118,16 @@ body.woocommerce_page_view-venues table.widefat {
   cursor: pointer;
 }
 
+body.woocommerce_page_wc-settings #run-rebuild-trans {
+  background-color: #e52b50;
+  color: white;
+}
+body.woocommerce_page_wc-settings #run-rebuild-trans:hover {
+  background-color: #fd5c63;
+  color: white;
+}
+body.woocommerce_page_wc-settings .spinner.tf-spinner {
+  float: none;
+}
+
 /*# sourceMappingURL=tf-admin.css.map */

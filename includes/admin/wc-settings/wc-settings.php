@@ -41,7 +41,7 @@ function get_tf_wc_financials_settings() {
 		'transactions_default_start_date' => array( 
 				'id' => 'tf_financials_trans_start_date',
 				'desc' => 'Default order creation date for buidling the Order Transactions table',
-				'type' => 'date',
+				'type' => 'trans_date',
 				'name' => 'Transaction Start Date',
 				'default' => '2020-01-01',
 		),
@@ -62,4 +62,61 @@ function get_tf_wc_financials_settings() {
 		),
 	);
 	return $settings;
+}
+
+// create special settings type to include the Rebuild and Refresh Order Transactions buttons
+add_action( 'woocommerce_admin_field_trans_date', 'tf_financials_trans_date_type_setup' );
+
+function tf_financials_trans_date_type_setup($value) {
+	// Custom attribute handling.
+	$custom_attributes = array();
+  add_thickbox();
+
+	if ( ! empty( $value['custom_attributes'] ) && is_array( $value['custom_attributes'] ) ) {
+		foreach ( $value['custom_attributes'] as $attribute => $attribute_value ) {
+			$custom_attributes[] = esc_attr( $attribute ) . '="' . esc_attr( $attribute_value ) . '"';
+		}
+	}
+
+	if ( ! isset( $value['default'] ) ) {
+		$value['default'] = '2020-01-01';
+	}
+	if ( ! isset( $value['value'] ) ) {
+		$value['value'] = WC_Admin_Settings::get_option( $value['id'], $value['default'] );
+	}
+
+	$option_value = $value['value'];
+	?>
+		<tr valign="top">
+			<th scope="row" class="titledesc">
+				<label for="<?php echo esc_attr( $value['id'] ); ?>"><?php echo esc_html( $value['title'] ); ?></label>
+			</th>
+			<td class="forminp forminp-<?php echo esc_attr( sanitize_title( $value['type'] ) ); ?>">
+				<input
+					name="<?php echo esc_attr( $value['id'] ); ?>"
+					id="<?php echo esc_attr( $value['id'] ); ?>"
+					type="date"
+					style="<?php echo esc_attr( $value['css'] ); ?>"
+					value="<?php echo esc_attr( $option_value ); ?>"
+					class="<?php echo esc_attr( $value['class'] ); ?>"
+					<?php echo implode( ' ', $custom_attributes ); // WPCS: XSS ok. ?>
+					/>
+			</td>
+		</tr>
+		<tr>
+			<th	scope="row" class="titledesc">Update the Transactions Table</th>
+			<td>
+				<input type="hidden" id="trans_update_start_date" value="<?php echo $option_value ?>">
+				<button data-page="wc-settings" id="run-build-trans" type="button" class="button">Refresh</button>
+				<div id="trans-update-spinner" class="spinner tf-spinner"></div>
+		</tr>
+		<tr>
+			<th	scope="row" class="titledesc">Delete and Rebuild the Transactions Table</th>
+			<td>
+				<button data-page="wc-settings" id="run-rebuild-trans" type="button" class="button">Rebuild</button>
+				<div id="trans-update-spinner-rebuild" class="spinner tf-spinner"></div>
+			</td>
+		</tr>
+    <div id="trans-refresh-results" style="display:none;"></div>
+	<?php
 }
