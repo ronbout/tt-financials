@@ -113,17 +113,18 @@ class TFTRans_list_table extends Taste_list_table {
         $display = "<a title='$title' href='$col_link'>$col_id</a>";
         return $this->add_filter_by_action($col_id, $column_name, $display);
         break;
+      case 'trans_amount':
+      case 'net_cost':
+      case 'gross_income':
+      case 'venue_due':
+        return $item[$column_name] ? number_format($item[$column_name], 2) : "N/A";
       case 'id':
       case 'trans_type':
       case 'transaction_date':
-      case 'trans_amount':
       case 'order_date':
-      case 'net_cost':
-      case 'gross_income':
       case 'customer_id':
       case 'customer_name':
       case 'customer_email':
-      case 'venue_due':
         return $item[$column_name] ? $item[$column_name] : "N/A";
       default:
       return $item[$column_name] ? $item[$column_name] : "N/A";
