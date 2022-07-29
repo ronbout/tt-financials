@@ -15,5 +15,6 @@
 defined('ABSPATH') or die('Direct script access disallowed.');
 
 require_once TFINANCIAL_PLUGIN_INCLUDES.'/build-trans-table-bulk.php';
+$start_date = get_option('tf_financials_trans_start_date', '2020-01-01');
 
-build_trans_table_bulk('2020-01-01', true);
+build_trans_table_bulk($start_date, true);

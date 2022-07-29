@@ -280,9 +280,48 @@
     });
   };
 
+  const tfSetTransCron = (cronOnOff, $cronToggle) => {
+    $("#trans-cron-spinner").addClass("is-active");
+    const frequency = $("#tf_financials_trans_cron_schedule").val();
+    $.ajax({
+      url: tasteFinancial.ajaxurl,
+      type: "POST",
+      datatype: "json",
+      data: {
+        action: "set_trans_cron",
+        security: tasteFinancial.security,
+        cron_on_off: cronOnOff,
+        frequency: frequency,
+      },
+      success: function (responseText) {
+        $(`#trans-cron-spinner`).removeClass("is-active");
+        console.log(responseText);
+        const parseResponse = JSON.parse(responseText);
+        if (parseResponse.hasOwnProperty("success")) {
+          const nextTime = parseResponse.success;
+          $cronToggle.toggleClass(
+            "woocommerce-input-toggle--disabled woocommerce-input-toggle--enabled"
+          );
+          $("#tf-financial-cron-next-time").html(nextTime);
+          $("#tf-financial-cron-off, #tf-financial-cron-on").toggle();
+        } else {
+          alert(
+            "unknown error setting/cancelling Transactions Build Cron Event"
+          );
+        }
+      },
+      error: function (xhr, status, errorThrown) {
+        $(`#trans-cron-spinner`).removeClass("is-active");
+        console.log(errorThrown);
+        alert(
+          "Error building trans table. Your login may have timed out. Please refresh the page and try again."
+        );
+      },
+    });
+  };
+
   const tfLoadRunTransButton = () => {
     $("#run-build-trans, #run-rebuild-trans").each(function () {
-      console.log("id: ", $(this).attr("id"));
       $(this)
         .off("click")
         .click(function (e) {
@@ -291,8 +330,6 @@
           console.log("startDate: ", startDate);
           const page = $(this).data("page");
           const deleteFlg = "run-rebuild-trans" === $(this).attr("id") ? 1 : 0;
-          console.log("deleteFlg: ", deleteFlg);
-          console.log("id: ", $(this).attr("id"));
           tfRunTransBuild(startDate, page, deleteFlg);
         });
     });
@@ -303,5 +340,16 @@
         $("#trans_update_start_date").val($(this).val());
       });
     }
+
+    $cronToggle = $("#tf-trans-cron-toggle");
+    $cronToggle.length &&
+      $cronToggle.off("click").click(function (e) {
+        const cronOnOff = $cronToggle.hasClass(
+          "woocommerce-input-toggle--enabled"
+        )
+          ? 0
+          : 1;
+        tfSetTransCron(cronOnOff, $cronToggle);
+      });
   };
 })(jQuery);

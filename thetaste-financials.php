@@ -56,6 +56,7 @@ define('TASTE_PAYMENT_STATUS_PROCESSING', 4);
 define('TASTE_DEFAULT_PAYMENT_STATUS', TASTE_PAYMENT_STATUS_PAID);
 define('TASTE_PBO_NET_PAYABLE_THRESHOLD', get_option('tf_financials_rounding_threshold'));
 define('TASTE_PBO_BALANCE_FILTER_THRESHOLD', 0);
+define('TASTE_TRANS_CRON_HOOK', 'taste_trans_cron_event');
 
 /**
  * Page Templates setup code
@@ -120,40 +121,35 @@ function tf_auto_complete_by_payment_method($order_id) {
 	}
 }
   
-
-  
-
-
  /*************************************************
  * Set up nightly cron job to update trans table
  *************************************************/
 
 // // need to set up the cron job that will create the jobs-sitemap.xml above
-// add_action('taste_nightly_event', 'taste_update_trans_table');
+add_action(TASTE_TRANS_CRON_HOOK, 'tf_update_trans_table');
 
-// add_filter( 'cron_schedules', 'taste_add_cron_interval' );
-// function taste_add_cron_interval( $schedules ) {
-//     $schedules['five_minutes'] = array(
-//             'interval'  => 300, // time in seconds
-//             'display'   => 'five_minutes'
-//     );
-//     return $schedules;
-// }
+add_filter( 'cron_schedules', 'taste_add_cron_interval' );
+function taste_add_cron_interval( $schedules ) {
+    $schedules['two_hours'] = array(
+            'interval'  => 7200, // time in seconds
+            'display'   => 'Every Two Hours',
+    );
+    return $schedules;
+}
 
 
-// function taste_nightly_cron_activation() {
+// function taste_trans_cron_activation() {
 // 	// build start time for 12:01am
 // 	$start_time = strtotime(date('Y-m-d 00:01'));
 	
-// 	if ( !wp_next_scheduled( 'taste_nightly_event' ) ) {
-// 		wp_schedule_event( time(), 'hourly', 'taste_nightly_event');
-// 		// wp_schedule_event( time(), 'five_minutes', 'taste_nightly_event');
+// 	if ( !wp_next_scheduled( TASTE_TRANS_CRON_HOOK ) ) {
+// 		wp_schedule_event( time(), 'daily', TASTE_TRANS_CRON_HOOK);
 // 	}
 // }
-// add_action('wp', 'taste_nightly_cron_activation');
+// add_action('wp', 'taste_trans_cron_activation');
 
-// function taste_update_trans_table() {
+function tf_update_trans_table() {
 	
-// require_once TFINANCIAL_PLUGIN_INCLUDES.'/build-trans-bulk-cron.php';
+	require_once TFINANCIAL_PLUGIN_INCLUDES.'/build-trans-bulk-cron.php';
 	
-// }
+}
