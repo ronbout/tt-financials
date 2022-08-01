@@ -287,7 +287,6 @@
   const checkMarkPaidDisabled = () => {
     let $bulkSelector = $("[id^=bulk-action-selector-]");
     let $markPaidOption = $bulkSelector.children("option[value='mark-paid']");
-    console.log("checked count: ", $(".payments-list-bulk-cb:checked").length);
     if ($(".payments-list-bulk-cb:checked").length) {
       $markPaidOption.prop("disabled", false);
     } else {
