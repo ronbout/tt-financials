@@ -186,6 +186,7 @@ class TFPayments_list_table extends Taste_list_table {
     }
 
     $pay_status_views = array_merge($pay_status_views, $tmp_views);
+    $pay_status_views[] = '<div id="payments-list-page-spinner" class="spinner"></div>';
 
     return $pay_status_views;
   }
@@ -318,11 +319,16 @@ class TFPayments_list_table extends Taste_list_table {
     $bulk_actions = array(
       'bulk-export' => "Export",
     );
+    // if Pending status view, add Mark as Paid
+    $cur_status_type = isset($_REQUEST['pay-status']) && $_REQUEST['pay-status'] ? wp_unslash( $_REQUEST['pay-status']) : '';
+    if ('Pending' == $cur_status_type) {
+      $bulk_actions['mark-paid'] = "Mark as Paid";
+    }
     return $bulk_actions;
   }
  
 	protected function column_cb($item) {
-		return "<input type='checkbox' name='ot-list-cb' value='{$item['payment_id']}'>";
+		return "<input type='checkbox' name='ot-list-cb' class='payments-list-bulk-cb' data-id='{$item['payment_id']}'>";
 	}
   
   public function no_items() {

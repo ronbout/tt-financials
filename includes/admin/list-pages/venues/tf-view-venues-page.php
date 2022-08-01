@@ -189,6 +189,7 @@ class TFVenues_list_table extends Taste_list_table {
     }
 
     $venue_type_views = array_merge($venue_type_views, $tmp_views);
+    $venue_type_views[] = '<div id="venues-list-page-spinner" class="spinner"></div>';
 
     return $venue_type_views;
   }

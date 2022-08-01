@@ -8,7 +8,8 @@
     ) {
       $("#filter-by-date").length && loadDateSelect();
       $(".display-details-btn").length && loadDetailToggle();
-      $(".check-venue-product-payment").length && loadPaymentCheckboxes();
+      $(".check-venue-product-payment").length && loadVenuePaymentCheckboxes();
+      $(".payments-list-bulk-cb").length && loadPaymentListPageCheckboxes();
     }
 
     if ($documentBody.hasClass("woocommerce_page_wc-settings")) {
@@ -51,7 +52,7 @@
       });
   };
 
-  const loadPaymentCheckboxes = () => {
+  const loadVenuePaymentCheckboxes = () => {
     $("[id^=cb-select-all-]").each(function () {
       $(this).change(function () {
         let $cb = $(this);
@@ -130,17 +131,37 @@
       checkVenueCheckAll();
     });
     checkMakePaymentDisabled();
+
+    $("#doaction").click(function (e) {
+      let bulkAction = $("#bulk-action-selector-top").val();
+      if ("make_payment" === bulkAction) {
+        e.preventDefault();
+        tfMakePayments();
+      }
+    });
   };
 
-  $("#doaction").click(function (e) {
-    let bulkAction = $("#bulk-action-selector-top").val();
-    if ("make_payment" === bulkAction) {
-      e.preventDefault();
-      makePayments();
-    }
-  });
+  const loadPaymentListPageCheckboxes = () => {
+    $("[id^=cb-select-all-]").change(function () {
+      checkMarkPaidDisabled();
+    });
 
-  const makePayments = () => {
+    $("#doaction").click(function (e) {
+      let bulkAction = $("#bulk-action-selector-top").val();
+      if ("mark-paid" === bulkAction) {
+        e.preventDefault();
+        tfMakePaidPaymentStatus();
+      }
+    });
+
+    $(".payments-list-bulk-cb").change(function (e) {
+      checkMarkPaidDisabled();
+    });
+    checkMarkPaidDisabled();
+  };
+
+  const tfMakePayments = () => {
+    $("#venues-list-page-spinner").addClass("is-active");
     // select all checked products and put into array of objects by venue id
     let paymentObj = {};
     $(".check-venue-product-payment:checked").each((ndx, chckbox) => {
@@ -179,6 +200,7 @@
         payment_info: paymentObj,
       },
       success: function (responseText) {
+        $("#venues-list-page-spinner").removeClass("is-active");
         console.log(responseText);
         const parseResponse = JSON.parse(responseText);
         if (parseResponse.hasOwnProperty("success")) {
@@ -188,14 +210,58 @@
             console.log(parseResponse.error);
             alert(parseResponse.error);
           } else {
-            alert("Unknown response from server");
+            alert("Unknown error from server");
           }
         }
       },
       error: function (xhr, status, errorThrown) {
+        $("#venues-list-page-spinner").removeClass("is-active");
         console.log(errorThrown);
         alert(
           "Error making payment. Your login may have timed out. Please refresh the page and try again."
+        );
+      },
+    });
+  };
+
+  const tfMakePaidPaymentStatus = () => {
+    $("#payments-list-page-spinner").addClass("is-active");
+    // select all checked products and put into array of objects by venue id
+    let paymentArray = [];
+    $(".payments-list-bulk-cb:checked").each(function () {
+      const paymentId = $(this).data("id");
+      paymentArray.push(paymentId);
+    });
+
+    $.ajax({
+      url: tasteFinancial.ajaxurl,
+      type: "POST",
+      datatype: "JSON",
+      data: {
+        action: "payments_page_mark_paid",
+        security: tasteFinancial.security,
+        payment_list: paymentArray,
+      },
+      success: function (responseText) {
+        $("#payments-list-page-spinner").removeClass("is-active");
+        console.log(responseText);
+        const parseResponse = JSON.parse(responseText);
+        if (parseResponse.hasOwnProperty("success")) {
+          window.location.reload(true);
+        } else {
+          if (parseResponse.hasOwnProperty("error")) {
+            console.log(parseResponse.error);
+            alert(parseResponse.error);
+          } else {
+            alert("Unknown error from server");
+          }
+        }
+      },
+      error: function (xhr, status, errorThrown) {
+        $("#payments-list-page-spinner").removeClass("is-active");
+        console.log(errorThrown);
+        alert(
+          "Error updating Payment Status. Your login may have timed out. Please refresh the page and try again."
         );
       },
     });
@@ -212,6 +278,22 @@
       $makePaymentOption.attr("disabled", true);
       $bulkSelector.each(function () {
         if ("make_payment" === $(this).val() || null === $(this).val()) {
+          $(this).val(-1).change();
+        }
+      });
+    }
+  };
+
+  const checkMarkPaidDisabled = () => {
+    let $bulkSelector = $("[id^=bulk-action-selector-]");
+    let $markPaidOption = $bulkSelector.children("option[value='mark-paid']");
+    console.log("checked count: ", $(".payments-list-bulk-cb:checked").length);
+    if ($(".payments-list-bulk-cb:checked").length) {
+      $markPaidOption.prop("disabled", false);
+    } else {
+      $markPaidOption.attr("disabled", true);
+      $bulkSelector.each(function () {
+        if ("mark-paid" === $(this).val() || null === $(this).val()) {
           $(this).val(-1).change();
         }
       });
