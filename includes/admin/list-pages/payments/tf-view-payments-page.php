@@ -37,7 +37,7 @@ class TFPayments_list_table extends Taste_list_table {
 			'venue_id' => "Venue ID",
 			'venue_name' => "Venue Name",
       'product_ids' => "Product IDs",
-      'comment' => "Comment",
+      'pay_comment' => "Comment",
       'comment_visible_venues' => "Comment Visible<br> to Venues",
 			'pbo_flag' => "PBO",
       'attach_vat_invoice' => "Attach Invoice",
@@ -129,11 +129,10 @@ class TFPayments_list_table extends Taste_list_table {
           return $item[$column_name] ? "Yes" : 'no';
       case 'payment_status':
         return tf_payment_status_to_string($item[$column_name]);
-        break; 
       case 'payment_date':
         return explode(' ', $item[$column_name])[0];
       case 'amount':
-      case 'comment':
+      case 'pay_comment':
         return $item[$column_name] ? $item[$column_name] : "N/A";
       default:
       return $item[$column_name] ? $item[$column_name] : "N/A";
@@ -519,7 +518,7 @@ class TFPayments_list_table extends Taste_list_table {
   
     $sql = "
       SELECT pay.id AS payment_id, pay.payment_date, pay.amount, 
-        pay.venue_id, ven.name as venue_name, pay.comment, pay.comment_visible_venues, 
+        pay.venue_id, ven.name as venue_name, pay.comment as pay_comment, pay.comment_visible_venues, 
         pay.attach_vat_invoice, pay.status AS payment_status,  oix.order_item_id AS pbo_flag,
         GROUP_CONCAT(pprods.product_id) as product_ids,
         GROUP_CONCAT(pprods.amount) as product_amounts
