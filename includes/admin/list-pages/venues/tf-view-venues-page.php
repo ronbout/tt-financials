@@ -583,8 +583,6 @@ class TFVenues_list_table extends Taste_list_table {
 
 function tf_build_venues_admin_list_table() {
 	global $tf_venues_table;
-  print_r($_REQUEST);
-
 	if ( ! empty( $_REQUEST['_wp_http_referer'] ) ) {
 		wp_redirect( remove_query_arg( array( '_wp_http_referer', '_wpnonce' ), wp_unslash( $_SERVER['REQUEST_URI'] ) ) );
 		exit;
