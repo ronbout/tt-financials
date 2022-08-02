@@ -1521,7 +1521,7 @@ class Taste_list_table {
 	 *                if the current column is not the primary column.
 	 */
 	protected function handle_row_actions( $item, $column_name, $primary ) {
-		return $column_name === $primary ? '<button type="button" class="toggle-row"><span class="screen-reader-text">' . __( 'Show more details' ) . '</span></button>' : '';
+		return $column_name === $primary ? '<button type="button" class="toggle-row"></button>' : '';
 	}
 
 	/**

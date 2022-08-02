@@ -137,6 +137,8 @@
       if ("make_payment" === bulkAction) {
         e.preventDefault();
         tfMakePayments();
+      } else {
+        e.preventDefault();
       }
     });
   };
@@ -151,6 +153,20 @@
       if ("mark-paid" === bulkAction) {
         e.preventDefault();
         tfMakePaidPaymentStatus();
+      } else if ("bulk-export" === bulkAction) {
+        e.preventDefault();
+        const dt = new Date();
+        const dateStr =
+          dt.getFullYear() + "-" + dt.getMonth() + "-" + dt.getDate();
+        let outputFile = `export-payments-${dateStr}.csv`;
+        // CSV
+        tfExportTableToCSV.apply(this, [
+          jQuery("#tf-payments-form table.payments"),
+          outputFile,
+          "payments",
+        ]);
+      } else {
+        e.preventDefault();
       }
     });
 
@@ -287,12 +303,21 @@
   const checkMarkPaidDisabled = () => {
     let $bulkSelector = $("[id^=bulk-action-selector-]");
     let $markPaidOption = $bulkSelector.children("option[value='mark-paid']");
+    let $bulkExportOption = $bulkSelector.children(
+      "option[value='bulk-export']"
+    );
     if ($(".payments-list-bulk-cb:checked").length) {
       $markPaidOption.prop("disabled", false);
+      $bulkExportOption.prop("disabled", false);
     } else {
       $markPaidOption.attr("disabled", true);
+      $bulkExportOption.attr("disabled", true);
       $bulkSelector.each(function () {
-        if ("mark-paid" === $(this).val() || null === $(this).val()) {
+        if (
+          "mark-paid" === $(this).val() ||
+          "bulk-exort" === $(this).val() ||
+          null === $(this).val()
+        ) {
           $(this).val(-1).change();
         }
       });
@@ -408,7 +433,6 @@
         .click(function (e) {
           e.preventDefault();
           const startDate = $("#trans_update_start_date").val();
-          console.log("startDate: ", startDate);
           const page = $(this).data("page");
           const deleteFlg = "run-rebuild-trans" === $(this).attr("id") ? 1 : 0;
           tfRunTransBuild(startDate, page, deleteFlg);
@@ -433,4 +457,85 @@
         tfSetTransCron(cronOnOff, $cronToggle);
       });
   };
+
+  /**
+   * code for exporting table to csv
+   */
+  function tfExportTableToCSV($table, filename, tableType) {
+    const $headers = $table.children("thead").children("tr");
+    const $rows = $table.find(".payments-list-bulk-cb:checked").closest("tr");
+
+    // Temporary delimiter characters unlikely to be typed by keyboard
+    // This is to avoid accidentally splitting the actual contents
+    const tmpColDelim = String.fromCharCode(11); // vertical tab character
+    const tmpRowDelim = String.fromCharCode(0); // null character
+    // actual delimiter characters for CSV format
+    const colDelim = '","';
+    const rowDelim = '"\r\n"';
+
+    // Grab text from table into CSV formatted string
+    let csv = '"';
+    const headersData = $headers.map((i, row) =>
+      tfExportGrabRow(i, row, tableType)
+    );
+    csv += tfFormatExportRows(headersData);
+    csv += rowDelim;
+
+    const rowsData = $rows.map((i, row) => tfExportGrabRow(i, row, tableType));
+    csv += tfFormatExportRows(rowsData) + '"';
+    console.log("csv:");
+    console.log(csv);
+    // Data URI
+    let csvData =
+      "data:application/csv;charset=utf-8," + encodeURIComponent(csv);
+
+    // For IE (tested 10+)
+    if (window.navigator.msSaveOrOpenBlob) {
+      let blob = new Blob([decodeURIComponent(encodeURI(csv))], {
+        type: "text/csv;charset=utf-8;",
+      });
+      navigator.msSaveBlob(blob, filename);
+    } else {
+      let tmpEl = document.createElement("a");
+      $(tmpEl).attr({
+        download: filename,
+        href: csvData,
+        //,'target' : '_blank' //if you want it to open in a new window
+      });
+      tmpEl.click();
+    }
+
+    //------------------------------------------------------------
+    // CSV Helper Functions
+    //------------------------------------------------------------
+    // Format the output so it has the appropriate delimiters
+    function tfFormatExportRows(rows) {
+      return rows
+        .get()
+        .join(tmpRowDelim)
+        .split(tmpRowDelim)
+        .join(rowDelim)
+        .split(tmpColDelim)
+        .join(colDelim);
+    }
+    // Grab and format a row from the table
+    function tfExportGrabRow(i, row, tableType) {
+      let $row = jQuery(row);
+      //for some reason $cols = $row.find('td') || $row.find('th') won't work...
+      let $cols = $row.find("td, th").not(".hidden").not(".check-column");
+      // ignore some columns based on list page type
+      $cols =
+        "payments" === tableType
+          ? $cols.not(".column-actions").not(".column-invoice")
+          : $cols;
+      return $cols.map(tfExportGrabCol).get().join(tmpColDelim);
+    }
+    // Grab and format a column from the table
+    function tfExportGrabCol(j, col) {
+      let $col = $(col);
+      let $text = $col.filter(":visible").text().trim();
+
+      return $text.replace('"', '""'); // escape double quotes
+    }
+  }
 })(jQuery);
