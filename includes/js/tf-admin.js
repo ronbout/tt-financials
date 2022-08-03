@@ -10,6 +10,8 @@
       $(".display-details-btn").length && loadDetailToggle();
       $(".check-venue-product-payment").length && loadVenuePaymentCheckboxes();
       $(".payments-list-bulk-cb").length && loadPaymentListPageCheckboxes();
+      $(".transactions-list-bulk-cb").length &&
+        loadTransactionListPageCheckboxes();
     }
 
     if ($documentBody.hasClass("woocommerce_page_wc-settings")) {
@@ -188,6 +190,36 @@
     checkMarkPaidDisabled();
   };
 
+  const loadTransactionListPageCheckboxes = () => {
+    $("[id^=cb-select-all-]").change(function () {
+      checkExportDisabled();
+    });
+
+    $("#doaction").click(function (e) {
+      let bulkAction = $("#bulk-action-selector-top").val();
+      if ("bulk-export" === bulkAction) {
+        e.preventDefault();
+        const dt = new Date();
+        const dateStr =
+          dt.getFullYear() + "-" + dt.getMonth() + "-" + dt.getDate();
+        let outputFile = `export-transactions-${dateStr}.csv`;
+        // CSV
+        tfExportTableToCSV.apply(this, [
+          jQuery("#tf-transactions-form table.transactions"),
+          outputFile,
+          "transactions",
+        ]);
+      } else {
+        e.preventDefault();
+      }
+    });
+
+    $(".transactions-list-bulk-cb").change(function (e) {
+      checkExportDisabled();
+    });
+    checkExportDisabled();
+  };
+
   const tfMakePayments = () => {
     $("#venues-list-page-spinner").addClass("is-active");
     // select all checked products and put into array of objects by venue id
@@ -315,6 +347,23 @@
           "bulk-export" === $(this).val() ||
           null === $(this).val()
         ) {
+          $(this).val(-1).change();
+        }
+      });
+    }
+  };
+
+  const checkExportDisabled = () => {
+    let $bulkSelector = $("[id^=bulk-action-selector-]");
+    let $bulkExportOption = $bulkSelector.children(
+      "option[value='bulk-export']"
+    );
+    if ($(".transactions-list-bulk-cb:checked").length) {
+      $bulkExportOption.prop("disabled", false);
+    } else {
+      $bulkExportOption.attr("disabled", true);
+      $bulkSelector.each(function () {
+        if ("bulk-export" === $(this).val() || null === $(this).val()) {
           $(this).val(-1).change();
         }
       });
@@ -556,7 +605,7 @@
           $cols = $cols.not(".column-invoice");
           break;
         case "venues":
-        case "transaction":
+        case "transactions":
         default:
           $cols = $cols;
       }
@@ -565,7 +614,11 @@
     // Grab and format a column from the table
     function tfExportGrabCol(j, col) {
       let $col = $(col);
-      let $text = $col.filter(":visible").text().trim();
+      let $text = $col
+        .filter(":visible")
+        .text()
+        .trim()
+        .replace("Filter By", "");
 
       return $text.replace('"', '""'); // escape double quotes
     }

@@ -644,7 +644,7 @@ function tf_build_trans_admin_list_table() {
 		<div id="tf_order_trans">		
       <?php order_trans_update_entry($cur_page) ?>
 			<div id="tf_post_body">	
-				<form id="tf-order-trans-form" method="get">	
+				<form id="tf-transactions-form" method="get">	
            <?php $tf_trans_table->views() ?>
 					<input type="hidden" name="page" value="<?php echo $cur_page ?>" />				
 					<?php 
