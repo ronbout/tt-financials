@@ -269,6 +269,7 @@ class TFVenues_list_table extends Taste_list_table {
 
   protected function get_bulk_actions() {
     $bulk_actions = array(
+      'bulk-export' => "Export",
       'make_payment' => "Make Payment",
     );
     return $bulk_actions;

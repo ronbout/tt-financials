@@ -333,7 +333,7 @@ class TFTRans_list_table extends Taste_list_table {
   }
  
 	protected function column_cb($item) {
-		return "<input type='checkbox' name='ot-list-cb' value='{$item['id']}'>";
+		return "<input type='checkbox' name='transactions-list-cb' class='transactions-list-bulk-cb'  value='{$item['id']}'>";
 	}
   
   public function no_items() {

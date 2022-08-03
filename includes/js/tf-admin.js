@@ -137,6 +137,18 @@
       if ("make_payment" === bulkAction) {
         e.preventDefault();
         tfMakePayments();
+      } else if ("bulk-export" === bulkAction) {
+        e.preventDefault();
+        const dt = new Date();
+        const dateStr =
+          dt.getFullYear() + "-" + dt.getMonth() + "-" + dt.getDate();
+        let outputFile = `export-venues-${dateStr}.csv`;
+        // CSV
+        tfExportTableToCSV.apply(this, [
+          jQuery("#tf-venues-form table.venues"),
+          outputFile,
+          "venues",
+        ]);
       } else {
         e.preventDefault();
       }
@@ -288,12 +300,21 @@
     let $makePaymentOption = $bulkSelector.children(
       "option[value='make_payment']"
     );
+    let $bulkExportOption = $bulkSelector.children(
+      "option[value='bulk-export']"
+    );
     if ($(".check-venue-product-payment:checked").length) {
       $makePaymentOption.prop("disabled", false);
+      $bulkExportOption.prop("disabled", false);
     } else {
       $makePaymentOption.attr("disabled", true);
+      $bulkExportOption.attr("disabled", true);
       $bulkSelector.each(function () {
-        if ("make_payment" === $(this).val() || null === $(this).val()) {
+        if (
+          "make_payment" === $(this).val() ||
+          "bulk-export" === $(this).val() ||
+          null === $(this).val()
+        ) {
           $(this).val(-1).change();
         }
       });
@@ -315,7 +336,7 @@
       $bulkSelector.each(function () {
         if (
           "mark-paid" === $(this).val() ||
-          "bulk-exort" === $(this).val() ||
+          "bulk-export" === $(this).val() ||
           null === $(this).val()
         ) {
           $(this).val(-1).change();
@@ -463,7 +484,9 @@
    */
   function tfExportTableToCSV($table, filename, tableType) {
     const $headers = $table.children("thead").children("tr");
-    const $rows = $table.find(".payments-list-bulk-cb:checked").closest("tr");
+    const $rows = $table
+      .find(`.${tableType}-list-bulk-cb:checked`)
+      .closest("tr");
 
     // Temporary delimiter characters unlikely to be typed by keyboard
     // This is to avoid accidentally splitting the actual contents
@@ -522,12 +545,21 @@
     function tfExportGrabRow(i, row, tableType) {
       let $row = jQuery(row);
       //for some reason $cols = $row.find('td') || $row.find('th') won't work...
-      let $cols = $row.find("td, th").not(".hidden").not(".check-column");
+      let $cols = $row
+        .find("td, th")
+        .not(".hidden")
+        .not(".check-column")
+        .not(".column-actions");
       // ignore some columns based on list page type
-      $cols =
-        "payments" === tableType
-          ? $cols.not(".column-actions").not(".column-invoice")
-          : $cols;
+      switch (tableType) {
+        case "payments":
+          $cols = $cols.not(".column-invoice");
+          break;
+        case "venues":
+        case "transaction":
+        default:
+          $cols = $cols;
+      }
       return $cols.map(tfExportGrabCol).get().join(tmpColDelim);
     }
     // Grab and format a column from the table
