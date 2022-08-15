@@ -24,6 +24,7 @@ function tfinancial_add_transaction_table() {
 		`batch_id` BIGINT(20) UNSIGNED NULL DEFAULT NULL,
 		`batch_timestamp` TIMESTAMP NULL DEFAULT NULL,
 		`order_date` DATETIME NOT NULL,
+		`order_payment_method` CHAR(30) NULL DEFAULT NULL COLLATE 'utf8_general_ci',
 		`product_id` BIGINT(20) NOT NULL,
 		`product_price` DECIMAL(19,4) UNSIGNED NOT NULL,
 		`quantity` DECIMAL(19,4) NULL DEFAULT NULL,
