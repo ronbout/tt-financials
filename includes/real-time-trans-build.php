@@ -50,11 +50,13 @@ function retrieve_redeem_order_info($order_item_list) {
       GROUP_CONCAT( cpn_look.coupon_id ) AS coupon_ids,
       GROUP_CONCAT( cpn_post.post_title ) AS coupon_codes,
       wclook.coupon_amount, op.post_date AS order_date, wclook.customer_id,
-			cust.first_name, cust.last_name, cust.email
+			cust.first_name, cust.last_name, cust.email, pay_method.meta_value as ord_pay_method
     FROM {$wpdb->prefix}wc_order_product_lookup wclook
       JOIN {$wpdb->prefix}posts op ON op.ID = wclook.order_id 
       JOIN {$wpdb->prefix}woocommerce_order_items oi ON oi.order_item_id = wclook.order_item_id
       JOIN {$wpdb->prefix}woocommerce_order_itemmeta oim ON oim.order_item_id = wclook.order_item_id
+			LEFT JOIN {$wpdb->prefix}postmeta pay_method on pay_method.post_id = wclook.order_id
+        AND pay_method.meta_key = '_payment_method'
       LEFT JOIN {$wpdb->prefix}wc_order_coupon_lookup cpn_look ON cpn_look.order_id = wclook.order_id
       LEFT JOIN {$wpdb->prefix}posts cpn_post ON cpn_post.ID = cpn_look.coupon_id
       LEFT JOIN {$wpdb->prefix}wc_customer_lookup cust ON cust.customer_id = wclook.customer_id
@@ -117,11 +119,13 @@ function retrieve_paid_order_info($order_item_list) {
 			GROUP_CONCAT( cpn_look.coupon_id ) AS coupon_ids,
 			GROUP_CONCAT( cpn_post.post_title ) AS coupon_codes,
 			wclook.coupon_amount, op.post_date AS order_date, wclook.customer_id,
-			cust.first_name, cust.last_name, cust.email
+			cust.first_name, cust.last_name, cust.email, pay_method.meta_value as ord_pay_method
 		FROM {$wpdb->prefix}wc_order_product_lookup wclook
 			JOIN {$wpdb->prefix}posts op ON op.ID = wclook.order_id 
 			JOIN {$wpdb->prefix}woocommerce_order_items oi ON oi.order_item_id = wclook.order_item_id
 			JOIN {$wpdb->prefix}woocommerce_order_itemmeta oim ON oim.order_item_id = wclook.order_item_id
+			LEFT JOIN {$wpdb->prefix}postmeta pay_method on pay_method.post_id = wclook.order_id
+        AND pay_method.meta_key = '_payment_method'
 			LEFT JOIN {$wpdb->prefix}wc_order_coupon_lookup cpn_look ON cpn_look.order_id = wclook.order_id
 			LEFT JOIN {$wpdb->prefix}posts cpn_post ON cpn_post.ID = cpn_look.coupon_id
       LEFT JOIN {$wpdb->prefix}wc_customer_lookup cust ON cust.customer_id = wclook.customer_id

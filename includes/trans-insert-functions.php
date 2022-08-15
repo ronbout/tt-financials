@@ -40,7 +40,8 @@ function insert_redeemed_trans_rows($redeemed_order_rows, $prod_data, $redeem_fl
 		(	order_id, order_item_id, transaction_date, trans_type, trans_amount, order_date, product_id,
 			product_price, quantity, gross_revenue, venue_id, venue_name, creditor_id, 
 			venue_creditor, coupon_id, coupon_code, coupon_value, net_cost, commission,
-			vat, gross_income, venue_due, redemption_date, customer_id, customer_name, customer_email )
+			vat, gross_income, venue_due, redemption_date, customer_id, customer_name, customer_email, 
+			order_payment_method )
 		VALUES 
 	";
 
@@ -62,6 +63,7 @@ function insert_redeemed_trans_rows($redeemed_order_rows, $prod_data, $redeem_fl
 		$customer_id = $order_info['customer_id'];
 		$customer_name = $order_info['last_name'] . ", " . $order_info['first_name'];
 		$customer_email = $order_info['email'];
+		$order_payment_method = $order_info['ord_pay_method'];
 
 		$curr_prod_values = tf_calc_net_payable($product_price, $product_vat, $product_comm, $quantity, true);
 		$gross_revenue = $curr_prod_values['gross_revenue'];
@@ -110,12 +112,13 @@ function insert_redeemed_trans_rows($redeemed_order_rows, $prod_data, $redeem_fl
     }
 
 		$sql .= "(%d, %d, %s, %s, %f, %s, %d, %f, %d, %f, %d, %s, %d,
-			 %s, %s, %s, %f, %f, %f, %f, %f, %f, %s, %d, %s, %s),";
+			 %s, %s, %s, %f, %f, %f, %f, %f, %f, %s, %d, %s, %s, %s),";
 
 		array_push( $prepare_values, $order_info['order_id'], $order_info['order_item_id'], $redeem_date, $trans_code, 
 			$trans_amount, 	$order_info['order_date'], $product_id, $product_price, $quantity, $gross_revenue, $venue_id, 
 			$venue_name,	$creditor_id, $venue_creditor, $order_info['coupon_ids'], $order_info['coupon_codes'], $coupon_value, 
-			$net_cost, $commission, $vat, $gross_income, $venue_due, $redeem_date, $customer_id, $customer_name, $customer_email);
+			$net_cost, $commission, $vat, $gross_income, $venue_due, $redeem_date, $customer_id, $customer_name, $customer_email,
+			$order_payment_method );
 
 	}
 
@@ -257,7 +260,8 @@ function insert_paid_trans_rows($paid_order_rows, $prod_data, $formatted_date=''
 		(	order_id, order_item_id, transaction_date, trans_type, trans_amount, order_date, product_id,
 			product_price, quantity, gross_revenue, venue_id, venue_name, creditor_id, 
 			venue_creditor, coupon_id, coupon_code, coupon_value, net_cost, commission,
-			vat, gross_income, venue_due, payment_id, payment_date, payment_status, customer_id, customer_name, customer_email )
+			vat, gross_income, venue_due, payment_id, payment_date, payment_status, customer_id, customer_name, 
+			customer_email, order_payment_method )
 		VALUES 
 	";
 
@@ -280,6 +284,7 @@ function insert_paid_trans_rows($paid_order_rows, $prod_data, $formatted_date=''
 		$customer_id = $order_info['customer_id'];
 		$customer_name = $order_info['last_name'] . ", " . $order_info['first_name'];
 		$customer_email = $order_info['email'];
+		$order_payment_method = $order_info['ord_pay_method'];
 
 		$curr_prod_values = tf_calc_net_payable($product_price, $product_vat, $product_comm, $quantity, true);
 		$gross_revenue = $curr_prod_values['gross_revenue'];
@@ -297,12 +302,12 @@ function insert_paid_trans_rows($paid_order_rows, $prod_data, $formatted_date=''
 		$trans_amount = $venue_due;
 
 		$sql .= "(%d, %d, %s, %s, %f, %s, %d, %f, %d, %f, %d, %s, %d,
-			 %s, %s, %s, %f, %f, %f, %f, %f, %f, %d, %s, %d, %d, %s, %s),";
+			 %s, %s, %s, %f, %f, %f, %f, %f, %f, %d, %s, %d, %d, %s, %s, %s),";
 
 		array_push( $prepare_values, $order_info['order_id'], $order_info['order_item_id'], $payment_date, $trans_code, 	$trans_amount, $order_info['order_date'], $product_id, $product_price, $quantity, $gross_revenue, $venue_id, 
 		$venue_name,	$creditor_id, $venue_creditor, $order_info['coupon_ids'], $order_info['coupon_codes'], $coupon_value, 
 		$net_cost, $commission, $vat, $gross_income, $venue_due, $payment_id, $payment_date, $payment_status, $customer_id,
-		$customer_name, $customer_email);
+		$customer_name, $customer_email, $order_payment_method);
 
 	}
 
