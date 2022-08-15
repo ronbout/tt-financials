@@ -39,6 +39,7 @@ class TFTRans_list_table extends Taste_list_table {
 			'batch_id' => "Batch ID",
 			'batch_timestamp' => "Batch Date",
 			'order_date' => "Order Date",
+      'order_payment_method' => "Order Payment<br> Method",
 			'product_id' => "Product<br> ID",
 			'product_price' => "Product Price",
 			'quantity' => "Item Quantity",
@@ -122,6 +123,7 @@ class TFTRans_list_table extends Taste_list_table {
       case 'trans_type':
       case 'transaction_date':
       case 'order_date':
+      case 'order_payment_method':
       case 'customer_id':
       case 'customer_name':
       case 'customer_email':
@@ -312,6 +314,7 @@ class TFTRans_list_table extends Taste_list_table {
       'trans_type' => array('trans_type', true), 
       'trans_amount' => array('trans_amount', true),
       'order_date' => array('order_date', true),
+      'order_payment_method' => array('order_payment_method', true),
       'product_id' => array('product_id', true),
       'customer_id' => array('customer_id', true),
       'customer_name' => array('customer_name', true),
