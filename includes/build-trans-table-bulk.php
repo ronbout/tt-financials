@@ -416,6 +416,8 @@ function insert_new_order_trans_rows($new_order_rows, $prod_data) {
 		$product_vat = $prod_data[$product_id]['vat'];
 		$venue_id = $prod_data[$product_id]['venue_id'];
 		$venue_name = $prod_data[$product_id]['venue_name'];
+		$creditor_id = $prod_data[$product_id]['creditor_id'];
+		$creditor_name = $prod_data[$product_id]['creditor_name'];
 		$quantity = $order_info['item_qty'];
 		$customer_id = $order_info['customer_id'];
 		$customer_name = $order_info['last_name'] . ", " . $order_info['first_name'];
@@ -431,8 +433,8 @@ function insert_new_order_trans_rows($new_order_rows, $prod_data) {
 		$gross_income = $vat + $commission;
 		$coupon_value = $order_info['coupon_amount'];
 		$net_cost = $gross_revenue - $coupon_value;
-		$creditor_id = $venue_id;
-		$venue_creditor = $venue_name;
+		$creditor_id = $creditor_id ? $creditor_id : $venue_id;
+		$venue_creditor = $creditor_name ? $creditor_name : $venue_name;
 
 		// need to check for any coupon code's that match a previous order.  
 		// Those are store credit coupons and orders created with them, get
@@ -592,6 +594,8 @@ function insert_refunded_trans_rows($refunded_order_rows, $prod_data) {
 		$product_vat = $prod_data[$product_id]['vat'];
 		$venue_id = $prod_data[$product_id]['venue_id'];
 		$venue_name = $prod_data[$product_id]['venue_name'];
+		$creditor_id = $prod_data[$product_id]['creditor_id'];
+		$creditor_name = $prod_data[$product_id]['creditor_name'];
 		$quantity = $order_info['item_qty'];
 		$customer_id = $order_info['customer_id'];
 		$customer_name = $order_info['last_name'] . ", " . $order_info['first_name'];
@@ -607,8 +611,8 @@ function insert_refunded_trans_rows($refunded_order_rows, $prod_data) {
 		$gross_income = $vat + $commission;
 		$coupon_value = $order_info['coupon_amount'];
 		$net_cost = $gross_revenue - $coupon_value;
-		$creditor_id = $venue_id;
-		$venue_creditor = $venue_name;
+		$creditor_id = $creditor_id ? $creditor_id : $venue_id;
+		$venue_creditor = $creditor_name ? $creditor_name : $venue_name;
 
 		// to determine the refund amount (trans_amount) 
 		// we need to test different refund scenarios
@@ -846,6 +850,8 @@ function insert_taste_credit_trans_rows($taste_credit_rows, $prod_data) {
 		$product_vat = $prod_data[$product_id]['vat'];
 		$venue_id = $prod_data[$product_id]['venue_id'];
 		$venue_name = $prod_data[$product_id]['venue_name'];
+		$creditor_id = $prod_data[$product_id]['creditor_id'];
+		$creditor_name = $prod_data[$product_id]['creditor_name'];
 		$quantity = $order_info['item_qty'];
 		$customer_id = $order_info['customer_id'];
 		$customer_name = $order_info['last_name'] . ", " . $order_info['first_name'];
@@ -861,8 +867,8 @@ function insert_taste_credit_trans_rows($taste_credit_rows, $prod_data) {
 		$gross_income = $vat + $commission;
 		$coupon_value = $order_info['coupon_amount'];
 		$net_cost = $gross_revenue - $coupon_value;
-		$creditor_id = $venue_id;
-		$venue_creditor = $venue_name;
+		$creditor_id = $creditor_id ? $creditor_id : $venue_id;
+		$venue_creditor = $creditor_name ? $creditor_name : $venue_name;
 
 		// to determine the store credi amount (trans_amount) 
 		// we need to retrieve the coupon and test different 

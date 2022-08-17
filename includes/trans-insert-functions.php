@@ -59,6 +59,8 @@ function insert_redeemed_trans_rows($redeemed_order_rows, $prod_data, $redeem_fl
 		$product_vat = $prod_data[$product_id]['vat'];
 		$venue_id = $prod_data[$product_id]['venue_id'];
 		$venue_name = $prod_data[$product_id]['venue_name'];
+		$creditor_id = $prod_data[$product_id]['creditor_id'];
+		$creditor_name = $prod_data[$product_id]['creditor_name'];
 		$quantity = $redeem_flg ? $order_info['item_qty'] : (int) $order_info['item_qty'] * -1;
 		$customer_id = $order_info['customer_id'];
 		$customer_name = $order_info['last_name'] . ", " . $order_info['first_name'];
@@ -74,8 +76,8 @@ function insert_redeemed_trans_rows($redeemed_order_rows, $prod_data, $redeem_fl
 		$gross_income = $vat + $commission;
 		$coupon_value = $redeem_flg ? $order_info['coupon_amount'] : $order_info['coupon_amount'] * -1;
 		$net_cost = $gross_revenue - $coupon_value;
-		$creditor_id = $venue_id;
-		$venue_creditor = $venue_name;
+		$creditor_id = $creditor_id ? $creditor_id : $venue_id;
+		$venue_creditor = $creditor_name ? $creditor_name : $venue_name;
 		$redeem_date = $formatted_date ? $formatted_date : $order_info['redeem_date'];
 		if (!$redeem_date) {
 			$order_dt = date_create($order_info['order_date']);
@@ -280,6 +282,8 @@ function insert_paid_trans_rows($paid_order_rows, $prod_data, $formatted_date=''
 		$product_vat = $prod_data[$product_id]['vat'];
 		$venue_id = $prod_data[$product_id]['venue_id'];
 		$venue_name = $prod_data[$product_id]['venue_name'];
+		$creditor_id = $prod_data[$product_id]['creditor_id'];
+		$creditor_name = $prod_data[$product_id]['creditor_name'];
 		$quantity = $order_info['item_qty'];
 		$customer_id = $order_info['customer_id'];
 		$customer_name = $order_info['last_name'] . ", " . $order_info['first_name'];
@@ -295,8 +299,8 @@ function insert_paid_trans_rows($paid_order_rows, $prod_data, $formatted_date=''
 		$gross_income = $vat + $commission;
 		$coupon_value = $order_info['coupon_amount'];
 		$net_cost = $gross_revenue - $coupon_value;
-		$creditor_id = $venue_id;
-		$venue_creditor = $venue_name;
+		$creditor_id = $creditor_id ? $creditor_id : $venue_id;
+		$venue_creditor = $creditor_name ? $creditor_name : $venue_name;
 
 		$trans_code = "Creditor Payment";
 		$trans_amount = $venue_due;
@@ -338,7 +342,7 @@ function build_product_data($prod_ids) {
 	$pid_placeholders = implode(', ', $pid_placeholders);
 
 	$product_rows = $wpdb->get_results($wpdb->prepare("
-			SELECT  pm.post_id, v.venue_id, v.name AS venue_name,
+			SELECT  pm.post_id, v.venue_id, v.name AS venue_name, v.creditor_id, vcred.creditor_name,
 							MAX(CASE WHEN pm.meta_key = '_sale_price' then pm.meta_value ELSE NULL END) as price,
 							MAX(CASE WHEN pm.meta_key = 'vat' then pm.meta_value ELSE NULL END) as vat,
 							MAX(CASE WHEN pm.meta_key = 'commission' then pm.meta_value ELSE NULL END) as commission
@@ -346,6 +350,7 @@ function build_product_data($prod_ids) {
 			JOIN {$wpdb->prefix}posts p ON p.id = pm.post_id
 			LEFT JOIN {$wpdb->prefix}taste_venue_products vp ON vp.product_id = pm.post_id
 			LEFT JOIN {$wpdb->prefix}taste_venue v ON v.venue_id = vp.venue_id
+			LEFT JOIN {$wpdb->prefix}taste_venue_creditor vcred ON vcred.creditor_id = v.creditor_id
 			WHERE pm.post_id in ($pid_placeholders)                 
 			GROUP BY
 				pm.post_id
