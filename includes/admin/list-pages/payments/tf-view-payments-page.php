@@ -36,6 +36,8 @@ class TFPayments_list_table extends Taste_list_table {
       'amount' => "Payment<br> Amount",
 			'venue_id' => "Venue ID",
 			'venue_name' => "Venue Name",
+			'creditor_id' => "Creditor ID",
+			'creditor_name' => "Creditor Name",
       'product_ids' => "Product IDs",
       'pay_comment' => "Comment",
       'comment_visible_venues' => "Comment Visible<br> to Venues",
@@ -132,6 +134,8 @@ class TFPayments_list_table extends Taste_list_table {
       case 'payment_date':
         return explode(' ', $item[$column_name])[0];
       case 'amount':
+      case 'creditor_id':
+      case 'creditor_name':
       case 'pay_comment':
         return $item[$column_name] ? $item[$column_name] : "N/A";
       default:
@@ -143,6 +147,7 @@ class TFPayments_list_table extends Taste_list_table {
     $hidden_cols = array(
       'attach_vat_invoice',
       'details',
+      'creditor_id',
     );
     
     return $hidden_cols;
@@ -301,6 +306,8 @@ class TFPayments_list_table extends Taste_list_table {
     $sort_array = array(
       'payment_id' => array('payment_id', true),
       'venue_id' => array('venue_id', true),
+      'creditor_id' => array('creditor_id', false),
+      'creditor_name' => array('creditor_name', false),
       'payment_date' => array('payment_date', true),
       'amount' => array('amount', true), 
       'venue_name' => array('venue_name', true),
@@ -512,12 +519,13 @@ class TFPayments_list_table extends Taste_list_table {
       FROM {$wpdb->prefix}taste_venue_payment_products pprods
         LEFT JOIN {$wpdb->prefix}taste_venue_payment pay ON pay.id = pprods.payment_id
         LEFT JOIN {$wpdb->prefix}taste_venue ven ON ven.venue_id = pay.venue_id
+        LEFT JOIN {$wpdb->prefix}taste_venue_creditor vcred ON vcred.creditor_id = ven.creditor_id
         LEFT JOIN {$wpdb->prefix}taste_venue_products vp ON vp.product_id = pprods.product_id
 				LEFT JOIN {$wpdb->prefix}taste_venue_payment_order_item_xref oix ON oix.payment_id = pprods.payment_id
         $filter_test";
   
     $sql = "
-      SELECT pay.id AS payment_id, pay.payment_date, pay.amount, 
+      SELECT pay.id AS payment_id, pay.payment_date, pay.amount, vcred.creditor_name, ven.creditor_id,
         pay.venue_id, ven.name as venue_name, pay.comment as pay_comment, pay.comment_visible_venues, 
         pay.attach_vat_invoice, pay.status AS payment_status,  oix.order_item_id AS pbo_flag,
         GROUP_CONCAT(pprods.product_id) as product_ids,
