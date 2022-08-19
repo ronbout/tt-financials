@@ -42,6 +42,8 @@ class TFVenues_list_table extends Taste_list_table {
       'country' => "Country",
       'phone' => "Phone",
       'venue_type' => "Venue Type",
+      'creditor_id' => "Creditor ID",
+      'creditor_name' => "Creditor Name",
       'user_registered' => "Registration<br> Date",
       'voucher_pct' => "Voucher Pct",
       'paid_member' => "Paid Member",
@@ -119,6 +121,8 @@ class TFVenues_list_table extends Taste_list_table {
       case 'country':
       case 'phone':
       case 'venue_type':
+      case 'creditor_id':
+      case 'creditor_name':
       case 'voucher_pct':
         return isset($item[$column_name]) ? $item[$column_name] : "N/A";
       default:
@@ -136,6 +140,7 @@ class TFVenues_list_table extends Taste_list_table {
       'phone',
       'country',
       'user_login',
+      'creditor_id',
       'paid_member',
       'member_renewal_date',
       'membership_cost',
@@ -251,6 +256,8 @@ class TFVenues_list_table extends Taste_list_table {
       'country' => array('country', true),
       'phone' => array('phone', true),
       'venue_type' => array('venue_type', true),
+      'creditor_id' => array('creditor_id', false),
+      'creditor_name' => array('creditor_name', false),
       'user_registered' => array('user_registered', true),
       'voucher_pct' => array('voucher_pct', true),
       'products' => array('products', true),
@@ -391,9 +398,10 @@ class TFVenues_list_table extends Taste_list_table {
     
     if ($use_finance_test) {
       $sql = "
-        SELECT ven.*, u.user_email, u.user_login, u.user_registered
+        SELECT ven.*, u.user_email, u.user_login, u.user_registered, vcred.creditor_name
         FROM {$wpdb->prefix}taste_venue ven
         JOIN $wpdb->users u on u.ID = ven.venue_id
+        LEFT JOIN {$wpdb->prefix}taste_venue_creditor vcred ON vcred.creditor_id = ven.creditor_id
         $filter_test
       ";
       
@@ -411,14 +419,17 @@ class TFVenues_list_table extends Taste_list_table {
   
       if (in_array($order_by, array('user_email', 'user_login', 'user_registered'))) {
         $db_order_by = "u.$order_by";
+      } elseif ('creditor_name' == $order_by) {
+        $db_order_by = "vcred.creditor_name";
       } else {
         $db_order_by = "ven.$order_by";
       }
     
       $sql = "
-        SELECT ven.*, u.user_email, u.user_login, u.user_registered
+        SELECT ven.*, u.user_email, u.user_login, u.user_registered, vcred.creditor_name
         FROM {$wpdb->prefix}taste_venue ven
         JOIN $wpdb->users u on u.ID = ven.venue_id
+        LEFT JOIN {$wpdb->prefix}taste_venue_creditor vcred ON vcred.creditor_id = ven.creditor_id
         $filter_test
         ORDER BY $db_order_by $order
         LIMIT $per_page
