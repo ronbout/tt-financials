@@ -54,7 +54,7 @@ define('TASTE_PAYMENT_STATUS_ADJ', 2);
 define('TASTE_PAYMENT_STATUS_PENDING', 3);
 define('TASTE_PAYMENT_STATUS_PROCESSING', 4);
 define('TASTE_DEFAULT_PAYMENT_STATUS', TASTE_PAYMENT_STATUS_PAID);
-define('TASTE_PBO_NET_PAYABLE_THRESHOLD', get_option('tf_financials_rounding_threshold'));
+define('TASTE_PBO_NET_PAYABLE_THRESHOLD', get_option('tf_financials_rounding_threshold', 0.1));
 define('TASTE_PBO_BALANCE_FILTER_THRESHOLD', 0);
 define('TASTE_TRANS_CRON_HOOK', 'taste_trans_cron_event');
 

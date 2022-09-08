@@ -105,6 +105,7 @@ function build_venue_details_table($product_rows, $venue_id, $balance_filter='',
 						$net_payable = number_format($net_payable,2);
 						$balance_due = number_format($balance_due,2);
 						$selected_order_amount = number_format($selected_order_amount,2);
+						$potential_order_amount = number_format($potential_order_amount,2);
 						
 						echo "
 						<tr  id='details-row-$venue_id-$product_id' class='details-row-$venue_id' title='$prod_title' 

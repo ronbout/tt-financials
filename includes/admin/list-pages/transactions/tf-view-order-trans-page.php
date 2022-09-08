@@ -667,7 +667,7 @@ function tf_build_trans_admin_list_table() {
 }
 
 function order_trans_update_entry($cur_page) {
-  $refresh_date = get_option('tf_financials_trans_start_date');
+  $refresh_date = get_option('tf_financials_trans_start_date','2020-01-01');
   ?>
     <div class="tf_order_trans_update_entry">
       <div><button data-page="<?php echo $cur_page ?>" id="run-build-trans" type="button">Update Transactions Table</button>	</div>
