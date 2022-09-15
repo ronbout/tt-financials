@@ -14,7 +14,10 @@
         loadTransactionListPageCheckboxes();
     }
 
-    if ($documentBody.hasClass("woocommerce_page_wc-settings")) {
+    if (
+      $documentBody.hasClass("woocommerce_page_wc-settings") ||
+      $documentBody.hasClass("woocommerce_page_view-order-transactions")
+    ) {
       $("#run-build-trans").length && tfLoadRunTransButton();
     }
   });
