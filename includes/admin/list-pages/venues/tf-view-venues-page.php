@@ -415,6 +415,8 @@ class TFVenues_list_table extends Taste_list_table {
         $filter_test .= $filter_test ? " AND " : " WHERE ";
         $filter_test .= "ven.venue_id = %d";
         $db_parms[] = $venue_id;
+        // no order by matters.  To not break code, just set to venue id
+        $order_by = 'venue_id';
       }
   
       if (in_array($order_by, array('user_email', 'user_login', 'user_registered'))) {
