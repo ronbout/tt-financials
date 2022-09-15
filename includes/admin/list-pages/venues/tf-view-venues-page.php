@@ -576,7 +576,7 @@ class TFVenues_list_table extends Taste_list_table {
           break;
         case 'zero':
           $tmp_rows = array_filter($tmp_rows, function ($tmp_row)  {
-            return abs(round($tmp_row['balance_due'], 2)) < TASTE_PBO_BALANCE_FILTER_THRESHOLD;
+            return abs(round($tmp_row['balance_due'], 2)) <= TASTE_PBO_BALANCE_FILTER_THRESHOLD;
           } );
           break;
           break;
